@@ -121,6 +121,11 @@ static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *idx, struct geom
                 && wavefront_parse_vertex_color(buffer, idx, out_geometry, 1)
                 && wavefront_parse_vertex_color(buffer, idx, out_geometry, 2);
 
+        printf("%f %f %f ; %f %f %f\n",
+            RANGE_LAST(out_geometry->vertices).x, RANGE_LAST(out_geometry->vertices).y, RANGE_LAST(out_geometry->vertices).z,
+            RANGE_LAST(out_geometry->colors).r, RANGE_LAST(out_geometry->colors).g, RANGE_LAST(out_geometry->colors).b);
+
+
         // parse w
         if (!wavefront_parse_vertex_component(buffer, idx, out_geometry, 3)) {
             // if no w, then set the default value
@@ -177,6 +182,7 @@ static f32 read_value(const BUFFER *buffer, size_t *idx)
     f32 sign = 1.f;
     f32 integral_part = 0.f;
     f32 fract_part = 0.f;
+    f32 fract_div = 1.f;
 
     if (buffer->data[*idx] == '-') {
         sign = -1;
@@ -202,8 +208,8 @@ static f32 read_value(const BUFFER *buffer, size_t *idx)
         *idx += 1;
 
         while ((*idx < buffer->length) && is_numerical(buffer->data[*idx])) {
-            fract_part /= 10.f;
-            fract_part += (f32) (buffer->data[*idx] - '0') / 10.f;
+            fract_div *= 10.f;
+            fract_part += (f32) (buffer->data[*idx] - '0') / fract_div;
             *idx += 1;
         }
     }
