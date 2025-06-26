@@ -18,14 +18,19 @@ struct shader {
     GLuint shader_handle;
 };
 
-union vertex {
-    union { struct { f32 x, y, z, w; }; f32 array[4u]; } coords;
-    union { struct { f32 r, g, b; }; f32 array[3u]; } color;
-};
+union vertex { struct { f32 x, y, z, w; }; f32 array[4u]; };
+union color  { struct { f32 r, g, b; }; f32 array[3u]; };
 
 struct geometry {
     RANGE(char) *name;
     RANGE(union vertex) *vertices;
+    RANGE(union color) *colors;
+};
+
+struct object {
+    GLuint vao;
+
+    GLuint vbo[2];
 };
 
 struct ogl_target ogl_target_create(const char *name, u32 width, u32 height);
@@ -39,5 +44,8 @@ void shader_destroy(struct shader shader);
 struct geometry create_geometry_empty(struct allocator alloc);
 void destroy_geometry(struct allocator alloc, struct geometry *geometry);
 void wavefront_obj_load_geometry(BUFFER *obj_source, struct geometry *out_geometry);
+
+struct object create_object_from_geometry(struct geometry geometry);
+void destroy_object(struct object *object);
 
 #endif

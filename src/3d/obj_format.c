@@ -114,15 +114,17 @@ static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *idx, struct geom
         is_valid = wavefront_parse_vertex_component(buffer, idx, out_geometry, 0)
                 && wavefront_parse_vertex_component(buffer, idx, out_geometry, 1)
                 && wavefront_parse_vertex_component(buffer, idx, out_geometry, 2);
+
+        range_push(RANGE_TO_ANY(out_geometry->colors), &(union color) { 0 });
         // parse the required r, g, and b
-        is_valid =is_valid && wavefront_parse_vertex_color(buffer, idx, out_geometry, 0)
+        is_valid = is_valid && wavefront_parse_vertex_color(buffer, idx, out_geometry, 0)
                 && wavefront_parse_vertex_color(buffer, idx, out_geometry, 1)
                 && wavefront_parse_vertex_color(buffer, idx, out_geometry, 2);
 
         // parse w
         if (!wavefront_parse_vertex_component(buffer, idx, out_geometry, 3)) {
             // if no w, then set the default value
-            RANGE_LAST(out_geometry->vertices).coords.array[3] =  1.0;
+            RANGE_LAST(out_geometry->vertices).array[3] =  1.0;
         }
 
         return is_valid;
@@ -135,7 +137,7 @@ static i32 wavefront_parse_vertex_component(const BUFFER *buffer, size_t *idx, s
 {
     // read a value
     if ((buffer->data[*idx] == '+') || (buffer->data[*idx] == '-') || is_numerical(buffer->data[*idx])) {
-        RANGE_LAST(out_geometry->vertices).coords.array[vertex_comp] = read_value(buffer, idx);
+        RANGE_LAST(out_geometry->vertices).array[vertex_comp] = read_value(buffer, idx);
         return 1;
     }
 
@@ -145,7 +147,7 @@ static i32 wavefront_parse_vertex_component(const BUFFER *buffer, size_t *idx, s
 static i32 wavefront_parse_vertex_color(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry, u8 color_comp)
 {
     if (is_numerical(buffer->data[*idx])) {
-        RANGE_LAST(out_geometry->vertices).color.array[color_comp] = read_value(buffer, idx);
+        RANGE_LAST(out_geometry->colors).array[color_comp] = read_value(buffer, idx);
         return 1;
     }
 
