@@ -33,6 +33,7 @@ struct object {
     GLuint vbo[2];
 
     GLuint shader_program;
+    size_t vertices_nb;
 };
 
 struct ogl_target ogl_target_create(const char *name, u32 width, u32 height);

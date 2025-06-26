@@ -121,11 +121,6 @@ static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *idx, struct geom
                 && wavefront_parse_vertex_color(buffer, idx, out_geometry, 1)
                 && wavefront_parse_vertex_color(buffer, idx, out_geometry, 2);
 
-        printf("%f %f %f ; %f %f %f\n",
-            RANGE_LAST(out_geometry->vertices).x, RANGE_LAST(out_geometry->vertices).y, RANGE_LAST(out_geometry->vertices).z,
-            RANGE_LAST(out_geometry->colors).r, RANGE_LAST(out_geometry->colors).g, RANGE_LAST(out_geometry->colors).b);
-
-
         // parse w
         if (!wavefront_parse_vertex_component(buffer, idx, out_geometry, 3)) {
             // if no w, then set the default value
