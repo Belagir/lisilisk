@@ -37,7 +37,7 @@ i32 file_read(const char *path, BUFFER *out_buffer)
     fseek(fd, 0, SEEK_SET);
     fread(out_buffer->data, length, 1, fd);
     out_buffer->length = length;
-    range_push(RANGE_TO_ANY(out_buffer), '\0');
+    range_push(RANGE_TO_ANY(out_buffer), &(char) {'\0'});
 
 cleanup_on_error:
     fclose(fd);

@@ -23,7 +23,7 @@ CC = gcc-13
 ## compilation flags
 CFLAGS += -Wall -Wextra -Wpedantic -fanalyzer  -Werror
 CFLAGS += -Wno-error=unused-function
-CFLAGS += `sdl2-config --cflags`
+CFLAGS += -lGL `sdl2-config --cflags`
 CFLAGS += -g -std=c2x
 
 ## linker flags
