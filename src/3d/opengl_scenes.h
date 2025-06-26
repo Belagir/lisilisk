@@ -23,7 +23,7 @@ union vertex {
     union { struct { f32 r, g, b; }; f32 array[3u]; } color;
 };
 
-struct object {
+struct geometry {
     RANGE(char) *name;
     RANGE(union vertex) *vertices;
 };
@@ -36,8 +36,8 @@ struct shader shader_compile_fragment(BUFFER *shader_source);
 
 void shader_destroy(struct shader shader);
 
-struct object create_object_empty(struct allocator alloc);
-void destroy_object(struct allocator alloc, struct object *object);
-void wavefront_obj_load(BUFFER *obj_source, struct object *out_object);
+struct geometry create_geometry_empty(struct allocator alloc);
+void destroy_geometry(struct allocator alloc, struct geometry *geometry);
+void wavefront_obj_load_geometry(BUFFER *obj_source, struct geometry *out_geometry);
 
 #endif
