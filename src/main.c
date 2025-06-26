@@ -21,6 +21,14 @@ int main(void)
     struct object object = create_object_from_geometry(geometry);
     object_set_shaders(&object, vert, frag);
 
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    render_object(object);
+
+    SDL_GL_SwapWindow(target.sdl_window);
+    SDL_Delay(3000);
+
     destroy_geometry(make_system_allocator(), &geometry);
     destroy_object(&object);
     shader_destroy(vert);

@@ -65,6 +65,8 @@ struct object create_object_from_geometry(struct geometry geometry)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(1);
 
+    glBindVertexArray(0);
+
     return new_object;
 }
 
@@ -83,4 +85,20 @@ void destroy_object(struct object *object)
     glDeleteVertexArrays(1, &object->vao);
 
     *object = (struct object) { 0 };
+}
+
+/**
+ * @brief
+ *
+ * @param object
+ */
+void render_object(struct object object)
+{
+    glBindVertexArray(object.vao);
+    glUseProgram(object.shader_program);
+
+    glDrawArrays(GL_LINE_LOOP, 0, 8);
+
+    glUseProgram(0);
+    glBindVertexArray(0);
 }

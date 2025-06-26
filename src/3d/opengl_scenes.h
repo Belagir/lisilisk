@@ -50,5 +50,6 @@ void wavefront_obj_load_geometry(BUFFER *obj_source, struct geometry *out_geomet
 struct object create_object_from_geometry(struct geometry geometry);
 void destroy_object(struct object *object);
 void object_set_shaders(struct object *object, struct shader vertex, struct shader frag);
+void render_object(struct object object);
 
 #endif

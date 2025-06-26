@@ -42,8 +42,6 @@ void object_set_shaders(struct object *object, struct shader vertex, struct shad
         return;
     }
 
-    glBindVertexArray(object->vao);
-
     object->shader_program = glCreateProgram();
     glAttachShader(object->shader_program, vertex.shader_handle);
     glAttachShader(object->shader_program, frag.shader_handle);
@@ -54,8 +52,6 @@ void object_set_shaders(struct object *object, struct shader vertex, struct shad
     glLinkProgram(object->shader_program);
 
     check_shader_linking(object->shader_program);
-
-    glUseProgram(object->shader_program);
 }
 
 /**
