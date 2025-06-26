@@ -50,14 +50,20 @@ struct object create_object_from_geometry(struct geometry geometry)
     (void) geometry;
 
     glGenVertexArrays(1, &new_object.vao);
+
     glBindVertexArray(new_object.vao);
 
     glGenBuffers(2, new_object.vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, new_object.vbo[0]);
-    // ...
+    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(GLfloat) * geometry.vertices->length, geometry.vertices->data, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
     glBindBuffer(GL_ARRAY_BUFFER, new_object.vbo[1]);
-    // ...
+    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * geometry.colors->length, geometry.colors->data, GL_STATIC_DRAW);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
 
     return new_object;
 }
@@ -78,4 +84,3 @@ void destroy_object(struct object *object)
 
     *object = (struct object) { 0 };
 }
-

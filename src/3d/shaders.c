@@ -5,6 +5,7 @@
 static char static_shader_diagnostic_buffer[SHADER_DIAGNOSTIC_MAX_LENGTH] = { 0 };
 
 static i32 check_shader_compilation(GLuint shader_handle);
+static i32 check_shader_linking(GLuint program);
 static struct shader shader_compile(BUFFER *shader_source, GLenum kind);
 
 /**
@@ -31,10 +32,62 @@ struct shader shader_compile_fragment(BUFFER *shader_source)
 /**
  * @brief
  *
+ * @param object
+ * @param vertex
+ * @param frag
+ */
+void object_set_shaders(struct object *object, struct shader vertex, struct shader frag)
+{
+    if (!object) {
+        return;
+    }
+
+    glBindVertexArray(object->vao);
+
+    object->shader_program = glCreateProgram();
+    glAttachShader(object->shader_program, vertex.shader_handle);
+    glAttachShader(object->shader_program, frag.shader_handle);
+
+    glBindAttribLocation(object->shader_program, 0, "in_Position");
+    glBindAttribLocation(object->shader_program, 1, "in_Color");
+
+    glLinkProgram(object->shader_program);
+
+    check_shader_linking(object->shader_program);
+
+    glUseProgram(object->shader_program);
+}
+
+/**
+ * @brief
+ *
  * @param shader_handle
  * @return i32
  */
-i32 check_shader_compilation(GLuint shader_handle)
+static i32 check_shader_linking(GLuint program)
+{
+    i32 is_linked = 0;
+    GLint diag_length = SHADER_DIAGNOSTIC_MAX_LENGTH;
+
+    glGetProgramiv(program, GL_LINK_STATUS, &is_linked);
+
+    if (!is_linked) {
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &diag_length);
+        glGetProgramInfoLog(program, diag_length, &diag_length, static_shader_diagnostic_buffer);
+        fprintf(stderr, "%s\n", static_shader_diagnostic_buffer);
+    }
+
+    return is_linked;
+}
+
+
+/**
+ * @brief
+ *
+ * @param shader_handle
+ * @return i32
+ */
+static i32 check_shader_compilation(GLuint shader_handle)
 {
     i32 is_compiled = 0;
     GLint diag_length = SHADER_DIAGNOSTIC_MAX_LENGTH;

@@ -31,6 +31,8 @@ struct object {
     GLuint vao;
 
     GLuint vbo[2];
+
+    GLuint shader_program;
 };
 
 struct ogl_target ogl_target_create(const char *name, u32 width, u32 height);
@@ -47,5 +49,6 @@ void wavefront_obj_load_geometry(BUFFER *obj_source, struct geometry *out_geomet
 
 struct object create_object_from_geometry(struct geometry geometry);
 void destroy_object(struct object *object);
+void object_set_shaders(struct object *object, struct shader vertex, struct shader frag);
 
 #endif

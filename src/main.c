@@ -9,16 +9,22 @@ int main(void)
             sizeof(*buffer->data), 2048);
 
     file_read("shaders/dummy.vert", buffer);
-    shader_destroy(shader_compile_vertex(buffer));
-
+    struct shader vert = shader_compile_vertex(buffer);
 
     file_read("shaders/dummy.frag", buffer);
-    shader_destroy(shader_compile_fragment(buffer));
+    struct shader frag = shader_compile_fragment(buffer);
 
-    struct geometry obj = create_geometry_empty(make_system_allocator());
     file_read("models/cube.obj", buffer);
-    wavefront_obj_load_geometry(buffer, &obj);
-    destroy_geometry(make_system_allocator(), &obj);
+    struct geometry geometry = create_geometry_empty(make_system_allocator());
+    wavefront_obj_load_geometry(buffer, &geometry);
+
+    struct object object = create_object_from_geometry(geometry);
+    object_set_shaders(&object, vert, frag);
+
+    destroy_geometry(make_system_allocator(), &geometry);
+    destroy_object(&object);
+    shader_destroy(vert);
+    shader_destroy(frag);
 
     range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer));
     ogl_target_destroy(&target);
