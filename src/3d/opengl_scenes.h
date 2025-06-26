@@ -18,7 +18,10 @@ struct shader {
     GLuint shader_handle;
 };
 
-union vertex { struct { f32 x, y, z, w; }; f32 array[4u]; };
+union vertex {
+    union { struct { f32 x, y, z, w; }; f32 array[4u]; } coords;
+    union { struct { f32 r, g, b; }; f32 array[3u]; } color;
+};
 
 struct object {
     RANGE(char) *name;

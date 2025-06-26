@@ -15,6 +15,7 @@ static i32 wavefront_parse_comment(const BUFFER *buffer, size_t *idx, struct obj
 static i32 wavefront_parse_obj_name(const BUFFER *buffer, size_t *idx, struct object *out_object);
 static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *idx, struct object *out_object);
 static i32 wavefront_parse_vertex_component(const BUFFER *buffer, size_t *idx, struct object *out_object, u8 vertex_comp);
+static i32 wavefront_parse_vertex_color(const BUFFER *buffer, size_t *idx, struct object *out_object, u8 color_comp);
 static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *idx, struct object *out_object);
 
 // -----------------------------------------------------------------------------
@@ -108,16 +109,20 @@ static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *idx, struct obje
         skip_whitespace(buffer, idx);
 
         // create a new vertex in the object
-        range_push(RANGE_TO_ANY(out_object->vertices), &(union vertex) { .array = { 0 } });
+        range_push(RANGE_TO_ANY(out_object->vertices), &(union vertex) { 0 });
         // parse the requiered x, y, and z
         is_valid = wavefront_parse_vertex_component(buffer, idx, out_object, 0)
                 && wavefront_parse_vertex_component(buffer, idx, out_object, 1)
                 && wavefront_parse_vertex_component(buffer, idx, out_object, 2);
+        // parse the required r, g, and b
+        is_valid =is_valid && wavefront_parse_vertex_color(buffer, idx, out_object, 0)
+                && wavefront_parse_vertex_color(buffer, idx, out_object, 1)
+                && wavefront_parse_vertex_color(buffer, idx, out_object, 2);
 
         // parse w
         if (!wavefront_parse_vertex_component(buffer, idx, out_object, 3)) {
             // if no w, then set the default value
-            RANGE_LAST(out_object->vertices).array[3] =  1.0;
+            RANGE_LAST(out_object->vertices).coords.array[3] =  1.0;
         }
 
         return is_valid;
@@ -130,7 +135,17 @@ static i32 wavefront_parse_vertex_component(const BUFFER *buffer, size_t *idx, s
 {
     // read a value
     if ((buffer->data[*idx] == '+') || (buffer->data[*idx] == '-') || is_numerical(buffer->data[*idx])) {
-        RANGE_LAST(out_object->vertices).array[vertex_comp] =  read_value(buffer, idx);
+        RANGE_LAST(out_object->vertices).coords.array[vertex_comp] = read_value(buffer, idx);
+        return 1;
+    }
+
+    return 0;
+}
+
+static i32 wavefront_parse_vertex_color(const BUFFER *buffer, size_t *idx, struct object *out_object, u8 color_comp)
+{
+    if (is_numerical(buffer->data[*idx])) {
+        RANGE_LAST(out_object->vertices).color.array[color_comp] = read_value(buffer, idx);
         return 1;
     }
 
