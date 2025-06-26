@@ -23,12 +23,12 @@ CC = gcc-13
 ## compilation flags
 CFLAGS += -Wall -Wextra -Wpedantic -fanalyzer  -Werror
 CFLAGS += -Wno-error=unused-function
-CFLAGS += $(sdl-config --cflags)
+CFLAGS += `sdl2-config --cflags`
 CFLAGS += -g -std=c2x
 
 ## linker flags
 LFLAGS += -Lunstandard/bin -lunstandard
-LFLAGS += -lGL $(sdl-config --libs)
+LFLAGS += -lGL `sdl2-config --libs`
 LFLAGS += -lm
 
 # additional flags for defines

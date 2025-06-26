@@ -1,2 +1,8 @@
 bin
 build
+doc-gen
+.vscode
+.ccls*
+
+*.out.*
+*.o
