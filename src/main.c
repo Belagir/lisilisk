@@ -5,19 +5,22 @@ int main(void)
 {
     struct ogl_target target = ogl_target_create("some name", 1200,800);
 
-    BUFFER *source_vert = range_create_dynamic(make_system_allocator(),
-            sizeof(*source_vert->data), 2048);
-    file_read("shaders/dummy.vert", source_vert);
+    BUFFER *buffer = range_create_dynamic(make_system_allocator(),
+            sizeof(*buffer->data), 2048);
 
-    BUFFER *source_frag = range_create_dynamic(make_system_allocator(),
-            sizeof(*source_frag->data), 2048);
-    file_read("shaders/dummy.frag", source_frag);
+    file_read("shaders/dummy.vert", buffer);
+    shader_destroy(shader_compile_vertex(buffer));
 
-    shader_destroy(shader_compile_vertex(source_vert));
-    shader_destroy(shader_compile_fragment(source_frag));
 
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(source_vert));
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(source_frag));
+    file_read("shaders/dummy.frag", buffer);
+    shader_destroy(shader_compile_fragment(buffer));
+
+    struct object obj = create_object_empty(make_system_allocator());
+    file_read("models/cube.obj", buffer);
+    wavefront_obj_load(buffer, &obj);
+    destroy_object(make_system_allocator(), &obj);
+
+    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer));
     ogl_target_destroy(&target);
 
     return 0;
