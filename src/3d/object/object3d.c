@@ -188,12 +188,14 @@ struct object create_object_from_geometry(struct geometry geometry)
     glGenBuffers(2, new_object.vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, new_object.vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(GLfloat) * geometry.vertices->length, geometry.vertices->data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(GLfloat) * geometry.vertices->length,
+            geometry.vertices->data, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, new_object.vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * geometry.colors->length, geometry.colors->data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * geometry.colors->length,
+            geometry.colors->data, GL_STATIC_DRAW);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(1);
 
@@ -235,4 +237,60 @@ void render_object(struct object object)
 
     glUseProgram(0);
     glBindVertexArray(0);
+}
+
+/**
+ * @brief Create an object
+ *
+ * @param alloc
+ * @param obj_source
+ * @param vertex_shader_source
+ * @param frag_shader_source
+ * @return struct object
+ */
+struct object create_object(
+        struct allocator alloc,
+        BUFFER *obj_source,
+        BUFFER *vertex_shader_source,
+        BUFFER *frag_shader_source)
+{
+    if (!obj_source || !frag_shader_source || !vertex_shader_source) {
+        return (struct object) { 0 };
+    }
+
+    struct shader vert_shader = shader_compile_vertex(vertex_shader_source);
+    struct shader frag_shader = shader_compile_fragment(frag_shader_source);
+
+    struct geometry geometry = create_geometry_empty(alloc);
+    wavefront_obj_load_geometry(obj_source, &geometry);
+
+    struct object object = create_object_from_geometry(geometry);
+    object_set_shaders(&object, vert_shader, frag_shader);
+
+    return object;
+}
+
+struct object create_object_from_files(
+        struct allocator alloc,
+        const char *path_obj,
+        const char *path_vertex_shader,
+        const char *path_frag_shader)
+{
+    struct object object = { 0 };
+
+    BUFFER *obj_buffer = range_create_dynamic(alloc, sizeof(&obj_buffer->data), 2048);
+    BUFFER *vert_buffer = range_create_dynamic(alloc, sizeof(&vert_buffer->data), 2048);
+    BUFFER *frag_buffer = range_create_dynamic(alloc, sizeof(&frag_buffer->data), 2048);
+
+    file_read(path_obj, obj_buffer);
+    file_read(path_vertex_shader, vert_buffer);
+    file_read(path_frag_shader, frag_buffer);
+
+    object = create_object(alloc, obj_buffer, vert_buffer, frag_buffer);
+
+    range_destroy_dynamic(alloc, &RANGE_TO_ANY(frag_buffer));
+    range_destroy_dynamic(alloc, &RANGE_TO_ANY(vert_buffer));
+    range_destroy_dynamic(alloc, &RANGE_TO_ANY(obj_buffer));
+
+    return object;
 }

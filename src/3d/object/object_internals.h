@@ -2,7 +2,7 @@
 #ifndef OBJECT_INTERNALS_H__
 #define OBJECT_INTERNALS_H__
 
-#include "../../inout/file_operations.h"
+#include "inout/file_operations.h"
 
 #include "object3d.h"
 
