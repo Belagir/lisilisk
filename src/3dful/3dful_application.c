@@ -1,5 +1,7 @@
 
-#include "opengl_scenes.h"
+#include "3dful.h"
+
+
 
 /**
  * @brief
@@ -7,14 +9,14 @@
  * @param name
  * @param width
  * @param height
- * @return struct ogl_target
+ * @return struct application
  */
-struct ogl_target ogl_target_create(const char *name, u32 width, u32 height)
+struct application application_create(const char *name, u32 width, u32 height)
 {
-    struct ogl_target target = {};
+    struct application target = {};
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        return (struct ogl_target) { };
+        return (struct application) { };
     }
 
     /* Request an opengl 3.2 context.
@@ -31,7 +33,7 @@ struct ogl_target ogl_target_create(const char *name, u32 width, u32 height)
     target.sdl_window = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
     if (!target.sdl_window) {
-        return (struct ogl_target) { };
+        return (struct application) { };
     }
 
     /* Create our opengl context and attach it to our window */
@@ -48,7 +50,7 @@ struct ogl_target ogl_target_create(const char *name, u32 width, u32 height)
  *
  * @param target
  */
-void ogl_target_destroy(struct ogl_target *target)
+void application_destroy(struct application *target)
 {
     if (!target) {
         return;
@@ -58,4 +60,6 @@ void ogl_target_destroy(struct ogl_target *target)
     SDL_DestroyWindow(target->sdl_window);
     SDL_Quit();
 }
+
+
 

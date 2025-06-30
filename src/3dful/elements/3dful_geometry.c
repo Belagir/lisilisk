@@ -1,5 +1,5 @@
 
-#include "object_internals.h"
+#include "3dful_core.h"
 
 // -----------------------------------------------------------------------------
 // UTILITY FUNCTIONS -----------------------------------------------------------
@@ -28,7 +28,7 @@ static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *idx, struct 
  * @param buffer
  * @return struct geometry
  */
-void wavefront_obj_load_geometry(BUFFER *buffer, struct geometry *out_geometry)
+void geometry_from_wavefront_obj(BUFFER *buffer, struct geometry *out_geometry)
 {
     size_t idx = 0;
 
