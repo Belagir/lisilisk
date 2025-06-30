@@ -28,6 +28,8 @@ struct object {
     GLuint vao;
     GLuint vbo[2];
 
+    size_t vertice_nb;
+
     struct shader_program shading;
 };
 
@@ -40,5 +42,6 @@ void geometry_from_wavefront_obj(BUFFER *buffer, struct geometry *out_geometry);
 
 struct object object_create(struct geometry geometry, struct shader_program shaders);
 void object_destroy(struct object *object);
+void object_render(struct object object);
 
 #endif

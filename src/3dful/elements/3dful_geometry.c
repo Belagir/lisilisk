@@ -84,7 +84,6 @@ void geometry_from_wavefront_obj(BUFFER *buffer, struct geometry *out_geometry)
             break;
         }
     }
-    printf("%ld, %ld\n", out_geometry->vertices->length, out_geometry->colors->length);
 }
 
 // -----------------------------------------------------------------------------

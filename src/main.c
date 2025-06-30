@@ -19,31 +19,13 @@ void drawscene(struct application target)
 
     struct object diamond_object = object_create(diamond, shaders);
 
-    /* Load the shader into the rendering pipeline */
-    glUseProgram(shaders.program);
 
-    /* Loop our display increasing the number of shown vertexes each time.
-     * Start with 2 vertexes (a line) and increase to 3 (a triangle) and 4 (a diamond) */
-    for (int i=2; i <= 4; i++)
-    {
-        /* Make our background black */
-        glClearColor(0.0, 0.0, 0.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    object_render(diamond_object);
+    SDL_GL_SwapWindow(target.sdl_window);
+    SDL_Delay(2000);
 
-        /* Invoke glDrawArrays telling that our data is a line loop and we want to draw 2-4 vertexes */
-        glDrawArrays(GL_LINE_LOOP, 0, i);
-
-        /* Swap our buffers to make our changes visible */
-        SDL_GL_SwapWindow(target.sdl_window);
-
-        /* Sleep for 2 seconds */
-        SDL_Delay(2000);
-    }
-
-    /* Cleanup all the things we bound and allocated */
-    glUseProgram(0);
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
 
     geometry_destroy(make_system_allocator(), &diamond);
     object_destroy(&diamond_object);

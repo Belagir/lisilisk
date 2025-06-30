@@ -35,6 +35,9 @@ struct object object_create(struct geometry geometry, struct shader_program shad
     glEnableVertexAttribArray(1);
 
     object.shading = shaders;
+    object.vertice_nb = geometry.vertices->length;
+
+    glBindVertexArray(0);
 
     return object;
 }
@@ -54,4 +57,19 @@ void object_destroy(struct object *object)
     glDeleteVertexArrays(1, &object->vao);
 
     *object = (struct object) { 0 };
+}
+
+/**
+ * @brief 
+ * 
+ * @param object 
+ */
+void object_render(struct object object)
+{
+    glUseProgram(object.shading.program);
+    glBindVertexArray(object.vao);
+    
+    glDrawArrays(GL_LINE_LOOP, 0, object.vertice_nb);
+
+    glUseProgram(0);
 }
