@@ -5,73 +5,26 @@
 
 void drawscene(struct application target)
 {
-    int i; /* Simple iterator */
-    GLuint vao, vbo[2]; /* Create handles for our Vertex Array Object and two Vertex Buffer Objects */
-
-    /* We're going to create a simple diamond made from lines */
-    const GLfloat diamond[4][4] = {
-            {  0.0,  1.0, 0.0, 1.0  }, /* Top point */
-            {  1.0,  0.0, 0.0, 1.0  }, /* Right point */
-            {  0.0, -1.0, 0.0, 1.0  }, /* Bottom point */
-            { -1.0,  0.0, 0.0, 1.0  } }; /* Left point */
-
-    const GLfloat colors[4][3] = {
-            {  1.0,  0.0,  0.0  }, /* Red */
-            {  0.0,  1.0,  0.0  }, /* Green */
-            {  0.0,  0.0,  1.0  }, /* Blue */
-            {  1.0,  1.0,  1.0  } }; /* White */
-
-
-    /* Allocate and assign a Vertex Array Object to our handle */
-    glGenVertexArrays(1, &vao);
-
-    /* Bind our Vertex Array Object as the current used object */
-    glBindVertexArray(vao);
-
-    /* Allocate and assign two Vertex Buffer Objects to our handle */
-    glGenBuffers(2, vbo);
-
-    /* Bind our first VBO as being the active buffer and storing vertex attributes (coordinates) */
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-
-    /* Copy the vertex data from diamond to our buffer */
-    /* 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values */
-    glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), diamond, GL_STATIC_DRAW);
-
-    /* Specify that our coordinate data is going into attribute index 0, and contains two floats per vertex */
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-    /* Enable attribute index 0 as being used */
-    glEnableVertexAttribArray(0);
-
-    /* Bind our second VBO as being the active buffer and storing vertex attributes (colors) */
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-
-    /* Copy the color data from colors to our buffer */
-    /* 12 * sizeof(GLfloat) is the size of the colors array, since it contains 12 GLfloat values */
-    glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(GLfloat), colors, GL_STATIC_DRAW);
-
-    /* Specify that our color data is going into attribute index 1, and contains three floats per vertex */
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    /* Enable attribute index 1 as being used */
-    glEnableVertexAttribArray(1);
+    struct geometry diamond = geometry_create_empty(make_system_allocator());
+    BUFFER *buffer_obj = range_create_dynamic(make_system_allocator(), sizeof(*buffer_obj->data), 512);
+    file_read("models/diamond.obj", buffer_obj);
+    geometry_from_wavefront_obj(buffer_obj, &diamond);
 
     BUFFER *buffer_vert = range_create_dynamic(make_system_allocator(), sizeof(*buffer_vert->data), 2048);
     BUFFER *buffer_frag = range_create_dynamic(make_system_allocator(), sizeof(*buffer_frag->data), 2048);
-
 
     file_read("shaders/dummy.vert", buffer_vert);
     file_read("shaders/dummy.frag", buffer_frag);
     struct shader_program shaders = shader_program_create(buffer_frag, buffer_vert);
 
+    struct object diamond_object = object_create(diamond, shaders);
 
     /* Load the shader into the rendering pipeline */
     glUseProgram(shaders.program);
 
     /* Loop our display increasing the number of shown vertexes each time.
      * Start with 2 vertexes (a line) and increase to 3 (a triangle) and 4 (a diamond) */
-    for (i=2; i <= 4; i++)
+    for (int i=2; i <= 4; i++)
     {
         /* Make our background black */
         glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -92,9 +45,10 @@ void drawscene(struct application target)
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
 
-    glDeleteBuffers(2, vbo);
-    glDeleteVertexArrays(1, &vao);
+    geometry_destroy(make_system_allocator(), &diamond);
+    object_destroy(&diamond_object);
 
+    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer_obj));
     range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer_vert));
     range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer_frag));
 }

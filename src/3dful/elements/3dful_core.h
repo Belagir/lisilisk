@@ -34,6 +34,8 @@ struct object {
 struct shader_program shader_program_create(BUFFER *frag_shader_source, BUFFER *vert_shader_source);
 void shader_program_destroy(struct shader_program *shaders);
 
+struct geometry geometry_create_empty(struct allocator alloc);
+void geometry_destroy(struct allocator alloc, struct geometry *geometry);
 void geometry_from_wavefront_obj(BUFFER *buffer, struct geometry *out_geometry);
 
 struct object object_create(struct geometry geometry, struct shader_program shaders);

@@ -23,6 +23,42 @@ static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *idx, struct 
 // -----------------------------------------------------------------------------
 
 /**
+ * @brief 
+ * 
+ * @param alloc 
+ * @return struct geometry 
+ */
+struct geometry geometry_create_empty(struct allocator alloc)
+{
+    struct geometry geometry = {
+            .name     = range_create_dynamic(alloc, sizeof(*geometry.name->data), 64),
+            .vertices = range_create_dynamic(alloc, sizeof(*geometry.vertices->data), 512),
+            .colors   = range_create_dynamic(alloc, sizeof(*geometry.colors->data), 512),
+    };
+
+    return geometry;
+}
+
+/**
+ * @brief 
+ * 
+ * @param geometry 
+ */
+void geometry_destroy(struct allocator alloc, struct geometry *geometry)
+{
+    if (!geometry) {
+        return;
+    }
+
+    range_destroy_dynamic(alloc, &RANGE_TO_ANY(geometry->name));
+    range_destroy_dynamic(alloc, &RANGE_TO_ANY(geometry->colors));
+    range_destroy_dynamic(alloc, &RANGE_TO_ANY(geometry->vertices));
+
+    *geometry = (struct geometry) { 0 };
+}
+
+
+/**
  * @brief
  *
  * @param buffer
@@ -48,6 +84,7 @@ void geometry_from_wavefront_obj(BUFFER *buffer, struct geometry *out_geometry)
             break;
         }
     }
+    printf("%ld, %ld\n", out_geometry->vertices->length, out_geometry->colors->length);
 }
 
 // -----------------------------------------------------------------------------
@@ -135,6 +172,8 @@ static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *idx, struct geom
 
 static i32 wavefront_parse_vertex_component(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry, u8 vertex_comp)
 {
+    skip_whitespace(buffer, idx);
+
     // read a value
     if ((buffer->data[*idx] == '+') || (buffer->data[*idx] == '-') || is_numerical(buffer->data[*idx])) {
         RANGE_LAST(out_geometry->vertices).array[vertex_comp] = read_value(buffer, idx);
@@ -146,6 +185,8 @@ static i32 wavefront_parse_vertex_component(const BUFFER *buffer, size_t *idx, s
 
 static i32 wavefront_parse_vertex_color(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry, u8 color_comp)
 {
+    skip_whitespace(buffer, idx);
+
     if (is_numerical(buffer->data[*idx])) {
         RANGE_LAST(out_geometry->colors).array[color_comp] = read_value(buffer, idx);
         return 1;
