@@ -7,19 +7,13 @@ void drawscene(struct application target)
 {
     int i; /* Simple iterator */
     GLuint vao, vbo[2]; /* Create handles for our Vertex Array Object and two Vertex Buffer Objects */
-    int IsCompiled_VS, IsCompiled_FS;
-    int IsLinked;
-    int maxLength;
-    char *vertexInfoLog;
-    char *fragmentInfoLog;
-    char *shaderProgramInfoLog;
 
     /* We're going to create a simple diamond made from lines */
-    const GLfloat diamond[4][2] = {
-            {  0.0,  1.0  }, /* Top point */
-            {  1.0,  0.0  }, /* Right point */
-            {  0.0, -1.0  }, /* Bottom point */
-            { -1.0,  0.0  } }; /* Left point */
+    const GLfloat diamond[4][4] = {
+            {  0.0,  1.0, 0.0, 1.0  }, /* Top point */
+            {  1.0,  0.0, 0.0, 1.0  }, /* Right point */
+            {  0.0, -1.0, 0.0, 1.0  }, /* Bottom point */
+            { -1.0,  0.0, 0.0, 1.0  } }; /* Left point */
 
     const GLfloat colors[4][3] = {
             {  1.0,  0.0,  0.0  }, /* Red */
@@ -27,11 +21,6 @@ void drawscene(struct application target)
             {  0.0,  0.0,  1.0  }, /* Blue */
             {  1.0,  1.0,  1.0  } }; /* White */
 
-    /* These are handles used to reference the shaders */
-    GLuint vertexshader, fragmentshader;
-
-    /* This is a handle to the shader program */
-    GLuint shaderprogram;
 
     /* Allocate and assign a Vertex Array Object to our handle */
     glGenVertexArrays(1, &vao);
@@ -47,10 +36,10 @@ void drawscene(struct application target)
 
     /* Copy the vertex data from diamond to our buffer */
     /* 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values */
-    glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), diamond, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), diamond, GL_STATIC_DRAW);
 
     /* Specify that our coordinate data is going into attribute index 0, and contains two floats per vertex */
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
     /* Enable attribute index 0 as being used */
     glEnableVertexAttribArray(0);
@@ -68,111 +57,17 @@ void drawscene(struct application target)
     /* Enable attribute index 1 as being used */
     glEnableVertexAttribArray(1);
 
-    BUFFER *buffer = range_create_dynamic(make_system_allocator(), sizeof(*buffer->data), 2048);
+    BUFFER *buffer_vert = range_create_dynamic(make_system_allocator(), sizeof(*buffer_vert->data), 2048);
+    BUFFER *buffer_frag = range_create_dynamic(make_system_allocator(), sizeof(*buffer_frag->data), 2048);
 
-    file_read("shaders/dummy.vert", buffer);
-    const GLchar* tmp = (const GLchar*) buffer->data;
 
-    /* Create an empty vertex shader handle */
-    vertexshader = glCreateShader(GL_VERTEX_SHADER);
+    file_read("shaders/dummy.vert", buffer_vert);
+    file_read("shaders/dummy.frag", buffer_frag);
+    struct shader_program shaders = shader_program_create(buffer_frag, buffer_vert);
 
-    /* Send the vertex shader source code to GL */
-    /* Note that the source code is NULL character terminated. */
-    /* GL will automatically detect that therefore the length info can be 0 in this case (the last parameter) */
-    glShaderSource(vertexshader, 1, (const GLchar**) &tmp, (const GLint *) &buffer->length);
-
-    /* Compile the vertex shader */
-    glCompileShader(vertexshader);
-
-    glGetShaderiv(vertexshader, GL_COMPILE_STATUS, &IsCompiled_VS);
-    if(IsCompiled_VS == 0)
-    {
-       glGetShaderiv(vertexshader, GL_INFO_LOG_LENGTH, &maxLength);
-
-       /* The maxLength includes the NULL character */
-       vertexInfoLog = (char *)malloc(maxLength);
-
-       glGetShaderInfoLog(vertexshader, maxLength, &maxLength, vertexInfoLog);
-
-       /* Handle the error in an appropriate way such as displaying a message or writing to a log file. */
-       /* In this simple program, we'll just leave */
-       free(vertexInfoLog);
-       return;
-    }
-
-    file_read("shaders/dummy.frag", buffer);
-
-    /* Create an empty fragment shader handle */
-    fragmentshader = glCreateShader(GL_FRAGMENT_SHADER);
-
-    /* Send the fragment shader source code to GL */
-    /* Note that the source code is NULL character terminated. */
-    /* GL will automatically detect that therefore the length info can be 0 in this case (the last parameter) */
-    glShaderSource(fragmentshader, 1, (const GLchar**)&tmp, (const GLint *) &buffer->length);
-
-    /* Compile the fragment shader */
-    glCompileShader(fragmentshader);
-
-    glGetShaderiv(fragmentshader, GL_COMPILE_STATUS, &IsCompiled_FS);
-    if(IsCompiled_FS == 0)
-    {
-       glGetShaderiv(fragmentshader, GL_INFO_LOG_LENGTH, &maxLength);
-
-       /* The maxLength includes the NULL character */
-       fragmentInfoLog = (char *)malloc(maxLength);
-
-       glGetShaderInfoLog(fragmentshader, maxLength, &maxLength, fragmentInfoLog);
-
-       /* Handle the error in an appropriate way such as displaying a message or writing to a log file. */
-       /* In this simple program, we'll just leave */
-       free(fragmentInfoLog);
-       return;
-    }
-
-    /* If we reached this point it means the vertex and fragment shaders compiled and are syntax error free. */
-    /* We must link them together to make a GL shader program */
-    /* GL shader programs are monolithic. It is a single piece made of 1 vertex shader and 1 fragment shader. */
-    /* Assign our program handle a "name" */
-    shaderprogram = glCreateProgram();
-
-    /* Attach our shaders to our program */
-    glAttachShader(shaderprogram, vertexshader);
-    glAttachShader(shaderprogram, fragmentshader);
-
-    /* Bind attribute index 0 (coordinates) to in_Position and attribute index 1 (color) to in_Color */
-    /* Attribute locations must be setup before calling glLinkProgram. */
-    glBindAttribLocation(shaderprogram, 0, "in_Position");
-    glBindAttribLocation(shaderprogram, 1, "in_Color");
-
-    /* Link our program */
-    /* At this stage, the vertex and fragment programs are inspected, optimized and a binary code is generated for the shader. */
-    /* The binary code is uploaded to the GPU, if there is no error. */
-    glLinkProgram(shaderprogram);
-
-    /* Again, we must check and make sure that it linked. If it fails, it would mean either there is a mismatch between the vertex */
-    /* and fragment shaders. It might be that you have surpassed your GPU's abilities. Perhaps too many ALU operations or */
-    /* too many texel fetch instructions or too many interpolators or dynamic loops. */
-
-    glGetProgramiv(shaderprogram, GL_LINK_STATUS, (int *)&IsLinked);
-    if(IsLinked == 0)
-    {
-       /* Noticed that glGetProgramiv is used to get the length for a shader program, not glGetShaderiv. */
-       glGetProgramiv(shaderprogram, GL_INFO_LOG_LENGTH, &maxLength);
-
-       /* The maxLength includes the NULL character */
-       shaderProgramInfoLog = (char *)malloc(maxLength);
-
-       /* Notice that glGetProgramInfoLog, not glGetShaderInfoLog. */
-       glGetProgramInfoLog(shaderprogram, maxLength, &maxLength, shaderProgramInfoLog);
-
-       /* Handle the error in an appropriate way such as displaying a message or writing to a log file. */
-       /* In this simple program, we'll just leave */
-       free(shaderProgramInfoLog);
-       return;
-    }
 
     /* Load the shader into the rendering pipeline */
-    glUseProgram(shaderprogram);
+    glUseProgram(shaders.program);
 
     /* Loop our display increasing the number of shown vertexes each time.
      * Start with 2 vertexes (a line) and increase to 3 (a triangle) and 4 (a diamond) */
@@ -196,14 +91,12 @@ void drawscene(struct application target)
     glUseProgram(0);
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
-    glDetachShader(shaderprogram, vertexshader);
-    glDetachShader(shaderprogram, fragmentshader);
-    glDeleteProgram(shaderprogram);
-    glDeleteShader(vertexshader);
-    glDeleteShader(fragmentshader);
+
     glDeleteBuffers(2, vbo);
     glDeleteVertexArrays(1, &vao);
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer));
+
+    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer_vert));
+    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer_frag));
 }
 
 int main(void)

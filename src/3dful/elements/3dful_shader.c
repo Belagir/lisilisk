@@ -6,27 +6,60 @@ static char static_shader_diagnostic_buffer[SHADER_DIAGNOSTIC_MAX_LENGTH] = { 0 
 
 static i32 check_shader_compilation(GLuint name);
 static i32 check_shader_linking(GLuint program);
-static struct shader shader_compile(BUFFER *shader_source, GLenum kind);
+static GLuint shader_compile(BUFFER *shader_source, GLenum kind);
 
 /**
- * @brief
- *
- * @param shader_source
- * @return struct shader
+ * @brief 
+ * 
+ * @param frag_shader_source 
+ * @param vert_shader_source 
+ * @return struct shader_program 
  */
-struct shader shader_compile_vertex(BUFFER *shader_source)
+struct shader_program shader_program_create(BUFFER *frag_shader_source, BUFFER *vert_shader_source)
 {
-    return shader_compile(shader_source, GL_VERTEX_SHADER);
+    struct shader_program shaders = { 0 };
+
+    if (!frag_shader_source || !vert_shader_source) {
+        return (struct shader_program) { 0 };
+    }
+
+    shaders.frag_shader = shader_compile(frag_shader_source, GL_FRAGMENT_SHADER);
+    shaders.vert_shader = shader_compile(vert_shader_source, GL_VERTEX_SHADER);
+
+    if (!shaders.frag_shader || !shaders.vert_shader) {
+        shader_program_destroy(&shaders);
+        return (struct shader_program) { 0 };
+    }
+
+    shaders.program = glCreateProgram();
+
+    glAttachShader(shaders.program, shaders.vert_shader);
+    glAttachShader(shaders.program, shaders.frag_shader);
+    glBindAttribLocation(shaders.program, 0, "in_Position");
+    glBindAttribLocation(shaders.program, 1, "in_Color");
+    glLinkProgram(shaders.program);
+
+    if (!check_shader_linking(shaders.program)) {
+        shader_program_destroy(&shaders);
+        return (struct shader_program) { 0 };
+    }
+
+    return shaders;
 }
-/**
- * @brief
- *
- * @param shader_source
- * @return struct shader
- */
-struct shader shader_compile_fragment(BUFFER *shader_source)
+
+void shader_program_destroy(struct shader_program *shaders)
 {
-    return shader_compile(shader_source, GL_FRAGMENT_SHADER);
+    if (!shaders) {
+        return;
+    }
+
+    glDetachShader(shaders->program, shaders->frag_shader);
+    glDetachShader(shaders->program, shaders->vert_shader);
+    glDeleteProgram(shaders->program);
+    glDeleteShader(shaders->frag_shader);
+    glDeleteShader(shaders->vert_shader);
+
+    *shaders = (struct shader_program) { 0 };
 }
 
 /**
@@ -77,32 +110,21 @@ static i32 check_shader_compilation(GLuint name)
 /**
  * @brief
  *
- * @param shader
- * @return struct shader
- */
-void shader_destroy(struct shader shader)
-{
-    glDeleteShader(shader.name);
-}
-
-/**
- * @brief
- *
  * @param shader_source
  * @param kind
  * @return struct shader
  */
-static struct shader shader_compile(BUFFER *shader_source, GLenum kind)
+static GLuint shader_compile(BUFFER *shader_source, GLenum kind)
 {
-    struct shader shader = { .name = glCreateShader(kind) };
+    GLuint shader = glCreateShader(kind);
     const GLchar* buffer = (const GLchar*) shader_source->data;
 
-    glShaderSource(shader.name, 1, &buffer, NULL);
-    glCompileShader(shader.name);
+    glShaderSource(shader, 1, &buffer, NULL);
+    glCompileShader(shader);
 
-    if (!check_shader_compilation(shader.name)) {
-        glDeleteShader(shader.name);
-        return (struct shader) { 0 };
+    if (!check_shader_compilation(shader)) {
+        glDeleteShader(shader);
+        return 0;
     }
 
     return shader;

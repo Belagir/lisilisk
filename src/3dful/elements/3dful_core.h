@@ -10,9 +10,7 @@
 
 #include "../inout/file_operations.h"
 
-struct shader {
-    GLuint name;
-};
+struct shader_program { GLuint frag_shader, vert_shader, program; };
 
 union vertex { struct { f32 x, y, z, w; }; f32 array[4u]; };
 union color  { struct { f32 r, g, b; }; f32 array[3u]; };
@@ -26,11 +24,19 @@ struct geometry {
     RANGE(union color) *colors;
 };
 
-struct shader shader_compile_vertex(BUFFER *shader_source);
-struct shader shader_compile_fragment(BUFFER *shader_source);
+struct object {
+    GLuint vao;
+    GLuint vbo[2];
+
+    struct shader_program shading;
+};
+
+struct shader_program shader_program_create(BUFFER *frag_shader_source, BUFFER *vert_shader_source);
+void shader_program_destroy(struct shader_program *shaders);
 
 void geometry_from_wavefront_obj(BUFFER *buffer, struct geometry *out_geometry);
 
-
+struct object object_create(struct geometry geometry, struct shader_program shaders);
+void object_destroy(struct object *object);
 
 #endif
