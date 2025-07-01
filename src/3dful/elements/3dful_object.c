@@ -9,11 +9,14 @@
  * @param vert_shader 
  * @return struct object 
  */
-struct object object_create(struct geometry geometry, struct shader_program shaders)
+struct object object_create(struct geometry geometry, struct shader_program shaders, struct application *app)
 {
     struct object object = { 0 };
 
     if (!geometry.colors || !geometry.vertices || !shaders.program) {
+        application_log_error(app, LOGGER_SEVERITY_ERRO, 
+                "failed to build object. Got :\n- shader program %#010x ;\n- vertices data %#010x ;\n- color data %#010x.",
+                shaders.program, geometry.vertices, geometry.colors);
         return (struct object) { 0 };
     }
 

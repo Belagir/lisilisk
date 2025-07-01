@@ -7,7 +7,10 @@
 
 #include <ustd/allocation.h>
 #include <ustd/common.h>
+#include <ustd/math3d.h>
+#include <ustd/logging.h>
 
+#include "../3dful.h"
 #include "../inout/file_operations.h"
 
 struct shader_program { GLuint frag_shader, vert_shader, program; };
@@ -15,9 +18,6 @@ struct shader_program { GLuint frag_shader, vert_shader, program; };
 union vertex { struct { f32 x, y, z, w; }; f32 array[4u]; };
 union color  { struct { f32 r, g, b; }; f32 array[3u]; };
 
-/**
- * 
- */
 struct geometry {
     RANGE(char) *name;
     RANGE(union vertex) *vertices;
@@ -33,14 +33,16 @@ struct object {
     struct shader_program shading;
 };
 
-struct shader_program shader_program_create(BUFFER *frag_shader_source, BUFFER *vert_shader_source);
+void application_log_error(struct application *app, enum logger_severity severity, char *format, ...);
+
+struct shader_program shader_program_create(BUFFER *frag_shader_source, BUFFER *vert_shader_source, struct application *app);
 void shader_program_destroy(struct shader_program *shaders);
 
 struct geometry geometry_create_empty(struct allocator alloc);
 void geometry_destroy(struct allocator alloc, struct geometry *geometry);
 void geometry_from_wavefront_obj(BUFFER *buffer, struct geometry *out_geometry);
 
-struct object object_create(struct geometry geometry, struct shader_program shaders);
+struct object object_create(struct geometry geometry, struct shader_program shaders, struct application *app);
 void object_destroy(struct object *object);
 void object_render(struct object object);
 

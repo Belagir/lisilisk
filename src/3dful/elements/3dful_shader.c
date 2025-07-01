@@ -15,11 +15,21 @@ static GLuint shader_compile(BUFFER *shader_source, GLenum kind);
  * @param vert_shader_source 
  * @return struct shader_program 
  */
-struct shader_program shader_program_create(BUFFER *frag_shader_source, BUFFER *vert_shader_source)
+struct shader_program shader_program_create(BUFFER *frag_shader_source, BUFFER *vert_shader_source, struct application *app)
 {
     struct shader_program shaders = { 0 };
 
+    if (!app) {
+        return (struct shader_program) { 0 };
+    }
+
     if (!frag_shader_source || !vert_shader_source) {
+        if (!frag_shader_source) {
+            application_log_error(app, LOGGER_SEVERITY_ERRO, "No fragment shader was supplied to create a shader program.");
+        }
+        if (!vert_shader_source) {
+            application_log_error(app, LOGGER_SEVERITY_ERRO, "No vertex shader was supplied to create a shader program.");
+        }
         return (struct shader_program) { 0 };
     }
 
@@ -27,6 +37,7 @@ struct shader_program shader_program_create(BUFFER *frag_shader_source, BUFFER *
     shaders.vert_shader = shader_compile(vert_shader_source, GL_VERTEX_SHADER);
 
     if (!shaders.frag_shader || !shaders.vert_shader) {
+        application_log_error(app, LOGGER_SEVERITY_ERRO, "Shader compilation failed.");
         shader_program_destroy(&shaders);
         return (struct shader_program) { 0 };
     }
@@ -40,6 +51,7 @@ struct shader_program shader_program_create(BUFFER *frag_shader_source, BUFFER *
     glLinkProgram(shaders.program);
 
     if (!check_shader_linking(shaders.program)) {
+        application_log_error(app, LOGGER_SEVERITY_ERRO, "Shader linking failed.");
         shader_program_destroy(&shaders);
         return (struct shader_program) { 0 };
     }

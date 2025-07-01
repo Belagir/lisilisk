@@ -6,8 +6,12 @@ in vec3 in_Color;
 // We output the ex_Color variable to the next shader in the chain
 out vec3 ex_Color;
 
+uniform mat4 MODEL_MATRIX;
+uniform mat4 PROJECTION_MATRIX;
 
 void main(void) {
-    gl_Position = in_Position;
+    mat4 mpv_matrix = MODEL_MATRIX * PROJECTION_MATRIX;
+    gl_Position = mpv_matrix * in_Position;
+    
     ex_Color = in_Color;
 }

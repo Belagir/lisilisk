@@ -80,7 +80,7 @@ void geometry_from_wavefront_obj(BUFFER *buffer, struct geometry *out_geometry)
         } else if (wavefront_parse_vertex(buffer, &idx, out_geometry)) {
             // NOP
         } else {
-            // TODO : error
+            // ERROR SITE
             break;
         }
     }
