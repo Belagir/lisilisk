@@ -19,7 +19,7 @@ void drawscene(struct application target)
     buffer_frag = range_create_dynamic(make_system_allocator(), sizeof(*buffer_frag->data), 2048);
 
     diamond = geometry_create_empty(make_system_allocator());
-    file_read("models/cube.obj", buffer_obj);
+    file_read("models/diamond.obj", buffer_obj);
     geometry_from_wavefront_obj(buffer_obj, &diamond);
 
     file_read("shaders/dummy.vert", buffer_vert);
@@ -28,8 +28,8 @@ void drawscene(struct application target)
 
     diamond_object = object_create(diamond, shaders, &target);
 
-    projection = matrix4_get_projection_matrix(0.1, 100, 45, 1.);
-    model = matrix4_get_model_matrix(1, 1, -5, 1.);
+    projection = matrix4_get_projection_matrix(0.1, 100, 80, 1.);
+    model = matrix4_get_model_matrix(0, 0, -8, 1.);
 
     glUseProgram(diamond_object.shading.program);
     glUniformMatrix4fv(glGetUniformLocation(diamond_object.shading.program, "PROJECTION_MATRIX"), 1, GL_FALSE, (const GLfloat *) &projection);

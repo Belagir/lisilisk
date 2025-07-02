@@ -14,8 +14,7 @@ static i32 wavefront_parse_end_line(const BUFFER *buffer, size_t *buffer_idx, st
 static i32 wavefront_parse_comment(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
 static i32 wavefront_parse_obj_name(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
 static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
-static i32 wavefront_parse_vertex_component(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry, u8 vertex_comp_idx);
-static i32 wavefront_parse_vertex_color(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry, u8 color_comp_idx);
+static i32 wavefront_parse_value(const BUFFER *buffer, size_t *buffer_idx, f32 *out_value);
 static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
 
 // -----------------------------------------------------------------------------
@@ -150,56 +149,46 @@ static i32 wavefront_parse_obj_name(const BUFFER *buffer, size_t *buffer_idx, st
 
 static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry)
 {
-    i32 is_valid = 0;
+    union vertex pos = { 0 };
+    union color col = { 0 };
+    f32 w_or_r = 0.f;
 
     if (buffer->data[*buffer_idx] == 'v') {
         *buffer_idx += 1;
         skip_whitespace(buffer, buffer_idx);
+        
+        if (wavefront_parse_value(buffer, buffer_idx, &pos.x)
+                && wavefront_parse_value(buffer, buffer_idx, &pos.y)
+                && wavefront_parse_value(buffer, buffer_idx, &pos.z))
+        {
+            pos.w = 1.0;
 
-        // create a new vertex in the object
-        range_push(RANGE_TO_ANY(out_geometry->vertices), &(union vertex) { 0 });
-        // parse the requiered x, y, and z
-        is_valid = wavefront_parse_vertex_component(buffer, buffer_idx, out_geometry, 0)
-                && wavefront_parse_vertex_component(buffer, buffer_idx, out_geometry, 1)
-                && wavefront_parse_vertex_component(buffer, buffer_idx, out_geometry, 2);
+            if (wavefront_parse_value(buffer, buffer_idx, &w_or_r)) {
+                if (wavefront_parse_value(buffer, buffer_idx, &col.g)
+                    && wavefront_parse_value(buffer, buffer_idx, &col.b)) {
+                    col.r = w_or_r;
+                    wavefront_parse_value(buffer, buffer_idx, &pos.w);
+                } else {
+                    pos.w = w_or_r;
+                }
+            }
+            
 
-        range_push(RANGE_TO_ANY(out_geometry->colors), &(union color) { 0 });
-        // parse the required r, g, and b
-        is_valid = is_valid && wavefront_parse_vertex_color(buffer, buffer_idx, out_geometry, 0)
-                && wavefront_parse_vertex_color(buffer, buffer_idx, out_geometry, 1)
-                && wavefront_parse_vertex_color(buffer, buffer_idx, out_geometry, 2);
-
-        // parse w
-        if (!wavefront_parse_vertex_component(buffer, buffer_idx, out_geometry, 3)) {
-            // if no w, then set the default value
-            RANGE_LAST(out_geometry->vertices).array[3] =  1.0;
+            range_push(RANGE_TO_ANY(out_geometry->vertices), &pos);
+            range_push(RANGE_TO_ANY(out_geometry->colors), &col);
+            return 1;
         }
-
-        return is_valid;
     }
 
     return 0;
 }
 
-static i32 wavefront_parse_vertex_component(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry, u8 vertex_comp_idx)
+static i32 wavefront_parse_value(const BUFFER *buffer, size_t *buffer_idx, f32 *out_value)
 {
     skip_whitespace(buffer, buffer_idx);
 
-    // read a value
     if ((buffer->data[*buffer_idx] == '+') || (buffer->data[*buffer_idx] == '-') || is_numerical(buffer->data[*buffer_idx])) {
-        RANGE_LAST(out_geometry->vertices).array[vertex_comp_idx] = read_value(buffer, buffer_idx);
-        return 1;
-    }
-
-    return 0;
-}
-
-static i32 wavefront_parse_vertex_color(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry, u8 color_comp_idx)
-{
-    skip_whitespace(buffer, buffer_idx);
-
-    if (is_numerical(buffer->data[*buffer_idx])) {
-        RANGE_LAST(out_geometry->colors).array[color_comp_idx] = read_value(buffer, buffer_idx);
+        *out_value =  read_value(buffer, buffer_idx);
         return 1;
     }
 
