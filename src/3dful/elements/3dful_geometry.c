@@ -3,20 +3,20 @@
 
 // -----------------------------------------------------------------------------
 // UTILITY FUNCTIONS -----------------------------------------------------------
-static void skip_whitespace(const BUFFER *buffer, size_t *idx);
-static f32 read_value(const BUFFER *buffer, size_t *idx);
+static void skip_whitespace(const BUFFER *buffer, size_t *buffer_idx);
+static f32 read_value(const BUFFER *buffer, size_t *buffer_idx);
 static i32 is_numerical(char c);
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 // PARSING ROUTINES ------------------------------------------------------------
-static i32 wavefront_parse_end_line(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry);
-static i32 wavefront_parse_comment(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry);
-static i32 wavefront_parse_obj_name(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry);
-static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry);
-static i32 wavefront_parse_vertex_component(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry, u8 vertex_comp);
-static i32 wavefront_parse_vertex_color(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry, u8 color_comp);
-static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry);
+static i32 wavefront_parse_end_line(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
+static i32 wavefront_parse_comment(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
+static i32 wavefront_parse_obj_name(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
+static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
+static i32 wavefront_parse_vertex_component(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry, u8 vertex_comp_idx);
+static i32 wavefront_parse_vertex_color(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry, u8 color_comp_idx);
+static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -66,68 +66,80 @@ void geometry_destroy(struct allocator alloc, struct geometry *geometry)
  */
 void geometry_from_wavefront_obj(BUFFER *buffer, struct geometry *out_geometry)
 {
-    size_t idx = 0;
+    size_t buffer_idx = 0;
 
-    skip_whitespace(buffer, &idx);
+    skip_whitespace(buffer, &buffer_idx);
 
-    while (!wavefront_parse_end_of_obj(buffer, &idx, out_geometry)) {
-        if (wavefront_parse_end_line(buffer, &idx, out_geometry)) {
+    while (!wavefront_parse_end_of_obj(buffer, &buffer_idx, out_geometry)) {
+        if (wavefront_parse_end_line(buffer, &buffer_idx, out_geometry)) {
             // NOP
-        } else if (wavefront_parse_comment(buffer, &idx, out_geometry)) {
+        } else if (wavefront_parse_comment(buffer, &buffer_idx, out_geometry)) {
             // NOP
-        } else if (wavefront_parse_obj_name(buffer, &idx, out_geometry)) {
+        } else if (wavefront_parse_obj_name(buffer, &buffer_idx, out_geometry)) {
             // NOP
-        } else if (wavefront_parse_vertex(buffer, &idx, out_geometry)) {
+        } else if (wavefront_parse_vertex(buffer, &buffer_idx, out_geometry)) {
             // NOP
         } else {
             // ERROR SITE
             break;
         }
     }
+
+    for (size_t i = 0 ; i < out_geometry->vertices->length ; i++) {
+        printf("(%f\t%f\t%f\t%f) -- ", 
+                out_geometry->vertices->data[i].x, 
+                out_geometry->vertices->data[i].y, 
+                out_geometry->vertices->data[i].z, 
+                out_geometry->vertices->data[i].w);
+        printf("(%f\t%f\t%f)\n", 
+                out_geometry->colors->data[i].r, 
+                out_geometry->colors->data[i].g, 
+                out_geometry->colors->data[i].b);
+    }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static i32 wavefront_parse_end_line(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry)
+static i32 wavefront_parse_end_line(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry)
 {
     (void) out_geometry;
 
     // detect end of line character
-    if (buffer->data[*idx] == '\n') {
-        *idx += 1;
+    if (buffer->data[*buffer_idx] == '\n') {
+        *buffer_idx += 1;
         return 1;
     }
     return 0;
 }
 
-static i32 wavefront_parse_comment(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry)
+static i32 wavefront_parse_comment(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry)
 {
     (void) out_geometry;
 
     // detect comment character
-    if (buffer->data[*idx] == '#') {
+    if (buffer->data[*buffer_idx] == '#') {
         // skip to the end of line
-        while ((*idx < buffer->length) && (buffer->data[*idx] != '\n')) {
-            *idx += 1;
+        while ((*buffer_idx < buffer->length) && (buffer->data[*buffer_idx] != '\n')) {
+            *buffer_idx += 1;
         }
         return 1;
     }
     return 0;
 }
 
-static i32 wavefront_parse_obj_name(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry)
+static i32 wavefront_parse_obj_name(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry)
 {
     // detect 'o' starting letter
-    if (buffer->data[*idx] == 'o') {
-        *idx += 1;
-        skip_whitespace(buffer, idx);
+    if (buffer->data[*buffer_idx] == 'o') {
+        *buffer_idx += 1;
+        skip_whitespace(buffer, buffer_idx);
 
         // take all characters after for the name
-        while ((*idx < buffer->length) && (buffer->data[*idx] != '\n')) {
-            range_push(RANGE_TO_ANY(out_geometry->name), buffer->data + *idx);
-            *idx += 1;
+        while ((*buffer_idx < buffer->length) && (buffer->data[*buffer_idx] != '\n')) {
+            range_push(RANGE_TO_ANY(out_geometry->name), buffer->data + *buffer_idx);
+            *buffer_idx += 1;
         }
         range_push(RANGE_TO_ANY(out_geometry->name), &(char) { '\0' });
 
@@ -136,29 +148,29 @@ static i32 wavefront_parse_obj_name(const BUFFER *buffer, size_t *idx, struct ge
     return 0;
 }
 
-static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry)
+static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry)
 {
     i32 is_valid = 0;
 
-    if (buffer->data[*idx] == 'v') {
-        *idx += 1;
-        skip_whitespace(buffer, idx);
+    if (buffer->data[*buffer_idx] == 'v') {
+        *buffer_idx += 1;
+        skip_whitespace(buffer, buffer_idx);
 
         // create a new vertex in the object
         range_push(RANGE_TO_ANY(out_geometry->vertices), &(union vertex) { 0 });
         // parse the requiered x, y, and z
-        is_valid = wavefront_parse_vertex_component(buffer, idx, out_geometry, 0)
-                && wavefront_parse_vertex_component(buffer, idx, out_geometry, 1)
-                && wavefront_parse_vertex_component(buffer, idx, out_geometry, 2);
+        is_valid = wavefront_parse_vertex_component(buffer, buffer_idx, out_geometry, 0)
+                && wavefront_parse_vertex_component(buffer, buffer_idx, out_geometry, 1)
+                && wavefront_parse_vertex_component(buffer, buffer_idx, out_geometry, 2);
 
         range_push(RANGE_TO_ANY(out_geometry->colors), &(union color) { 0 });
         // parse the required r, g, and b
-        is_valid = is_valid && wavefront_parse_vertex_color(buffer, idx, out_geometry, 0)
-                && wavefront_parse_vertex_color(buffer, idx, out_geometry, 1)
-                && wavefront_parse_vertex_color(buffer, idx, out_geometry, 2);
+        is_valid = is_valid && wavefront_parse_vertex_color(buffer, buffer_idx, out_geometry, 0)
+                && wavefront_parse_vertex_color(buffer, buffer_idx, out_geometry, 1)
+                && wavefront_parse_vertex_color(buffer, buffer_idx, out_geometry, 2);
 
         // parse w
-        if (!wavefront_parse_vertex_component(buffer, idx, out_geometry, 3)) {
+        if (!wavefront_parse_vertex_component(buffer, buffer_idx, out_geometry, 3)) {
             // if no w, then set the default value
             RANGE_LAST(out_geometry->vertices).array[3] =  1.0;
         }
@@ -169,36 +181,36 @@ static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *idx, struct geom
     return 0;
 }
 
-static i32 wavefront_parse_vertex_component(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry, u8 vertex_comp)
+static i32 wavefront_parse_vertex_component(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry, u8 vertex_comp_idx)
 {
-    skip_whitespace(buffer, idx);
+    skip_whitespace(buffer, buffer_idx);
 
     // read a value
-    if ((buffer->data[*idx] == '+') || (buffer->data[*idx] == '-') || is_numerical(buffer->data[*idx])) {
-        RANGE_LAST(out_geometry->vertices).array[vertex_comp] = read_value(buffer, idx);
+    if ((buffer->data[*buffer_idx] == '+') || (buffer->data[*buffer_idx] == '-') || is_numerical(buffer->data[*buffer_idx])) {
+        RANGE_LAST(out_geometry->vertices).array[vertex_comp_idx] = read_value(buffer, buffer_idx);
         return 1;
     }
 
     return 0;
 }
 
-static i32 wavefront_parse_vertex_color(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry, u8 color_comp)
+static i32 wavefront_parse_vertex_color(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry, u8 color_comp_idx)
 {
-    skip_whitespace(buffer, idx);
+    skip_whitespace(buffer, buffer_idx);
 
-    if (is_numerical(buffer->data[*idx])) {
-        RANGE_LAST(out_geometry->colors).array[color_comp] = read_value(buffer, idx);
+    if (is_numerical(buffer->data[*buffer_idx])) {
+        RANGE_LAST(out_geometry->colors).array[color_comp_idx] = read_value(buffer, buffer_idx);
         return 1;
     }
 
     return 0;
 }
 
-static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *idx, struct geometry *out_geometry)
+static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry)
 {
     (void) out_geometry;
 
-    return (*idx >= buffer->length);
+    return (*buffer_idx >= buffer->length);
 }
 
 // -----------------------------------------------------------------------------
@@ -209,46 +221,46 @@ static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *idx, struct 
  * @brief
  *
  * @param buffer
- * @param idx
+ * @param buffer_idx
  * @return f32
  */
-static f32 read_value(const BUFFER *buffer, size_t *idx)
+static f32 read_value(const BUFFER *buffer, size_t *buffer_idx)
 {
     f32 sign = 1.f;
     f32 integral_part = 0.f;
     f32 fract_part = 0.f;
     f32 fract_div = 1.f;
 
-    if (buffer->data[*idx] == '-') {
+    if (buffer->data[*buffer_idx] == '-') {
         sign = -1;
-        *idx += 1;
-    } else if (buffer->data[*idx] == '+') {
-        *idx += 1;
+        *buffer_idx += 1;
+    } else if (buffer->data[*buffer_idx] == '+') {
+        *buffer_idx += 1;
     }
 
     // remove leading zeroes
-    while ((*idx < buffer->length) && (buffer->data[*idx] == '0')) {
-        *idx += 1;
+    while ((*buffer_idx < buffer->length) && (buffer->data[*buffer_idx] == '0')) {
+        *buffer_idx += 1;
     }
 
     // read integral part
-    while ((*idx < buffer->length) && is_numerical(buffer->data[*idx])) {
+    while ((*buffer_idx < buffer->length) && is_numerical(buffer->data[*buffer_idx])) {
         integral_part *= 10.f;
-        integral_part += (f32) (buffer->data[*idx] - '0');
-        *idx += 1;
+        integral_part += (f32) (buffer->data[*buffer_idx] - '0');
+        *buffer_idx += 1;
     }
 
     // read optional fract part
-    if ((*idx < buffer->length) && (buffer->data[*idx] == '.')) {
-        *idx += 1;
+    if ((*buffer_idx < buffer->length) && (buffer->data[*buffer_idx] == '.')) {
+        *buffer_idx += 1;
 
-        while ((*idx < buffer->length) && is_numerical(buffer->data[*idx])) {
+        while ((*buffer_idx < buffer->length) && is_numerical(buffer->data[*buffer_idx])) {
             fract_div *= 10.f;
-            fract_part += (f32) (buffer->data[*idx] - '0') / fract_div;
-            *idx += 1;
+            fract_part += (f32) (buffer->data[*buffer_idx] - '0') / fract_div;
+            *buffer_idx += 1;
         }
     }
-    *idx += 1;
+    *buffer_idx += 1;
 
     return sign * integral_part + fract_part;
 }
@@ -257,12 +269,12 @@ static f32 read_value(const BUFFER *buffer, size_t *idx)
  * @brief
  *
  * @param buffer
- * @param idx
+ * @param buffer_idx
  */
-static void skip_whitespace(const BUFFER *buffer, size_t *idx)
+static void skip_whitespace(const BUFFER *buffer, size_t *buffer_idx)
 {
-    while ((*idx < buffer->length) && ((buffer->data[*idx] == ' ') || (buffer->data[*idx] == '\t'))) {
-        *idx += 1;
+    while ((*buffer_idx < buffer->length) && ((buffer->data[*buffer_idx] == ' ') || (buffer->data[*buffer_idx] == '\t'))) {
+        *buffer_idx += 1;
     }
 }
 

@@ -24,12 +24,12 @@ void drawscene(struct application target)
 
     file_read("shaders/dummy.vert", buffer_vert);
     file_read("shaders/dummy.frag", buffer_frag);
-    shaders = shader_program_create(buffer_frag, buffer_vert);
+    shaders = shader_program_create(buffer_frag, buffer_vert, &target);
 
-    diamond_object = object_create(diamond, shaders);
+    diamond_object = object_create(diamond, shaders, &target);
 
     projection = matrix4_get_projection_matrix(0.1, 100, 45, 1.);
-    model = matrix4_get_model_matrix(0, 0, -50, 1.);
+    model = matrix4_get_model_matrix(1, 1, -5, 1.);
 
     glUseProgram(diamond_object.shading.program);
     glUniformMatrix4fv(glGetUniformLocation(diamond_object.shading.program, "PROJECTION_MATRIX"), 1, GL_FALSE, (const GLfloat *) &projection);
