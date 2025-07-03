@@ -39,6 +39,12 @@ void object_load(struct object *object)
             object->geometry->vertices->length * sizeof(*object->geometry->vertices->data),
             object->geometry->vertices->data, GL_STATIC_DRAW);
 
+    glGenBuffers(1, &object->ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object->ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+            object->geometry->faces->length * sizeof(*object->geometry->faces->data),
+            object->geometry->faces->data, GL_STATIC_DRAW);
+
     glUseProgram(object->shading->program);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void*)0);
     glEnableVertexAttribArray(0);
@@ -72,5 +78,6 @@ void object_draw(struct object object)
 {
     glUseProgram(object.shading->program);
     glBindVertexArray(object.vao);
-    glDrawArrays(GL_TRIANGLES, 0, object.geometry->vertices->length);
+
+    glDrawElements(GL_TRIANGLES, object.geometry->faces->length*3, GL_UNSIGNED_INT, 0);
 }
