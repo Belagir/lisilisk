@@ -17,18 +17,21 @@ struct shader_program { GLuint frag_shader, vert_shader, program; };
 
 union vertex { struct { f32 x, y, z, w; }; f32 array[4u]; };
 union color  { struct { f32 r, g, b; }; f32 array[3u]; };
+struct face  { u32 indices[3u]; };
 
 struct geometry {
     RANGE(char) *name;
     RANGE(union vertex) *vertices;
     RANGE(union color) *colors;
+    RANGE(struct face) *faces;
 };
 
 struct object {
     GLuint vao;
     GLuint vbo[2];
+    GLuint ebo;
 
-    size_t vertice_nb;
+    size_t indices_nb;
 
     struct shader_program shading;
 };

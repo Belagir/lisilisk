@@ -10,8 +10,8 @@ uniform mat4 MODEL_MATRIX;
 uniform mat4 PROJECTION_MATRIX;
 
 void main(void) {
-    mat4 mpv_matrix = MODEL_MATRIX * PROJECTION_MATRIX;
-    gl_Position = mpv_matrix * in_Position;
-    
+    // mat4 mpv_matrix = MODEL_MATRIX * PROJECTION_MATRIX;
+    // gl_Position = mpv_matrix * in_Position;
+    gl_Position = in_Position;
     ex_Color = in_Color;
 }

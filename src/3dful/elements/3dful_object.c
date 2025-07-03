@@ -37,8 +37,12 @@ struct object object_create(struct geometry geometry, struct shader_program shad
     glVertexAttribPointer(1, sizeof(*geometry.colors->data) / sizeof(*geometry.colors->data->array), GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(1);
 
+    glGenBuffers(1, &object.ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object.ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, geometry.faces->length * sizeof(*geometry.faces->data), geometry.faces->data, GL_STATIC_DRAW);
+
     object.shading = shaders;
-    object.vertice_nb = geometry.vertices->length;
+    object.indices_nb = geometry.faces->length * 3;
 
     glBindVertexArray(0);
 
@@ -56,6 +60,7 @@ void object_destroy(struct object *object)
         return;
     }
 
+    glDeleteBuffers(1, &object->ebo);
     glDeleteBuffers(2, object->vbo);
     glDeleteVertexArrays(1, &object->vao);
 
@@ -72,7 +77,7 @@ void object_render(struct object object)
     glUseProgram(object.shading.program);
     glBindVertexArray(object.vao);
     
-    glDrawArrays(GL_LINE_LOOP, 0, object.vertice_nb);
+    glDrawElements(GL_TRIANGLES, object.indices_nb, GL_UNSIGNED_INT, 0);
 
     glUseProgram(0);
 }
