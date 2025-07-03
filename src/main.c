@@ -2,56 +2,70 @@
 #include "3dful/3dful.h"
 #include "3dful/elements/3dful_core.h"
 
+const char *vertexShaderSource = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "}\0";
+
+const char *fragmentShaderSource = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+        "FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "}\0";
+
 
 void drawscene(struct application target)
 {
-    struct geometry diamond = { 0 };
-    BUFFER *buffer_obj = NULL;
-    BUFFER *buffer_vert = NULL;
-    BUFFER *buffer_frag = NULL;
-    struct shader_program shaders = { 0 }; 
-    struct object diamond_object = { 0 };
-    matrix4_t projection = { 0 };
-    matrix4_t model = { 0 };
+    float vertices[] = {
+            -0.5f, -0.5f, 0.0f,
+             0.5f, -0.5f, 0.0f,
+             0.0f,  0.5f, 0.0f
+    };
 
-    buffer_obj = range_create_dynamic(make_system_allocator(), sizeof(*buffer_obj->data), 2048);
-    buffer_vert = range_create_dynamic(make_system_allocator(), sizeof(*buffer_vert->data), 2048);
-    buffer_frag = range_create_dynamic(make_system_allocator(), sizeof(*buffer_frag->data), 2048);
+    unsigned int VAO;
+    glGenVertexArrays(1, &VAO);
 
-    diamond = geometry_create_empty(make_system_allocator());
-    file_read("models/cube_triangles.obj", buffer_obj);
-    geometry_from_wavefront_obj(buffer_obj, &diamond);
+    glBindVertexArray(VAO);
 
-    file_read("shaders/dummy.vert", buffer_vert);
-    file_read("shaders/dummy.frag", buffer_frag);
-    shaders = shader_program_create(buffer_frag, buffer_vert, &target);
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    diamond_object = object_create(diamond, shaders, &target);
+    struct shader shader = { };
 
-    projection = matrix4_get_projection_matrix(0.1, 100, 90, 1.);
-    model = matrix4_get_model_matrix(0, 0, -15, 1.);
+    shader_frag(&shader, "shaders/dummy.frag");
+    shader_vert(&shader, "shaders/dummy.vert");
+    shader_link(&shader);
 
-    glUseProgram(diamond_object.shading.program);
-    glUniformMatrix4fv(glGetUniformLocation(diamond_object.shading.program, "PROJECTION_MATRIX"), 1, GL_FALSE, (const GLfloat *) &projection);
-    glUniformMatrix4fv(glGetUniformLocation(diamond_object.shading.program, "MODEL_MATRIX"), 1, GL_FALSE, (const GLfloat *) &model);
+    glUseProgram(shader.program);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
     glUseProgram(0);
 
-    // -------------------------------------------------------------------------
+    int should_quit = 0;
+    SDL_Event event = { };
+    while (!should_quit) {
+        while (SDL_PollEvent(&event)) {
+            should_quit = event.type == SDL_QUIT;
+        }
 
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    object_render(diamond_object);
-    SDL_GL_SwapWindow(target.sdl_window);
-    SDL_Delay(2000);
+        glClearColor(0.2, 0.2, 0.2, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        {
+            glUseProgram(shader.program);
+            glBindVertexArray(VAO);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
+        SDL_GL_SwapWindow(target.sdl_window);
 
-    // -------------------------------------------------------------------------
+        SDL_Delay(100);
+    }
 
-    geometry_destroy(make_system_allocator(), &diamond);
-    object_destroy(&diamond_object);
-
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer_obj));
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer_vert));
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer_frag));
+    shader_delete(&shader);
 }
 
 int main(void)

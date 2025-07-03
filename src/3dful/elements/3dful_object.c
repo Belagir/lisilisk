@@ -2,19 +2,19 @@
 #include "3dful_core.h"
 
 /**
- * @brief 
- * 
- * @param geometry 
- * @param frag_shader 
- * @param vert_shader 
- * @return struct object 
+ * @brief
+ *
+ * @param geometry
+ * @param frag_shader
+ * @param vert_shader
+ * @return struct object
  */
-struct object object_create(struct geometry geometry, struct shader_program shaders, struct application *app)
+struct object object_create(struct geometry geometry, struct shader shaders, struct application *app)
 {
     struct object object = { 0 };
 
     if (!geometry.colors || !geometry.vertices || !shaders.program) {
-        application_log_error(app, LOGGER_SEVERITY_ERRO, 
+        application_log_error(app, LOGGER_SEVERITY_ERRO,
                 "failed to build object. Got :\n- shader program %#010x ;\n- vertices data %#010x ;\n- color data %#010x.",
                 shaders.program, geometry.vertices, geometry.colors);
         return (struct object) { 0 };
@@ -50,9 +50,9 @@ struct object object_create(struct geometry geometry, struct shader_program shad
 }
 
 /**
- * @brief 
- * 
- * @param object 
+ * @brief
+ *
+ * @param object
  */
 void object_destroy(struct object *object)
 {
@@ -68,15 +68,15 @@ void object_destroy(struct object *object)
 }
 
 /**
- * @brief 
- * 
- * @param object 
+ * @brief
+ *
+ * @param object
  */
 void object_render(struct object object)
 {
     glUseProgram(object.shading.program);
     glBindVertexArray(object.vao);
-    
+
     glDrawElements(GL_TRIANGLES, object.indices_nb, GL_UNSIGNED_INT, 0);
 
     glUseProgram(0);

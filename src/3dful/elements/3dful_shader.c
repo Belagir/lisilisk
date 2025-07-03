@@ -1,78 +1,120 @@
 
 #include "3dful_core.h"
 
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
 #define SHADER_DIAGNOSTIC_MAX_LENGTH (2048)
 static char static_shader_diagnostic_buffer[SHADER_DIAGNOSTIC_MAX_LENGTH] = { 0 };
+
+#define SHADER_FILEREAD_MAX_LENGTH (4096)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static i32 check_shader_compilation(GLuint name);
 static i32 check_shader_linking(GLuint program);
 static GLuint shader_compile(BUFFER *shader_source, GLenum kind);
 
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
 /**
- * @brief 
- * 
- * @param frag_shader_source 
- * @param vert_shader_source 
- * @return struct shader_program 
+ * @brief
+ *
+ * @param shader
+ * @param source
  */
-struct shader_program shader_program_create(BUFFER *frag_shader_source, BUFFER *vert_shader_source, struct application *app)
+void shader_vert_mem(struct shader *shader, BUFFER *source)
 {
-    struct shader_program shaders = { 0 };
-
-    if (!app) {
-        return (struct shader_program) { 0 };
-    }
-
-    if (!frag_shader_source || !vert_shader_source) {
-        if (!frag_shader_source) {
-            application_log_error(app, LOGGER_SEVERITY_ERRO, "No fragment shader was supplied to create a shader program.");
-        }
-        if (!vert_shader_source) {
-            application_log_error(app, LOGGER_SEVERITY_ERRO, "No vertex shader was supplied to create a shader program.");
-        }
-        return (struct shader_program) { 0 };
-    }
-
-    shaders.frag_shader = shader_compile(frag_shader_source, GL_FRAGMENT_SHADER);
-    shaders.vert_shader = shader_compile(vert_shader_source, GL_VERTEX_SHADER);
-
-    if (!shaders.frag_shader || !shaders.vert_shader) {
-        application_log_error(app, LOGGER_SEVERITY_ERRO, "Shader compilation failed.");
-        shader_program_destroy(&shaders);
-        return (struct shader_program) { 0 };
-    }
-
-    shaders.program = glCreateProgram();
-
-    glAttachShader(shaders.program, shaders.vert_shader);
-    glAttachShader(shaders.program, shaders.frag_shader);
-    glBindAttribLocation(shaders.program, 0, "in_Position");
-    glBindAttribLocation(shaders.program, 1, "in_Color");
-    glLinkProgram(shaders.program);
-
-    if (!check_shader_linking(shaders.program)) {
-        application_log_error(app, LOGGER_SEVERITY_ERRO, "Shader linking failed.");
-        shader_program_destroy(&shaders);
-        return (struct shader_program) { 0 };
-    }
-
-    return shaders;
+    shader->vert_shader = shader_compile(source, GL_VERTEX_SHADER);
 }
 
-void shader_program_destroy(struct shader_program *shaders)
+/**
+ * @brief
+ *
+ * @param shader
+ * @param source
+ */
+void shader_frag_mem(struct shader *shader, BUFFER *source)
 {
-    if (!shaders) {
-        return;
+    shader->frag_shader = shader_compile(source, GL_FRAGMENT_SHADER);
+}
+
+/**
+ * @brief
+ *
+ * @param shader
+ * @param path
+ */
+void shader_vert(struct shader *shader, const char *path)
+{
+    BUFFER *buffer = range_create_dynamic(make_system_allocator(), sizeof(*buffer->data), 4096);
+
+    if (file_read(path, buffer) == 0) {
+        shader_vert_mem(shader, buffer);
+    } else {
+        fprintf(stderr, "failed to read file `%s`\n", path);
     }
 
-    glDetachShader(shaders->program, shaders->frag_shader);
-    glDetachShader(shaders->program, shaders->vert_shader);
-    glDeleteProgram(shaders->program);
-    glDeleteShader(shaders->frag_shader);
-    glDeleteShader(shaders->vert_shader);
-
-    *shaders = (struct shader_program) { 0 };
+    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer));
 }
+
+/**
+ * @brief
+ *
+ * @param shader
+ * @param path
+ */
+void shader_frag(struct shader *shader, const char *path)
+{
+    BUFFER *buffer = range_create_dynamic(make_system_allocator(), sizeof(*buffer->data), 4096);
+
+    if (file_read(path, buffer) == 0) {
+        shader_frag_mem(shader, buffer);
+    } else {
+        fprintf(stderr, "failed to read file `%s`\n", path);
+    }
+
+    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer));
+}
+
+/**
+ * @brief
+ *
+ * @param shader
+ */
+void shader_link(struct shader *shader)
+{
+    shader->program = glCreateProgram();
+
+    glAttachShader(shader->program, shader->vert_shader);
+    glAttachShader(shader->program, shader->frag_shader);
+    glLinkProgram(shader->program);
+
+    if (!check_shader_linking(shader->program)) {
+        shader->program = 0;
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param shader
+ */
+void shader_delete(struct shader *shader)
+{
+    glDetachShader(shader->program, shader->frag_shader);
+    glDetachShader(shader->program, shader->vert_shader);
+    glDeleteProgram(shader->program);
+    glDeleteShader(shader->frag_shader);
+    glDeleteShader(shader->vert_shader);
+
+    *shader = (struct shader) { 0 };
+}
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 /**
  * @brief
@@ -130,6 +172,7 @@ static GLuint shader_compile(BUFFER *shader_source, GLenum kind)
 {
     GLuint shader = glCreateShader(kind);
     const GLchar* buffer = (const GLchar*) shader_source->data;
+    // GLint length = shader_source->length;
 
     glShaderSource(shader, 1, &buffer, NULL);
     glCompileShader(shader);
@@ -140,40 +183,4 @@ static GLuint shader_compile(BUFFER *shader_source, GLenum kind)
     }
 
     return shader;
-}
-
-/**
- * @brie
- *
- * @param alloc
- * @return struct object
- */
-struct geometry create_geometry_empty(struct allocator alloc)
-{
-    struct geometry new_geometry = {
-            .name = range_create_dynamic(alloc, sizeof(&new_geometry.name->data), 64),
-            .vertices = range_create_dynamic(alloc, sizeof(&new_geometry.vertices->data), 128),
-            .colors = range_create_dynamic(alloc, sizeof(&new_geometry.colors->data), 128),
-    };
-
-    return new_geometry;
-}
-
-/**
- * @brief
- *
- * @param alloc
- * @param geometry
- */
-void destroy_geometry(struct allocator alloc, struct geometry *geometry)
-{
-    if (!geometry) {
-        return;
-    }
-
-    range_destroy_dynamic(alloc, &RANGE_TO_ANY(geometry->name));
-    range_destroy_dynamic(alloc, &RANGE_TO_ANY(geometry->vertices));
-    range_destroy_dynamic(alloc, &RANGE_TO_ANY(geometry->colors));
-
-    *geometry = (struct geometry) { 0 };
 }

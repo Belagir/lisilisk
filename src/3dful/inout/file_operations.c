@@ -16,14 +16,12 @@ i32 file_read(const char *path, BUFFER *out_buffer)
     i32 err_code = 0;
 
     if (!path || !out_buffer) {
-        err_code = -1;
-        goto cleanup_on_error;
+        return -1;
     }
 
     fd = fopen(path, "r");
     if (!fd) {
-        err_code = -2;
-        goto cleanup_on_error;
+        return -2;
     }
 
     fseek(fd, 0, SEEK_END);
