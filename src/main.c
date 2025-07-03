@@ -21,7 +21,7 @@ void drawscene(struct application target)
     object_load(&object);
 
     camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
-    camera_view(&camera, matrix4_get_view_matrix((vector3_t) { 0, 0, 10 }, VECTOR3_Z_NEGATIVE, VECTOR3_Y_POSITIVE));
+    camera_view(&camera, matrix4_get_view_matrix((vector3_t) { 6, 5, 10 }, VECTOR3_Z_NEGATIVE, VECTOR3_Y_POSITIVE));
 
     int should_quit = 0;
     SDL_Event event = { };

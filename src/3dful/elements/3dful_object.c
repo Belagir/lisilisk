@@ -98,5 +98,5 @@ void object_draw(struct object object, struct camera camera)
     matrix4_to_array(camera.projection, &tmp);
     glUniformMatrix4fv(object.uniforms.projection, 1, GL_FALSE, (const GLfloat *) tmp);
 
-    glDrawElements(GL_LINE_LOOP, object.geometry->faces->length*3, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, object.geometry->faces->length*3, GL_UNSIGNED_INT, 0);
 }
