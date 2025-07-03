@@ -25,9 +25,15 @@ struct geometry {
 };
 
 struct object {
+    struct matrix4_t transform;
+
     GLuint vao;
     GLuint vbo;
     GLuint ebo;
+
+    struct {
+        GLuint transform_location;
+    } uniforms;
 
     struct shader *shading;
     struct geometry *geometry;
@@ -44,6 +50,7 @@ void geometry_wavobj(struct geometry *geometry, const char *path);
 void geometry_wavobj_mem(struct geometry *geometry, BUFFER *obj);
 void geometry_delete(struct geometry *geometry);
 
+void object_transform(struct object *object, struct matrix4_t transform);
 void object_geometry(struct object *object, struct geometry *geometry);
 void object_shader(struct object *object, struct shader *shader);
 void object_load(struct object *object);

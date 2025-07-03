@@ -1,6 +1,10 @@
 
 #include "3dful_core.h"
 
+void object_transform(struct object *object, struct matrix4_t transform)
+{
+    object->transform = transform;
+}
 /**
  * @brief
  *
@@ -49,6 +53,8 @@ void object_load(struct object *object)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void*)0);
     glEnableVertexAttribArray(0);
 
+    object->uniforms.transform_location = glGetUniformLocation(object->shading->program, "transform");
+
     glUseProgram(0);
     glBindVertexArray(0);
 }
@@ -76,8 +82,13 @@ void object_unload(struct object *object)
  */
 void object_draw(struct object object)
 {
+    f32 tmp[16] = { };
+
     glUseProgram(object.shading->program);
     glBindVertexArray(object.vao);
 
-    glDrawElements(GL_TRIANGLES, object.geometry->faces->length*3, GL_UNSIGNED_INT, 0);
+    matrix4_to_array(object.transform, &tmp);
+    glUniformMatrix4fv(object.uniforms.transform_location, 1, GL_FALSE, (const GLfloat *) tmp);
+
+    glDrawElements(GL_LINE_LOOP, object.geometry->faces->length*3, GL_UNSIGNED_INT, 0);
 }

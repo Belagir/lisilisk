@@ -5,14 +5,16 @@
 void drawscene(struct application target)
 {
     struct shader shader = { };
+    struct geometry geometry = { };
+    struct object object = { };
+
     shader_frag(&shader, "shaders/dummy.frag");
     shader_vert(&shader, "shaders/dummy.vert");
     shader_link(&shader);
 
-    struct geometry geometry = { };
     geometry_wavobj(&geometry, "models/diamond.obj");
 
-    struct object object = { };
+    object_transform(&object, matrix_translate(matrix4_identity(), (vector3_t) { .5, .5, 0 }));
     object_geometry(&object, &geometry);
     object_shader(&object, &shader);
     object_load(&object);
