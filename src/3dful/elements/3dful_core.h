@@ -32,11 +32,18 @@ struct object {
     GLuint ebo;
 
     struct {
-        GLuint transform_location;
+        GLuint model;
+        GLuint view;
+        GLuint projection;
     } uniforms;
 
     struct shader *shading;
     struct geometry *geometry;
+};
+
+struct camera {
+    struct matrix4_t view;
+    struct matrix4_t projection;
 };
 
 void shader_vert_mem(struct shader *shader, BUFFER *source);
@@ -55,6 +62,9 @@ void object_geometry(struct object *object, struct geometry *geometry);
 void object_shader(struct object *object, struct shader *shader);
 void object_load(struct object *object);
 void object_unload(struct object *object);
-void object_draw(struct object object);
+void object_draw(struct object object, struct camera camera);
+
+void camera_projection(struct camera *camera, struct matrix4_t projection);
+void camera_view(struct camera *camera, struct matrix4_t view);
 
 #endif

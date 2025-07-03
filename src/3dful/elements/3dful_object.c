@@ -53,7 +53,9 @@ void object_load(struct object *object)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void*)0);
     glEnableVertexAttribArray(0);
 
-    object->uniforms.transform_location = glGetUniformLocation(object->shading->program, "transform");
+    object->uniforms.model = glGetUniformLocation(object->shading->program, "MODEL_MATRIX");
+    object->uniforms.view = glGetUniformLocation(object->shading->program, "VIEW_MATRIX");
+    object->uniforms.projection = glGetUniformLocation(object->shading->program, "PROJECTION_MATRIX");
 
     glUseProgram(0);
     glBindVertexArray(0);
@@ -80,7 +82,7 @@ void object_unload(struct object *object)
  *
  * @param object
  */
-void object_draw(struct object object)
+void object_draw(struct object object, struct camera camera)
 {
     f32 tmp[16] = { };
 
@@ -88,7 +90,13 @@ void object_draw(struct object object)
     glBindVertexArray(object.vao);
 
     matrix4_to_array(object.transform, &tmp);
-    glUniformMatrix4fv(object.uniforms.transform_location, 1, GL_FALSE, (const GLfloat *) tmp);
+    glUniformMatrix4fv(object.uniforms.model, 1, GL_FALSE, (const GLfloat *) tmp);
+
+    matrix4_to_array(camera.view, &tmp);
+    glUniformMatrix4fv(object.uniforms.view, 1, GL_FALSE, (const GLfloat *) tmp);
+
+    matrix4_to_array(camera.projection, &tmp);
+    glUniformMatrix4fv(object.uniforms.projection, 1, GL_FALSE, (const GLfloat *) tmp);
 
     glDrawElements(GL_LINE_LOOP, object.geometry->faces->length*3, GL_UNSIGNED_INT, 0);
 }
