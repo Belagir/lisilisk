@@ -24,7 +24,7 @@ void object_geometry(struct object *object, struct geometry *geometry)
  */
 void object_shader(struct object *object, struct shader *shader)
 {
-    object->shading = shader;
+    object->shader = shader;
 }
 
 /**
@@ -34,28 +34,28 @@ void object_shader(struct object *object, struct shader *shader)
  */
 void object_load(struct object *object)
 {
-    glGenVertexArrays(1, &object->vao);
-    glBindVertexArray(object->vao);
+    glGenVertexArrays(1, &object->gpu_side.vao);
+    glBindVertexArray(object->gpu_side.vao);
 
-    glGenBuffers(1, &object->vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
+    glGenBuffers(1, &object->gpu_side.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, object->gpu_side.vbo);
     glBufferData(GL_ARRAY_BUFFER,
             object->geometry->vertices->length * sizeof(*object->geometry->vertices->data),
             object->geometry->vertices->data, GL_STATIC_DRAW);
 
-    glGenBuffers(1, &object->ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object->ebo);
+    glGenBuffers(1, &object->gpu_side.ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object->gpu_side.ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
             object->geometry->faces->length * sizeof(*object->geometry->faces->data),
             object->geometry->faces->data, GL_STATIC_DRAW);
 
-    glUseProgram(object->shading->program);
+    glUseProgram(object->shader->program);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void*)0);
     glEnableVertexAttribArray(0);
 
-    object->uniforms.model = glGetUniformLocation(object->shading->program, "MODEL_MATRIX");
-    object->uniforms.view = glGetUniformLocation(object->shading->program, "VIEW_MATRIX");
-    object->uniforms.projection = glGetUniformLocation(object->shading->program, "PROJECTION_MATRIX");
+    object->uniforms.model = glGetUniformLocation(object->shader->program, "MODEL_MATRIX");
+    object->uniforms.view = glGetUniformLocation(object->shader->program, "VIEW_MATRIX");
+    object->uniforms.projection = glGetUniformLocation(object->shader->program, "PROJECTION_MATRIX");
 
     glUseProgram(0);
     glBindVertexArray(0);
@@ -68,13 +68,13 @@ void object_load(struct object *object)
  */
 void object_unload(struct object *object)
 {
-    glDeleteBuffers(1, &object->ebo);
-    glDeleteBuffers(1, &object->vbo);
-    glDeleteVertexArrays(1, &object->vao);
+    glDeleteBuffers(1, &object->gpu_side.ebo);
+    glDeleteBuffers(1, &object->gpu_side.vbo);
+    glDeleteVertexArrays(1, &object->gpu_side.vao);
 
-    object->ebo = 0;
-    object->vbo = 0;
-    object->vao = 0;
+    object->gpu_side.ebo = 0;
+    object->gpu_side.vbo = 0;
+    object->gpu_side.vao = 0;
 }
 
 /**
@@ -86,8 +86,8 @@ void object_draw(struct object object, struct camera camera)
 {
     f32 tmp[16] = { };
 
-    glUseProgram(object.shading->program);
-    glBindVertexArray(object.vao);
+    glUseProgram(object.shader->program);
+    glBindVertexArray(object.gpu_side.vao);
 
     matrix4_to_array(object.transform, &tmp);
     glUniformMatrix4fv(object.uniforms.model, 1, GL_FALSE, (const GLfloat *) tmp);
