@@ -15,7 +15,7 @@
 
 struct shader { GLuint frag_shader, vert_shader, program; };
 
-union vertex { struct { f32 x, y, z, w; }; f32 array[4u]; };
+union vertex { struct { f32 x, y, z; }; f32 array[3u]; };
 struct face  { u32 indices[3u]; };
 
 struct geometry {

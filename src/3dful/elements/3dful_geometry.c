@@ -152,10 +152,6 @@ static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *buffer_idx, stru
                 && wavefront_parse_value(buffer, buffer_idx, &pos.y)
                 && wavefront_parse_value(buffer, buffer_idx, &pos.z))
         {
-            if (!wavefront_parse_value(buffer, buffer_idx, &pos.w)) {
-                pos.w = 1.0;
-            }
-
             range_push(RANGE_TO_ANY(out_geometry->vertices), &pos);
             return 1;
         }
@@ -266,7 +262,7 @@ static f32 read_value(const BUFFER *buffer, size_t *buffer_idx)
     }
     *buffer_idx += 1;
 
-    return sign * integral_part + fract_part;
+    return sign * (integral_part + fract_part);
 }
 
 /**
