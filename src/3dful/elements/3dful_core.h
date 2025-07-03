@@ -29,12 +29,9 @@ struct object {
     GLuint vbo;
     GLuint ebo;
 
-    size_t indices_nb;
-
-    struct shader shading;
+    struct shader *shading;
+    struct geometry *geometry;
 };
-
-void application_log_error(struct application *app, enum logger_severity severity, char *format, ...);
 
 void shader_vert_mem(struct shader *shader, BUFFER *source);
 void shader_frag_mem(struct shader *shader, BUFFER *source);
@@ -47,8 +44,10 @@ void geometry_wavobj(struct geometry *geometry, const char *path);
 void geometry_wavobj_mem(struct geometry *geometry, BUFFER *obj);
 void geometry_delete(struct geometry *geometry);
 
-struct object object_create(struct geometry geometry, struct shader shaders, struct application *app);
-void object_destroy(struct object *object);
-void object_render(struct object object);
+void object_geometry(struct object *object, struct geometry *geometry);
+void object_shader(struct object *object, struct shader *shader);
+void object_load(struct object *object);
+void object_unload(struct object *object);
+void object_draw(struct object object);
 
 #endif

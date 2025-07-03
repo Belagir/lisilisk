@@ -29,7 +29,7 @@ struct application application_create(const char *name, u32 width, u32 height)
 
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-    
+
     /* Create our window centered at 512x512 resolution */
     target.sdl_window = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
@@ -37,7 +37,7 @@ struct application application_create(const char *name, u32 width, u32 height)
         logger_log(log, LOGGER_SEVERITY_CRIT, "Failed to spawn window:\n%s", SDL_GetError());
         return (struct application) { };
     }
-    
+
     /* Create our opengl context and attach it to our window */
     target.ogl_context = SDL_GL_CreateContext(target.sdl_window);
     if (!target.sdl_window) {
@@ -67,15 +67,3 @@ void application_destroy(struct application *target)
     SDL_DestroyWindow(target->sdl_window);
     SDL_Quit();
 }
-
-void application_log_error(struct application *app, enum logger_severity severity, char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-
-    logger_vlog(app->log, severity, format, args);
-
-    va_end(args);
-}
-
-

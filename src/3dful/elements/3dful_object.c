@@ -4,49 +4,47 @@
 /**
  * @brief
  *
+ * @param object
  * @param geometry
- * @param frag_shader
- * @param vert_shader
- * @return struct object
  */
-struct object object_create(struct geometry geometry, struct shader shaders, struct application *app)
+void object_geometry(struct object *object, struct geometry *geometry)
 {
-    struct object object = { 0 };
+    object->geometry = geometry;
+}
 
-    if (!geometry.colors || !geometry.vertices || !shaders.program) {
-        application_log_error(app, LOGGER_SEVERITY_ERRO,
-                "failed to build object. Got :\n- shader program %#010x ;\n- vertices data %#010x ;\n- color data %#010x.",
-                shaders.program, geometry.vertices, geometry.colors);
-        return (struct object) { 0 };
-    }
+/**
+ * @brief
+ *
+ * @param object
+ * @param shader
+ */
+void object_shader(struct object *object, struct shader *shader)
+{
+    object->shading = shader;
+}
 
-    glGenVertexArrays(1, &(object.vao));
-    glBindVertexArray(object.vao);
+/**
+ * @brief
+ *
+ * @param object
+ */
+void object_load(struct object *object)
+{
+    glGenVertexArrays(1, &object->vao);
+    glBindVertexArray(object->vao);
 
-    glGenBuffers(2, object.vbo);
+    glGenBuffers(1, &object->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
+    glBufferData(GL_ARRAY_BUFFER,
+            object->geometry->vertices->length * sizeof(*object->geometry->vertices->data),
+            object->geometry->vertices->data, GL_STATIC_DRAW);
 
-    // positions
-    glBindBuffer(GL_ARRAY_BUFFER, object.vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, geometry.vertices->length * sizeof(*geometry.vertices->data), geometry.vertices->data, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, sizeof(*geometry.vertices->data) / sizeof(*geometry.vertices->data->array), GL_FLOAT, GL_FALSE, 0, 0);
+    glUseProgram(object->shading->program);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // colors
-    glBindBuffer(GL_ARRAY_BUFFER, object.vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, geometry.colors->length * sizeof(*geometry.colors->data), geometry.colors->data, GL_STATIC_DRAW);
-    glVertexAttribPointer(1, sizeof(*geometry.colors->data) / sizeof(*geometry.colors->data->array), GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(1);
-
-    glGenBuffers(1, &object.ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object.ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, geometry.faces->length * sizeof(*geometry.faces->data), geometry.faces->data, GL_STATIC_DRAW);
-
-    object.shading = shaders;
-    object.indices_nb = geometry.faces->length * 3;
-
+    glUseProgram(0);
     glBindVertexArray(0);
-
-    return object;
 }
 
 /**
@@ -54,17 +52,15 @@ struct object object_create(struct geometry geometry, struct shader shaders, str
  *
  * @param object
  */
-void object_destroy(struct object *object)
+void object_unload(struct object *object)
 {
-    if (!object) {
-        return;
-    }
-
     glDeleteBuffers(1, &object->ebo);
-    glDeleteBuffers(2, object->vbo);
+    glDeleteBuffers(1, &object->vbo);
     glDeleteVertexArrays(1, &object->vao);
 
-    *object = (struct object) { 0 };
+    object->ebo = 0;
+    object->vbo = 0;
+    object->vao = 0;
 }
 
 /**
@@ -72,12 +68,9 @@ void object_destroy(struct object *object)
  *
  * @param object
  */
-void object_render(struct object object)
+void object_draw(struct object object)
 {
-    glUseProgram(object.shading.program);
+    glUseProgram(object.shading->program);
     glBindVertexArray(object.vao);
-
-    glDrawElements(GL_TRIANGLES, object.indices_nb, GL_UNSIGNED_INT, 0);
-
-    glUseProgram(0);
+    glDrawArrays(GL_TRIANGLES, 0, object.geometry->vertices->length);
 }
