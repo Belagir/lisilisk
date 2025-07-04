@@ -54,8 +54,6 @@ void object_load(struct object *object)
     glEnableVertexAttribArray(0);
 
     object->uniforms.model = glGetUniformLocation(object->shader->program, "MODEL_MATRIX");
-    object->uniforms.view = glGetUniformLocation(object->shader->program, "VIEW_MATRIX");
-    object->uniforms.projection = glGetUniformLocation(object->shader->program, "PROJECTION_MATRIX");
 
     glUseProgram(0);
     glBindVertexArray(0);
@@ -82,7 +80,7 @@ void object_unload(struct object *object)
  *
  * @param object
  */
-void object_draw(struct object object, struct camera camera)
+void object_draw(struct object object)
 {
     f32 tmp[16] = { };
 
@@ -91,12 +89,6 @@ void object_draw(struct object object, struct camera camera)
 
     matrix4_to_array(object.transform, &tmp);
     glUniformMatrix4fv(object.uniforms.model, 1, GL_FALSE, (const GLfloat *) tmp);
-
-    matrix4_to_array(camera.view, &tmp);
-    glUniformMatrix4fv(object.uniforms.view, 1, GL_FALSE, (const GLfloat *) tmp);
-
-    matrix4_to_array(camera.projection, &tmp);
-    glUniformMatrix4fv(object.uniforms.projection, 1, GL_FALSE, (const GLfloat *) tmp);
 
     glDrawElements(GL_TRIANGLES, object.geometry->faces->length*3, GL_UNSIGNED_INT, 0);
 }

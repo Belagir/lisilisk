@@ -30,10 +30,11 @@ struct shader shader_store_get(struct shader_store *store, struct handle shader_
 
 struct scene {
     RANGE(struct object) *objects;
+    struct camera camera;
 
     struct {
-        GLuint color;
-        GLuint strength;
+        f32 color[3];
+        f32 strength;
     } ambient_light;
 };
 
@@ -44,6 +45,8 @@ void scene_add(struct scene *scene, struct object object);
 void scene_camera(struct scene *scene, struct camera camera);
 void scene_ambient_light_color(struct scene *scene, f32 color[3]);
 void scene_ambient_light_strength(struct scene *scene, f32 strength);
+
+void scene_draw(struct scene scene);
 
 void scene_load(struct scene *scene);
 void scene_unload(struct scene *scene);

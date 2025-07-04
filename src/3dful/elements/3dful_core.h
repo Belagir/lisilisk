@@ -67,8 +67,6 @@ struct object {
     // opengl uniform names.
     struct {
         GLuint model;
-        GLuint view;
-        GLuint projection;
     } uniforms;
 };
 
@@ -112,7 +110,7 @@ void object_geometry(struct object *object, struct geometry *geometry);
 void object_shader(struct object *object, struct shader *shader);
 void object_load(struct object *object);
 void object_unload(struct object *object);
-void object_draw(struct object object, struct camera camera);
+void object_draw(struct object object);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
