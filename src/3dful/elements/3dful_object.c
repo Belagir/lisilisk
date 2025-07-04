@@ -1,6 +1,21 @@
 
 #include "3dful_core.h"
 
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+static void object_send_space_uniforms(struct object object);
+static void object_send_material_uniforms(struct object object);
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * @brief
+ *
+ * @param object
+ * @param transform
+ */
 void object_transform(struct object *object, struct matrix4_t transform)
 {
     object->transform = transform;
@@ -31,6 +46,19 @@ void object_shader(struct object *object, struct shader *shader)
  * @brief
  *
  * @param object
+ * @param color
+ */
+void object_color(struct object *object, f32 color[3])
+{
+    object->color[0] = color[0];
+    object->color[1] = color[1];
+    object->color[2] = color[2];
+}
+
+/**
+ * @brief
+ *
+ * @param object
  */
 void object_load(struct object *object)
 {
@@ -52,8 +80,6 @@ void object_load(struct object *object)
     glUseProgram(object->shader->program);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void*)0);
     glEnableVertexAttribArray(0);
-
-    object->uniforms.model = glGetUniformLocation(object->shader->program, "MODEL_MATRIX");
 
     glUseProgram(0);
     glBindVertexArray(0);
@@ -82,13 +108,54 @@ void object_unload(struct object *object)
  */
 void object_draw(struct object object)
 {
-    f32 tmp[16] = { };
+    object_send_space_uniforms(object);
+    object_send_material_uniforms(object);
 
     glUseProgram(object.shader->program);
     glBindVertexArray(object.gpu_side.vao);
 
-    matrix4_to_array(object.transform, &tmp);
-    glUniformMatrix4fv(object.uniforms.model, 1, GL_FALSE, (const GLfloat *) tmp);
-
     glDrawElements(GL_TRIANGLES, object.geometry->faces->length*3, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
+
+}
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * @brief
+ *
+ * @param object
+ */
+static void object_send_space_uniforms(struct object object)
+{
+    GLint unif_name = -1;
+    f32 tmp[16] = { };
+
+    glUseProgram(object.shader->program);
+
+    unif_name = glGetUniformLocation(object.shader->program, "MODEL_MATRIX");
+    matrix4_to_array(object.transform, &tmp);
+    glUniformMatrix4fv(unif_name, 1, GL_FALSE, (const GLfloat *) tmp);
+
+    glUseProgram(0);
+}
+
+/**
+ * @brief
+ *
+ * @param object
+ */
+static void object_send_material_uniforms(struct object object)
+{
+    GLint unif_name = -1;
+
+    glUseProgram(object.shader->program);
+
+    unif_name = glGetUniformLocation(object.shader->program, "COLOR");
+    glUniform3fv(unif_name, 1, object.color);
+
+    glUseProgram(0);
 }

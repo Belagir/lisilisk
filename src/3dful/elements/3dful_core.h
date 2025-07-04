@@ -54,8 +54,11 @@ struct geometry {
  */
 struct object {
     struct matrix4_t transform;
+
     struct shader *shader;
     struct geometry *geometry;
+
+    f32 color[3];
 
     // opengl names referencing the object's data on the gpu.
     struct {
@@ -63,11 +66,6 @@ struct object {
         GLuint vbo;
         GLuint ebo;
     } gpu_side;
-
-    // opengl uniform names.
-    struct {
-        GLuint model;
-    } uniforms;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -108,6 +106,7 @@ void geometry_delete(struct geometry *geometry);
 void object_transform(struct object *object, struct matrix4_t transform);
 void object_geometry(struct object *object, struct geometry *geometry);
 void object_shader(struct object *object, struct shader *shader);
+void object_color(struct object *object, f32 color[3]);
 void object_load(struct object *object);
 void object_unload(struct object *object);
 void object_draw(struct object object);

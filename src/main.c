@@ -23,18 +23,20 @@ int main(void)
     object_transform(&object, matrix_translate(matrix4_identity(), (vector3_t) { .5, .5, 0 }));
     object_geometry(&object, &geometry);
     object_shader(&object, &shader);
+    object_color(&object, (f32[3]) { 0., .5, .5 });
 
     object_transform(&object2, matrix_translate(matrix4_identity(), (vector3_t) { -4, -.5, 0 }));
     object_geometry(&object2, &geometry);
     object_shader(&object2, &shader);
+    object_color(&object2, (f32[3]) { 1., 1., 0. });
 
     camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
     camera_view(&camera, matrix4_get_view_matrix((vector3_t) { 6, 5, 10 }, VECTOR3_Z_NEGATIVE, VECTOR3_Y_POSITIVE));
 
     scene_create(&scene);
     scene_camera(&scene, camera);
-    scene_ambient_light_color(&scene, (f32[3]) { 1, 0, 1 });
-    scene_ambient_light_strength(&scene, 1.);
+    scene_ambient_light_color(&scene, (f32[3]) { 1, 1, 1 });
+    scene_ambient_light_strength(&scene, .2);
     scene_add(&scene, object);
     scene_add(&scene, object2);
     scene_load(&scene);
