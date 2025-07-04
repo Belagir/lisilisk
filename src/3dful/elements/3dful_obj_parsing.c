@@ -18,6 +18,8 @@ static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *buffer_idx, 
 
 static i32 wavefront_parse_obj_name(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
 static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
+static i32 wavefront_parse_vertex_pos(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
+static i32 wavefront_parse_vertex_normal(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
 static i32 wavefront_parse_face(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry);
 
 static i32 wavefront_parse_value(const BUFFER *buffer, size_t *buffer_idx, f32 *out_value);
@@ -120,21 +122,53 @@ static i32 wavefront_parse_obj_name(const BUFFER *buffer, size_t *buffer_idx, st
 
 static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry)
 {
-    vector3_t pos = { 0 };
+    skip_whitespace(buffer, buffer_idx);
 
     if (accept(buffer, buffer_idx, (char []) { 'v' }, 1, NULL)) {
-        skip_whitespace(buffer, buffer_idx);
 
-        if (wavefront_parse_value(buffer, buffer_idx, &pos.x)
-                && wavefront_parse_value(buffer, buffer_idx, &pos.y)
-                && wavefront_parse_value(buffer, buffer_idx, &pos.z))
-        {
-            range_push(RANGE_TO_ANY(out_geometry->vertices), &pos);
-            return 1;
+        if (accept(buffer, buffer_idx, (char []) { 'n' }, 1, NULL)) {
+            return wavefront_parse_vertex_normal(buffer, buffer_idx, out_geometry);
+        } else {
+            return wavefront_parse_vertex_pos(buffer, buffer_idx, out_geometry);
         }
     }
 
     return 0;
+}
+
+static i32 wavefront_parse_vertex_pos(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry)
+{
+    vector3_t pos = { 0 };
+
+    skip_whitespace(buffer, buffer_idx);
+
+    if (wavefront_parse_value(buffer, buffer_idx, &pos.x)
+            && wavefront_parse_value(buffer, buffer_idx, &pos.y)
+            && wavefront_parse_value(buffer, buffer_idx, &pos.z)) {
+
+        range_push(RANGE_TO_ANY(out_geometry->vertices), &pos);
+        return 1;
+    }
+
+    return 0;
+}
+
+static i32 wavefront_parse_vertex_normal(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry)
+{
+    vector3_t normal = { 0 };
+
+    skip_whitespace(buffer, buffer_idx);
+
+    if (wavefront_parse_value(buffer, buffer_idx, &normal.x)
+            && wavefront_parse_value(buffer, buffer_idx, &normal.y)
+            && wavefront_parse_value(buffer, buffer_idx, &normal.z)) {
+
+        range_push(RANGE_TO_ANY(out_geometry->normals), &normal);
+        return 1;
+    }
+
+    return 0;
+
 }
 
 static i32 wavefront_parse_face(const BUFFER *buffer, size_t *buffer_idx, struct geometry *out_geometry)
