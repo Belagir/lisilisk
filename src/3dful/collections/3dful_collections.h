@@ -25,5 +25,27 @@ struct handle shader_store_add(struct shader_store *store, struct shader shader)
 void          shader_store_remove(struct shader_store *store, struct handle shader_handle);
 struct shader shader_store_get(struct shader_store *store, struct handle shader_handle);
 
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+struct scene {
+    RANGE(struct object) *objects;
+
+    struct {
+        GLuint color;
+        GLuint strength;
+    } ambient_light;
+};
+
+void scene_create(struct scene *scene);
+void scene_delete(struct scene *scene);
+
+void scene_add(struct scene *scene, struct object object);
+void scene_camera(struct scene *scene, struct camera camera);
+void scene_ambient_light_color(struct scene *scene, f32 color[3]);
+void scene_ambient_light_strength(struct scene *scene, f32 strength);
+
+void scene_load(struct scene *scene);
+void scene_unload(struct scene *scene);
 
 #endif

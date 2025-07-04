@@ -7,6 +7,7 @@ void drawscene(struct application target)
     struct shader shader = { };
     struct geometry geometry = { };
     struct object object = { };
+    struct object object2 = { };
     struct camera camera = { };
 
     shader_frag(&shader, "shaders/dummy.frag");
@@ -19,6 +20,11 @@ void drawscene(struct application target)
     object_geometry(&object, &geometry);
     object_shader(&object, &shader);
     object_load(&object);
+
+    object_transform(&object2, matrix_translate(matrix4_identity(), (vector3_t) { -4, -.5, 0 }));
+    object_geometry(&object2, &geometry);
+    object_shader(&object2, &shader);
+    object_load(&object2);
 
     camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
     camera_view(&camera, matrix4_get_view_matrix((vector3_t) { 6, 5, 10 }, VECTOR3_Z_NEGATIVE, VECTOR3_Y_POSITIVE));
@@ -34,6 +40,7 @@ void drawscene(struct application target)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         {
             object_draw(object, camera);
+            object_draw(object2, camera);
         }
         SDL_GL_SwapWindow(target.sdl_window);
 
