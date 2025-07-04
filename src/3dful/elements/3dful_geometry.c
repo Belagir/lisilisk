@@ -69,10 +69,10 @@ void geometry_delete(struct geometry *geometry)
  * @param geometry
  * @param out_idx
  */
-void geometry_push_vertex(struct geometry *geometry, size_t *out_idx)
+void geometry_push_vertex(struct geometry *geometry, u32 *out_idx)
 {
-    range_push(RANGE_TO_ANY(geometry->vertices), &(struct vertex) { .pos = { 0 }, .normal = { 1., 0, 0 } });
-    if (out_idx) *out_idx = geometry->vertices->length - 1;
+    range_push(RANGE_TO_ANY(geometry->vertices), &(struct vertex) { 0 });
+    if (out_idx) *out_idx = (u32) geometry->vertices->length - 1;
 }
 
 /**
@@ -91,12 +91,24 @@ void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3_t pos)
  * @brief
  *
  * @param geometry
+ * @param idx
+ * @param normal
+ */
+void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3_t normal)
+{
+    geometry->vertices->data[idx].normal = normal;
+}
+
+/**
+ * @brief
+ *
+ * @param geometry
  * @param out_idx
  */
-void geometry_push_face(struct geometry *geometry, size_t *out_idx)
+void geometry_push_face(struct geometry *geometry, u32 *out_idx)
 {
     range_push(RANGE_TO_ANY(geometry->faces), &(struct face) { 0 });
-    if (out_idx) *out_idx = geometry->faces->length - 1;
+    if (out_idx) *out_idx = (u32) geometry->faces->length - 1;
 }
 
 /**

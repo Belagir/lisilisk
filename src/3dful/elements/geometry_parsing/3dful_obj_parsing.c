@@ -99,16 +99,28 @@ void wavefront_obj_parse(struct wavefront_obj *obj, BUFFER *buffer)
  */
 void wavefront_obj_to(struct wavefront_obj *obj, struct geometry *geometry)
 {
-    size_t idx = 0;
-
-    for (size_t i = 0 ; i < obj->v->length ; i++) {
-        geometry_push_vertex(geometry, &idx);
-        geometry_vertex_pos(geometry, idx, obj->v->data[i]);
-    }
+    u32 idx_face = 0;
+    struct wavefront_obj_face face = { };
+    u32 face_generated_indices[3] = { 0 };
 
     for (size_t i = 0 ; i < obj->f->length ; i++) {
-        geometry_push_face(geometry, &idx);
-        geometry_face_indices(geometry, idx, obj->f->data[i].v_idx);
+
+        face = obj->f->data[i];
+        for (size_t j = 0 ; j < 3 ; j++) {
+            geometry_push_vertex(geometry, &face_generated_indices[j]);
+
+            geometry_vertex_pos(geometry, face_generated_indices[j], obj->v->data[face.v_idx[j]]);
+            geometry_vertex_normal(geometry, face_generated_indices[j], obj->vn->data[face.vn_idx[j]]);
+        }
+
+        geometry_push_face(geometry, &idx_face);
+        geometry_face_indices(geometry, idx_face, face_generated_indices);
+    }
+
+    struct vertex v = { };
+    for (size_t i = 0 ; i < geometry->vertices->length ; i++) {
+        v = geometry->vertices->data[i];
+        printf("% 4.1f % 4.1f % 4.1f ; % 4.1f % 4.1f % 4.1f\n", v.pos.x, v.pos.y, v.pos.z, v.normal.x, v.normal.y, v.normal.z);
     }
 }
 

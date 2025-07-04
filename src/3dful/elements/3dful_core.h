@@ -96,11 +96,11 @@ void geometry_wavobj(struct geometry *geometry, const char *path);
 void geometry_wavobj_mem(struct geometry *geometry, BUFFER *obj);
 void geometry_delete(struct geometry *geometry);
 
-void geometry_push_vertex(struct geometry *geometry, size_t *out_idx);
+void geometry_push_vertex(struct geometry *geometry, u32 *out_idx);
 void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3_t pos);
 void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3_t normal);
 
-void geometry_push_face(struct geometry *geometry, size_t *out_idx);
+void geometry_push_face(struct geometry *geometry, u32 *out_idx);
 void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u]);
 
 // -------------------------------------------------------------------------------------------------

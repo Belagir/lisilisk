@@ -63,27 +63,30 @@ void object_color(struct object *object, f32 color[3])
 void object_load(struct object *object)
 {
     glGenVertexArrays(1, &object->gpu_side.vao);
+
     glBindVertexArray(object->gpu_side.vao);
+    {
+        glGenBuffers(1, &object->gpu_side.vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, object->gpu_side.vbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                object->geometry->vertices->length * sizeof(*object->geometry->vertices->data),
+                object->geometry->vertices->data, GL_STATIC_DRAW);
 
-    glGenBuffers(1, &object->gpu_side.vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, object->gpu_side.vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-            object->geometry->vertices->length * sizeof(*object->geometry->vertices->data),
-            object->geometry->vertices->data, GL_STATIC_DRAW);
+        glGenBuffers(1, &object->gpu_side.ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object->gpu_side.ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                object->geometry->faces->length * sizeof(*object->geometry->faces->data),
+                object->geometry->faces->data, GL_STATIC_DRAW);
 
-    glGenBuffers(1, &object->gpu_side.ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object->gpu_side.ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-            object->geometry->faces->length * sizeof(*object->geometry->faces->data),
-            object->geometry->faces->data, GL_STATIC_DRAW);
-
-    glUseProgram(object->shader->program);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), (void*) 0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), (void*) (3 * sizeof(f32)));
-    glEnableVertexAttribArray(1);
-
-    glUseProgram(0);
+        glUseProgram(object->shader->program);
+        {
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), (void*) 0);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), (void*) (3 * sizeof(f32)));
+            glEnableVertexAttribArray(1);
+        }
+        glUseProgram(0);
+    }
     glBindVertexArray(0);
 }
 
