@@ -25,16 +25,10 @@ struct shader { GLuint frag_shader, vert_shader, program; };
 // -------------------------------------------------------------------------------------------------
 
 /**
- * @brief Stores vertex data.
- *
- */
-union vertex { struct { f32 x, y, z; }; f32 array[3u]; };
-
-/**
  * @brief Stores indices of a vertices array to describe triangular faces.
  *
  */
-struct face  { u32 indices[3u]; };
+struct face { u32 idx_vert[3u]; };
 
 /**
  * @brief Stores a single mesh's data.
@@ -42,7 +36,8 @@ struct face  { u32 indices[3u]; };
  */
 struct geometry {
     RANGE(char) *name;
-    RANGE(union vertex) *vertices;
+    RANGE(struct vector3_t) *vertices;
+    RANGE(struct vector3_t) *normals;
     RANGE(struct face) *faces;
 };
 
@@ -94,7 +89,7 @@ void shader_delete(struct shader *shader);
 // -------------------------------------------------------------------------------------------------
 // GEOMETRY ----------------------------------------------------------------------------------------
 
-
+void geometry_create(struct geometry *geometry);
 void geometry_wavobj(struct geometry *geometry, const char *path);
 void geometry_wavobj_mem(struct geometry *geometry, BUFFER *obj);
 void geometry_delete(struct geometry *geometry);

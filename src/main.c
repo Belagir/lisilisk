@@ -18,6 +18,7 @@ int main(void)
     shader_vert(&shader, "shaders/dummy.vert");
     shader_link(&shader);
 
+    geometry_create(&geometry);
     geometry_wavobj(&geometry, "models/cube_triangles.obj");
 
     object_transform(&object, matrix_translate(matrix4_identity(), (vector3_t) { .5, .5, 0 }));
