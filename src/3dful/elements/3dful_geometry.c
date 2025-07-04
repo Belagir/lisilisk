@@ -11,6 +11,7 @@ void geometry_create(struct geometry *geometry)
     *geometry = (struct geometry) {
         .name     = range_create_dynamic(make_system_allocator(), sizeof(*geometry->name->data), 64),
         .vertices = range_create_dynamic(make_system_allocator(), sizeof(*geometry->vertices->data), 512),
+        .normals = range_create_dynamic(make_system_allocator(), sizeof(*geometry->normals->data), 512),
         .faces    = range_create_dynamic(make_system_allocator(), sizeof(*geometry->faces->data), 256),
     };
 }
