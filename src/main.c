@@ -37,7 +37,7 @@ int main(void)
     scene_create(&scene);
     scene_camera(&scene, camera);
     scene_ambient_light_color(&scene, (f32[3]) { 1, 1, 1 });
-    scene_ambient_light_strength(&scene, .2);
+    scene_ambient_light_strength(&scene, 1.);
     scene_add(&scene, object);
     scene_add(&scene, object2);
     scene_load(&scene);

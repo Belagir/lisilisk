@@ -25,7 +25,7 @@ struct shader { GLuint frag_shader, vert_shader, program; };
 
 struct vertex {
     struct vector3_t pos;
-    // struct vector3_t normal;
+    struct vector3_t normal;
 };
 
 /**

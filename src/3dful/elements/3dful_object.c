@@ -78,8 +78,10 @@ void object_load(struct object *object)
             object->geometry->faces->data, GL_STATIC_DRAW);
 
     glUseProgram(object->shader->program);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), (void*) 0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), (void*) (3 * sizeof(f32)));
+    glEnableVertexAttribArray(1);
 
     glUseProgram(0);
     glBindVertexArray(0);

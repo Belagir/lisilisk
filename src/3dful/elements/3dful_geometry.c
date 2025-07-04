@@ -71,7 +71,7 @@ void geometry_delete(struct geometry *geometry)
  */
 void geometry_push_vertex(struct geometry *geometry, size_t *out_idx)
 {
-    range_push(RANGE_TO_ANY(geometry->vertices), &(struct vertex) { 0 });
+    range_push(RANGE_TO_ANY(geometry->vertices), &(struct vertex) { .pos = { 0 }, .normal = { 1., 0, 0 } });
     if (out_idx) *out_idx = geometry->vertices->length - 1;
 }
 
