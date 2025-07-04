@@ -7,7 +7,6 @@
 
 #include <ustd/common.h>
 #include <ustd/math3d.h>
-#include <ustd/logging.h>
 
 #include "../3dful.h"
 #include "../inout/file_operations.h"
@@ -24,6 +23,11 @@ struct shader { GLuint frag_shader, vert_shader, program; };
 
 // -------------------------------------------------------------------------------------------------
 
+struct vertex {
+    struct vector3_t pos;
+    struct vector3_t normal;
+};
+
 /**
  * @brief Stores indices of a vertices array to describe triangular faces.
  *
@@ -35,9 +39,7 @@ struct face { u32 idx_vert[3u]; };
  *
  */
 struct geometry {
-    RANGE(char) *name;
-    RANGE(struct vector3_t) *vertices;
-    RANGE(struct vector3_t) *normals;
+    RANGE(struct vertex) *vertices;
     RANGE(struct face) *faces;
 };
 
@@ -93,6 +95,13 @@ void geometry_create(struct geometry *geometry);
 void geometry_wavobj(struct geometry *geometry, const char *path);
 void geometry_wavobj_mem(struct geometry *geometry, BUFFER *obj);
 void geometry_delete(struct geometry *geometry);
+
+void geometry_push_vertex(struct geometry *geometry, size_t *out_idx);
+void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3_t pos);
+void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3_t normal);
+
+void geometry_push_face(struct geometry *geometry, size_t *out_idx);
+void geometry_face_indices(struct geometry *geometry, u32 indices[3u]);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
