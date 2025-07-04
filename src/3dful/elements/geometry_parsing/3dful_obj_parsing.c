@@ -105,6 +105,11 @@ void wavefront_obj_to(struct wavefront_obj *obj, struct geometry *geometry)
         geometry_push_vertex(geometry, &idx);
         geometry_vertex_pos(geometry, idx, obj->v->data[i]);
     }
+
+    for (size_t i = 0 ; i < obj->f->length ; i++) {
+        geometry_push_face(geometry, &idx);
+        geometry_face_indices(geometry, idx, obj->f->data[i].v_idx);
+    }
 }
 
 // -----------------------------------------------------------------------------

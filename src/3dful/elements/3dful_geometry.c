@@ -48,10 +48,6 @@ void geometry_wavobj_mem(struct geometry *geometry, BUFFER *obj_buffer)
     wavefront_obj_parse(&obj, obj_buffer);
     wavefront_obj_to(&obj, geometry);
     wavefront_obj_delete(&obj);
-
-    for (size_t i = 0 ; i < geometry->vertices->length ; i++) {
-        printf("%f\t%f\t%f\n", geometry->vertices->data[i].pos.x, geometry->vertices->data[i].pos.y, geometry->vertices->data[i].pos.z);
-    }
 }
 
 /**
@@ -89,4 +85,30 @@ void geometry_push_vertex(struct geometry *geometry, size_t *out_idx)
 void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3_t pos)
 {
     geometry->vertices->data[idx].pos = pos;
+}
+
+/**
+ * @brief
+ *
+ * @param geometry
+ * @param out_idx
+ */
+void geometry_push_face(struct geometry *geometry, size_t *out_idx)
+{
+    range_push(RANGE_TO_ANY(geometry->faces), &(struct face) { 0 });
+    if (out_idx) *out_idx = geometry->faces->length - 1;
+}
+
+/**
+ * @brief
+ *
+ * @param geometry
+ * @param idx
+ * @param indices
+ */
+void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u])
+{
+    geometry->faces->data[idx].idx_vert[0] = indices[0];
+    geometry->faces->data[idx].idx_vert[1] = indices[1];
+    geometry->faces->data[idx].idx_vert[2] = indices[2];
 }

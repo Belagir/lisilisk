@@ -25,7 +25,7 @@ struct shader { GLuint frag_shader, vert_shader, program; };
 
 struct vertex {
     struct vector3_t pos;
-    struct vector3_t normal;
+    // struct vector3_t normal;
 };
 
 /**
@@ -101,7 +101,7 @@ void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3_t pos);
 void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3_t normal);
 
 void geometry_push_face(struct geometry *geometry, size_t *out_idx);
-void geometry_face_indices(struct geometry *geometry, u32 indices[3u]);
+void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u]);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
