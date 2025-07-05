@@ -18,13 +18,21 @@ uniform Material MATERIAL;
 
 // ---------------------------------------------------------
 
-struct Light {
-    vec3 ambient;
+struct LightPoint {
+    vec3 position;
+
+    float strength;
     vec3 diffuse;
     vec3 specular;
-    vec3 position;
+
+    float constant;
+    float linear;
+    float quadratic;
 };
-uniform Light LIGHT;
+
+#define LIGHT_POINTS_NB_MAX 32
+uniform LightPoint LIGHT_POINTS[LIGHT_POINTS_NB_MAX];
+uniform uint LIGHT_POINTS_NB;
 
 // ---------------------------------------------------------
 // ---------------------------------------------------------
@@ -40,35 +48,27 @@ out vec4 FragColor;
 // ---------------------------------------------------------
 // ---------------------------------------------------------
 
-vec3 ambient_light()
+vec3 light_point_contribution(LightPoint l)
 {
-    return LIGHT.ambient * MATERIAL.ambient;
-}
+    vec3 light_dir = normalize(l.position - FragPos);
+    float diff = max(dot(Normal, light_dir), 0.0);
+    vec3 diffuse = l.strength * l.diffuse * (diff * MATERIAL.diffuse);
 
-vec3 diffuse_light(vec3 lightDir, vec3 norm)
-{
-    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 view_dir = normalize(CAMERA_POS - FragPos);
+    vec3 reflect_dir = reflect(-light_dir, Normal);
+    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), MATERIAL.shininess);
+    vec3 specular = l.strength * l.specular * (spec * MATERIAL.specular);
 
-    return LIGHT.diffuse * (diff * MATERIAL.diffuse);
-}
-
-vec3 specular_light(vec3 lightDir, vec3 norm, vec3 viewPos)
-{
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), MATERIAL.shininess);
-
-    return LIGHT.specular * (MATERIAL.specular * spec);
+    return diffuse + specular;
 }
 
 void main()
 {
-    vec3 lightDir = normalize(LIGHT.position - FragPos);
-    vec3 norm = normalize(Normal);
+    vec3 result = vec3(0);
 
-    vec3 result = ambient_light()
-            + diffuse_light(lightDir, norm)
-            + specular_light(lightDir, norm, CAMERA_POS);
+    for (uint i = 0u ; i < LIGHT_POINTS_NB ; i++) {
+        result += light_point_contribution(LIGHT_POINTS[i]);
+    }
 
     FragColor = vec4(result, 1.0f);
 }

@@ -12,6 +12,7 @@ int main(void)
     struct camera camera = { };
     struct scene scene = { };
     struct material material = { };
+    struct light_point light_point = { };
 
     struct application target = application_create("some name", 800, 800);
 
@@ -40,10 +41,17 @@ int main(void)
     camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
     camera_view(&camera, matrix4_get_view_matrix((vector3) { 6, 5, 10 }, VECTOR3_Z_NEGATIVE, VECTOR3_Y_POSITIVE));
 
+    light_position((struct light *) &light_point, (vector3) { 0, 6, 0 });
+    light_diffuse((struct light *) &light_point, (vector3) { .5, 0, 0 });
+    light_specular((struct light *) &light_point, (vector3) { 0, .5, 0 });
+    light_strength((struct light *) &light_point, 1.);
+
     scene_create(&scene);
     scene_camera(&scene, camera);
-    scene_add(&scene, object);
-    scene_add(&scene, object2);
+    scene_object(&scene, object);
+    scene_object(&scene, object2);
+    scene_light_point(&scene, light_point);
+
     scene_load(&scene);
 
     int should_quit = 0;

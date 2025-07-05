@@ -30,14 +30,20 @@ struct shader shader_store_get(struct shader_store *store, struct handle shader_
 
 struct scene {
     RANGE(struct object) *objects;
+
     struct camera camera;
+
+    RANGE(struct light_point) *point_lights;
+    RANGE(struct light_directional) *direc_lights;
 };
 
 void scene_create(struct scene *scene);
 void scene_delete(struct scene *scene);
 
-void scene_add(struct scene *scene, struct object object);
+void scene_object(struct scene *scene, struct object object);
 void scene_camera(struct scene *scene, struct camera camera);
+void scene_light_point(struct scene *scene, struct light_point light);
+void scene_light_direc(struct scene *scene, struct light_directional light);
 
 void scene_draw(struct scene scene);
 

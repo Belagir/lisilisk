@@ -85,6 +85,33 @@ struct camera {
 };
 
 // -------------------------------------------------------------------------------------------------
+
+struct light {
+    vector3 position;
+
+    f32 strength;
+    vector3 diffuse;
+    vector3 specular;
+};
+
+struct light_point {
+    struct light base;
+    f32 constant, linear, quadratic;
+};
+
+struct light_directional {
+    struct light base;
+    vector3 direction;
+};
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+// TRANSFORMS --------------------------------------------------------------------------------------
+
+void transform_translate(struct matrix4 *matrix, vector3 offset);
+void position_translate(struct vector3 *pos, vector3 offset);
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 // SHADERS -----------------------------------------------------------------------------------------
 
@@ -138,5 +165,20 @@ void object_draw(struct object object);
 
 void camera_projection(struct camera *camera, struct matrix4 projection);
 void camera_view(struct camera *camera, struct matrix4 view);
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+// LIGHT -------------------------------------------------------------------------------------------
+
+void light_position(struct light *light, struct vector3 pos);
+void light_strength(struct light *light, f32 strength);
+void light_diffuse(struct light *light, vector3 diffuse);
+void light_specular(struct light *light, vector3 specular);
+
+void light_point_constant(struct light_point *light, f32 constant);
+void light_point_linear(struct light_point *light, f32 linear);
+void light_point_quadratic(struct light_point *light, f32 quadratic);
+
+void light_directional_direction(struct light_directional *light, vector3 direction);
 
 #endif
