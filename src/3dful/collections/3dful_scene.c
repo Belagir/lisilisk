@@ -99,6 +99,21 @@ void scene_ambient_light_strength(struct scene *scene, f32 strength)
  * @brief
  *
  * @param scene
+ * @param pos
+ */
+void scene_point_light_pos(struct scene *scene, vector3_t pos)
+{
+    scene->point_light.pos = pos;
+
+    for (size_t i = 0 ; i < scene->objects->length ; i++) {
+        scene_send_light_uniforms(scene, scene->objects->data[i]);
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param scene
  */
 void scene_draw(struct scene scene)
 {
@@ -152,6 +167,9 @@ static void scene_send_light_uniforms(struct scene *scene, struct object object)
 
     uniform_name = glGetUniformLocation(object.shader->program, "AMBIENT_LIGHT_STRENGTH");
     glUniform1f(uniform_name, scene->ambient_light.strength);
+
+    uniform_name = glGetUniformLocation(object.shader->program, "POINT_LIGHT_POS");
+    glUniform3f(uniform_name, scene->point_light.pos.x, scene->point_light.pos.y, scene->point_light.pos.z);
 
     glUseProgram(0);
 }
