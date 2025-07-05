@@ -94,7 +94,8 @@ void wavefront_obj_parse(struct wavefront_obj *obj, BUFFER *buffer)
         } else if (wavefront_parse_face(&state, obj)) {
             // NOP
         } else {
-            expect(&state, NULL, 0, NULL);
+            fprintf(stderr, "at line %d:%d ; parsing error. The resulting geometry may be malformed.\n",
+                    state.line, state.column);
             // ERROR SITE
             break;
         }
@@ -332,7 +333,7 @@ static i32 wavefront_parse_end_of_obj(struct parser_state *state, struct wavefro
 {
     (void) out_obj;
 
-    return (state->buffer_idx >= state->buffer->length);
+    return ((state->buffer_idx+1) >= state->buffer->length);
 }
 
 // -----------------------------------------------------------------------------
