@@ -22,10 +22,10 @@ int main(void)
     geometry_create(&geometry);
     geometry_wavobj(&geometry, "models/cube_triangles.obj");
 
-    material_ambient(&material, (vector3) { .1, .1, .1 });
-    material_diffuse(&material, (vector3) { .2, .4, .0 });
-    material_specular(&material, (vector3) { .3, .5, .1 });
-    material_shininess(&material, 16.);
+    material_ambient(&material,  (vector3) { 1.0, 0.5, 0.3 });
+    material_diffuse(&material,  (vector3) { 1.0, 0.5, 0.3 });
+    material_specular(&material, (vector3) { 0.5, 0.5, 0.5 });
+    material_shininess(&material, 64.);
 
     object_transform(&object, matrix_translate(matrix4_identity(), (vector3) { .5, .5, 0 }));
     object_geometry(&object, &geometry);
@@ -42,8 +42,6 @@ int main(void)
 
     scene_create(&scene);
     scene_camera(&scene, camera);
-    scene_ambient_light_color(&scene, (f32[3]) { 1, 1, 1 });
-    scene_point_light_pos(&scene, (vector3) { 0, 2, 0 });
     scene_add(&scene, object);
     scene_add(&scene, object2);
     scene_load(&scene);

@@ -31,15 +31,6 @@ struct shader shader_store_get(struct shader_store *store, struct handle shader_
 struct scene {
     RANGE(struct object) *objects;
     struct camera camera;
-
-    struct {
-        f32 color[3];
-        f32 strength;
-    } ambient_light;
-
-    struct {
-        vector3 pos;
-    } point_light;
 };
 
 void scene_create(struct scene *scene);
@@ -47,9 +38,6 @@ void scene_delete(struct scene *scene);
 
 void scene_add(struct scene *scene, struct object object);
 void scene_camera(struct scene *scene, struct camera camera);
-void scene_ambient_light_color(struct scene *scene, f32 color[3]);
-
-void scene_point_light_pos(struct scene *scene, vector3 pos);
 
 void scene_draw(struct scene scene);
 

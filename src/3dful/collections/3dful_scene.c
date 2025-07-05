@@ -20,7 +20,6 @@ void scene_create(struct scene *scene)
     *scene = (struct scene) {
             .objects = range_create_dynamic(make_system_allocator(), sizeof(*scene->objects->data), 256),
             .camera = { matrix4_identity(), matrix4_identity() },
-            .ambient_light = { .color = { 1, 1, 1 }, .strength = .1 },
     };
 }
 
@@ -60,38 +59,6 @@ void scene_camera(struct scene *scene, struct camera camera)
 
     for (size_t i = 0 ; i < scene->objects->length ; i++) {
         scene_send_camera_uniforms(scene, scene->objects->data[i]);
-    }
-}
-
-/**
- * @brief
- *
- * @param scene
- * @param color
- */
-void scene_ambient_light_color(struct scene *scene, f32 color[3])
-{
-    scene->ambient_light.color[0] = color[0];
-    scene->ambient_light.color[1] = color[1];
-    scene->ambient_light.color[2] = color[2];
-
-    for (size_t i = 0 ; i < scene->objects->length ; i++) {
-        scene_send_light_uniforms(scene, scene->objects->data[i]);
-    }
-}
-
-/**
- * @brief
- *
- * @param scene
- * @param pos
- */
-void scene_point_light_pos(struct scene *scene, vector3 pos)
-{
-    scene->point_light.pos = pos;
-
-    for (size_t i = 0 ; i < scene->objects->length ; i++) {
-        scene_send_light_uniforms(scene, scene->objects->data[i]);
     }
 }
 
@@ -143,15 +110,23 @@ void scene_unload(struct scene *scene)
  */
 static void scene_send_light_uniforms(struct scene *scene, struct object object)
 {
+    (void) scene;
+
     GLint uniform_name = -1;
 
     glUseProgram(object.shader->program);
 
-    uniform_name = glGetUniformLocation(object.shader->program, "AMBIENT_LIGHT_COLOR");
-    glUniform3fv(uniform_name, 1, scene->ambient_light.color);
+    uniform_name = glGetUniformLocation(object.shader->program, "LIGHT.ambient");
+    glUniform3f(uniform_name, 1., 1., 1.);
 
-    uniform_name = glGetUniformLocation(object.shader->program, "POINT_LIGHT_POS");
-    glUniform3f(uniform_name, scene->point_light.pos.x, scene->point_light.pos.y, scene->point_light.pos.z);
+    uniform_name = glGetUniformLocation(object.shader->program, "LIGHT.diffuse");
+    glUniform3f(uniform_name, 1., 1., 1.);
+
+    uniform_name = glGetUniformLocation(object.shader->program, "LIGHT.specular");
+    glUniform3f(uniform_name, 1., 1., 1.);
+
+    uniform_name = glGetUniformLocation(object.shader->program, "LIGHT.position");
+    glUniform3f(uniform_name, 0., 10., 0.);
 
     glUseProgram(0);
 }
