@@ -3,29 +3,37 @@
 
 #include <stdio.h>
 
+struct parser_state {
+    const BUFFER *buffer;
+    size_t buffer_idx;
+    u32 line, column;
+};
+
+static void parser_state_advance(struct parser_state *state);
+
 // -----------------------------------------------------------------------------
 // UTILITY FUNCTIONS -----------------------------------------------------------
-static i32 accept(const BUFFER *buffer, size_t *buffer_idx, char *alternatives, size_t nb, char *c_out);
-static i32 expect(const BUFFER *buffer, size_t *buffer_idx, char *alternatives, size_t nb, char *c_out);
-static i32 lookup(const BUFFER *buffer, size_t *buffer_idx, char *alternatives, size_t nb, char *c_out);
+static i32 accept(struct parser_state *state, char *alternatives, size_t nb, char *c_out);
+static i32 expect(struct parser_state *state, char *alternatives, size_t nb, char *c_out);
+static i32 lookup(struct parser_state *state, char *alternatives, size_t nb, char *c_out);
 
-static void skip_whitespace(const BUFFER *buffer, size_t *buffer_idx);
+static void skip_whitespace(struct parser_state *state);
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 // PARSING ROUTINES ------------------------------------------------------------
-static i32 wavefront_parse_comment(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj);
-static i32 wavefront_parse_end_line(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj);
-static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj);
+static i32 wavefront_parse_comment(struct parser_state *state, struct wavefront_obj *out_obj);
+static i32 wavefront_parse_end_line(struct parser_state *state, struct wavefront_obj *out_obj);
+static i32 wavefront_parse_end_of_obj(struct parser_state *state, struct wavefront_obj *out_obj);
 
-static i32 wavefront_parse_obj_name(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj);
-static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj);
-static i32 wavefront_parse_vertex_pos(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj);
-static i32 wavefront_parse_vertex_normal(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj);
-static i32 wavefront_parse_face(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj);
+static i32 wavefront_parse_obj_name(struct parser_state *state, struct wavefront_obj *out_obj);
+static i32 wavefront_parse_vertex(struct parser_state *state, struct wavefront_obj *out_obj);
+static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefront_obj *out_obj);
+static i32 wavefront_parse_vertex_normal(struct parser_state *state, struct wavefront_obj *out_obj);
+static i32 wavefront_parse_face(struct parser_state *state, struct wavefront_obj *out_obj);
 
-static i32 wavefront_parse_value(const BUFFER *buffer, size_t *buffer_idx, f32 *out_value);
-static i32 wavefront_parse_value_int(const BUFFER *buffer, size_t *buffer_idx, i32 *out_value);
+static i32 wavefront_parse_value(struct parser_state *state, f32 *out_value);
+static i32 wavefront_parse_value_int(struct parser_state *state, i32 *out_value);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -69,20 +77,20 @@ void wavefront_obj_parse(struct wavefront_obj *obj, BUFFER *buffer)
     range_clear(RANGE_TO_ANY(obj->v));
     range_clear(RANGE_TO_ANY(obj->vn));
 
-    size_t buffer_idx = 0;
+    struct parser_state state = { .buffer = buffer, 0 };
 
-    while (!wavefront_parse_end_of_obj(buffer, &buffer_idx, obj)) {
-        skip_whitespace(buffer, &buffer_idx);
+    while (!wavefront_parse_end_of_obj(&state, obj)) {
+        skip_whitespace(&state);
 
-        if (wavefront_parse_end_line(buffer, &buffer_idx, obj)) {
+        if (wavefront_parse_end_line(&state, obj)) {
             // NOP
-        } else if (wavefront_parse_comment(buffer, &buffer_idx, obj)) {
+        } else if (wavefront_parse_comment(&state, obj)) {
             // NOP
-        } else if (wavefront_parse_obj_name(buffer, &buffer_idx, obj)) {
+        } else if (wavefront_parse_obj_name(&state, obj)) {
             // NOP
-        } else if (wavefront_parse_vertex(buffer, &buffer_idx, obj)) {
+        } else if (wavefront_parse_vertex(&state, obj)) {
             // NOP
-        } else if (wavefront_parse_face(buffer, &buffer_idx, obj)) {
+        } else if (wavefront_parse_face(&state, obj)) {
             // NOP
         } else {
             // ERROR SITE
@@ -128,65 +136,66 @@ void wavefront_obj_to(struct wavefront_obj *obj, struct geometry *geometry)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static i32 wavefront_parse_end_line(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj)
+static i32 wavefront_parse_end_line(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     (void) out_obj;
-    return accept(buffer, buffer_idx, (char []) { '\n' }, 1, NULL);
+
+    return accept(state, (char []) { '\n' }, 1, NULL);
 }
 
-static i32 wavefront_parse_comment(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj)
+static i32 wavefront_parse_comment(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     (void) out_obj;
 
     // detect comment character
-    if (accept(buffer, buffer_idx, (char []) { '#' }, 1, NULL)) {
-        while (!lookup(buffer, buffer_idx, (char []) { '\n' }, 1, NULL)) {
-            *buffer_idx += 1;
+    if (accept(state, (char []) { '#' }, 1, NULL)) {
+        while (!lookup(state, (char []) { '\n' }, 1, NULL)) {
+            parser_state_advance(state);
         }
         return 1;
     }
     return 0;
 }
 
-static i32 wavefront_parse_obj_name(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj)
+static i32 wavefront_parse_obj_name(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     (void) out_obj;
 
     // detect 'o' starting letter
-    if (accept(buffer, buffer_idx, (char []) { 'o' }, 1, NULL)) {
-        while (!lookup(buffer, buffer_idx, (char []) { '\n' }, 1, NULL)) {
-            *buffer_idx += 1;
+    if (accept(state, (char []) { 'o' }, 1, NULL)) {
+        while (!lookup(state, (char []) { '\n' }, 1, NULL)) {
+            parser_state_advance(state);
         }
         return 1;
     }
     return 0;
 }
 
-static i32 wavefront_parse_vertex(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj)
+static i32 wavefront_parse_vertex(struct parser_state *state, struct wavefront_obj *out_obj)
 {
-    skip_whitespace(buffer, buffer_idx);
+    skip_whitespace(state);
 
-    if (accept(buffer, buffer_idx, (char []) { 'v' }, 1, NULL)) {
+    if (accept(state, (char []) { 'v' }, 1, NULL)) {
 
-        if (accept(buffer, buffer_idx, (char []) { 'n' }, 1, NULL)) {
-            return wavefront_parse_vertex_normal(buffer, buffer_idx, out_obj);
+        if (accept(state, (char []) { 'n' }, 1, NULL)) {
+            return wavefront_parse_vertex_normal(state, out_obj);
         } else {
-            return wavefront_parse_vertex_pos(buffer, buffer_idx, out_obj);
+            return wavefront_parse_vertex_pos(state, out_obj);
         }
     }
 
     return 0;
 }
 
-static i32 wavefront_parse_vertex_pos(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj)
+static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     vector3_t pos = { 0 };
 
-    skip_whitespace(buffer, buffer_idx);
+    skip_whitespace(state);
 
-    if (wavefront_parse_value(buffer, buffer_idx, &pos.x)
-            && wavefront_parse_value(buffer, buffer_idx, &pos.y)
-            && wavefront_parse_value(buffer, buffer_idx, &pos.z)) {
+    if (wavefront_parse_value(state, &pos.x)
+            && wavefront_parse_value(state, &pos.y)
+            && wavefront_parse_value(state, &pos.z)) {
 
         range_push(RANGE_TO_ANY(out_obj->v), &pos);
         return 1;
@@ -195,15 +204,15 @@ static i32 wavefront_parse_vertex_pos(const BUFFER *buffer, size_t *buffer_idx, 
     return 0;
 }
 
-static i32 wavefront_parse_vertex_normal(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj)
+static i32 wavefront_parse_vertex_normal(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     vector3_t normal = { 0 };
 
-    skip_whitespace(buffer, buffer_idx);
+    skip_whitespace(state);
 
-    if (wavefront_parse_value(buffer, buffer_idx, &normal.x)
-            && wavefront_parse_value(buffer, buffer_idx, &normal.y)
-            && wavefront_parse_value(buffer, buffer_idx, &normal.z)) {
+    if (wavefront_parse_value(state, &normal.x)
+            && wavefront_parse_value(state, &normal.y)
+            && wavefront_parse_value(state, &normal.z)) {
 
         range_push(RANGE_TO_ANY(out_obj->vn), &normal);
         return 1;
@@ -213,17 +222,17 @@ static i32 wavefront_parse_vertex_normal(const BUFFER *buffer, size_t *buffer_id
 
 }
 
-static i32 wavefront_parse_face(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj)
+static i32 wavefront_parse_face(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     struct wavefront_obj_face face = { 0 };
     i32 read_values[3] = { 0 };
 
-    if (accept(buffer, buffer_idx, (char []) { 'f' }, 1, NULL)) {
-        skip_whitespace(buffer, buffer_idx);
+    if (accept(state, (char []) { 'f' }, 1, NULL)) {
+        skip_whitespace(state);
 
-        if (wavefront_parse_value_int(buffer, buffer_idx, &read_values[0])
-                && wavefront_parse_value_int(buffer, buffer_idx, &read_values[1])
-                && wavefront_parse_value_int(buffer, buffer_idx, &read_values[2])) {
+        if (wavefront_parse_value_int(state, &read_values[0])
+                && wavefront_parse_value_int(state, &read_values[1])
+                && wavefront_parse_value_int(state, &read_values[2])) {
 
             face.v_idx[0] = ((u32) read_values[0]) - 1;
             face.v_idx[1] = ((u32) read_values[1]) - 1;
@@ -236,20 +245,20 @@ static i32 wavefront_parse_face(const BUFFER *buffer, size_t *buffer_idx, struct
     return 0;
 }
 
-static i32 wavefront_parse_value(const BUFFER *buffer, size_t *buffer_idx, f32 *out_value)
+static i32 wavefront_parse_value(struct parser_state *state, f32 *out_value)
 {
     i32 int_part = 0;
     i32 frac_part = 0;
     u32 frac_part_length = 1;
 
-    skip_whitespace(buffer, buffer_idx);
+    skip_whitespace(state);
 
-    if (!wavefront_parse_value_int(buffer, buffer_idx, &int_part)) {
+    if (!wavefront_parse_value_int(state, &int_part)) {
         return 0;
     }
 
-    if (accept(buffer, buffer_idx, (char[]) { '.' }, 1, NULL)) {
-        wavefront_parse_value_int(buffer, buffer_idx, &frac_part);
+    if (accept(state, (char[]) { '.' }, 1, NULL)) {
+        wavefront_parse_value_int(state, &frac_part);
     }
 
     while ((u32) frac_part > (frac_part_length * 10)) {
@@ -261,7 +270,7 @@ static i32 wavefront_parse_value(const BUFFER *buffer, size_t *buffer_idx, f32 *
     return 1;
 }
 
-static i32 wavefront_parse_value_int(const BUFFER *buffer, size_t *buffer_idx, i32 *out_value)
+static i32 wavefront_parse_value_int(struct parser_state *state, i32 *out_value)
 {
     i32 value = 0;
     i32 sign = 1;
@@ -269,12 +278,12 @@ static i32 wavefront_parse_value_int(const BUFFER *buffer, size_t *buffer_idx, i
     i32 valid = 0;
     char read_c = '+';
 
-    skip_whitespace(buffer, buffer_idx);
+    skip_whitespace(state);
 
-    accept(buffer, buffer_idx, (char[]) { '+', '-' }, 2, &read_c);
+    accept(state, (char[]) { '+', '-' }, 2, &read_c);
     if (read_c == '-') sign = -1;
 
-    if (!expect(buffer, buffer_idx, (char[]) { '0','1','2','3','4','5','6','7','8','9', }, 10, &read_c)) {
+    if (!expect(state, (char[]) { '0','1','2','3','4','5','6','7','8','9', }, 10, &read_c)) {
         return 0;
     }
 
@@ -283,7 +292,7 @@ static i32 wavefront_parse_value_int(const BUFFER *buffer, size_t *buffer_idx, i
         value *= mult;
         value += read_c - '0';
         mult *= 10;
-    } while (accept(buffer, buffer_idx, (char[]) { '0','1','2','3','4','5','6','7','8','9', }, 10, &read_c));
+    } while (accept(state, (char[]) { '0','1','2','3','4','5','6','7','8','9', }, 10, &read_c));
 
     if (valid) {
         *out_value = sign * value;
@@ -292,11 +301,11 @@ static i32 wavefront_parse_value_int(const BUFFER *buffer, size_t *buffer_idx, i
     return valid;
 }
 
-static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *buffer_idx, struct wavefront_obj *out_obj)
+static i32 wavefront_parse_end_of_obj(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     (void) out_obj;
 
-    return (*buffer_idx >= buffer->length);
+    return (state->buffer_idx >= state->buffer->length);
 }
 
 // -----------------------------------------------------------------------------
@@ -311,10 +320,10 @@ static i32 wavefront_parse_end_of_obj(const BUFFER *buffer, size_t *buffer_idx, 
  * @param c
  * @return i32
  */
-static i32 accept(const BUFFER *buffer, size_t *buffer_idx, char *alternatives, size_t nb, char *c_out)
+static i32 accept(struct parser_state *state, char *alternatives, size_t nb, char *c_out)
 {
-    if (lookup(buffer, buffer_idx, alternatives, nb, c_out)) {
-        *buffer_idx += 1;
+    if (lookup(state, alternatives, nb, c_out)) {
+        parser_state_advance(state);
         return 1;
     }
 
@@ -329,11 +338,13 @@ static i32 accept(const BUFFER *buffer, size_t *buffer_idx, char *alternatives, 
  * @param c
  * @return i32
  */
-static i32 expect(const BUFFER *buffer, size_t *buffer_idx, char *alternatives, size_t nb, char *c_out)
+static i32 expect(struct parser_state *state, char *alternatives, size_t nb, char *c_out)
 {
-    if (accept(buffer, buffer_idx, alternatives, nb, c_out)) {
+    if (accept(state, alternatives, nb, c_out)) {
         return 1;
     }
+
+    fprintf(stderr, "at line %d:%d ; ", state->line+1, state->column+1);
 
     fprintf(stderr, "expected one of : ");
     for (size_t i = 0 ; i < nb ; i++) {
@@ -341,8 +352,8 @@ static i32 expect(const BUFFER *buffer, size_t *buffer_idx, char *alternatives, 
     }
 
     fprintf(stderr, "\nbut found : ");
-    if (*buffer_idx >= buffer->length) fprintf(stderr, "end of stream.\n");
-    else fprintf(stderr, "%c\n", buffer->data[*buffer_idx]);
+    if (state->buffer_idx >= state->buffer->length) fprintf(stderr, "end of stream.\n");
+    else fprintf(stderr, "%c\n", state->buffer->data[state->buffer_idx]);
 
     return 0;
 }
@@ -355,22 +366,22 @@ static i32 expect(const BUFFER *buffer, size_t *buffer_idx, char *alternatives, 
  * @param c
  * @return i32
  */
-static i32 lookup(const BUFFER *buffer, size_t *buffer_idx, char *alternatives, size_t nb, char *c_out)
+static i32 lookup(struct parser_state *state, char *alternatives, size_t nb, char *c_out)
 {
     i32 found = 0;
     size_t alt_idx = 0;
 
-    if (*buffer_idx >= buffer->length) {
+    if (state->buffer_idx >= state->buffer->length) {
         return 0;
     }
 
     while (!found && (alt_idx < nb)) {
-        found = buffer->data[*buffer_idx] == alternatives[alt_idx];
+        found = state->buffer->data[state->buffer_idx] == alternatives[alt_idx];
         alt_idx += 1;
     }
 
     if (c_out) {
-        *c_out = buffer->data[*buffer_idx];
+        *c_out = state->buffer->data[state->buffer_idx];
     }
 
     return found;
@@ -380,13 +391,29 @@ static i32 lookup(const BUFFER *buffer, size_t *buffer_idx, char *alternatives, 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+static void parser_state_advance(struct parser_state *state)
+{
+    if (state->buffer_idx >= state->buffer->length) {
+        return;
+    }
+
+    if (state->buffer->data[state->buffer_idx] == '\n') {
+        state->column = 0;
+        state->line  += 1;
+    } else {
+        state->column += 1;
+    }
+
+    state->buffer_idx += 1;
+}
+
 /**
  * @brief
  *
  * @param buffer
  * @param buffer_idx
  */
-static void skip_whitespace(const BUFFER *buffer, size_t *buffer_idx)
+static void skip_whitespace(struct parser_state *state)
 {
-    while (accept(buffer, buffer_idx, (char[]) { ' ', '\t' }, 2, NULL));
+    while (accept(state, (char[]) { ' ', '\t' }, 2, NULL));
 }
