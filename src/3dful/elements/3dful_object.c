@@ -16,7 +16,7 @@ static void object_send_material_uniforms(struct object object);
  * @param object
  * @param transform
  */
-void object_transform(struct object *object, struct matrix4_t transform)
+void object_transform(struct object *object, struct matrix4 transform)
 {
     object->transform = transform;
 }

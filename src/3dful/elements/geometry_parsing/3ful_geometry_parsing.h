@@ -13,8 +13,8 @@
 struct wavefront_obj_face { u32 v_idx[3], vn_idx[3]; };
 
 struct wavefront_obj {
-    RANGE(struct vector3_t) *v;
-    RANGE(struct vector3_t) *vn;
+    RANGE(struct vector3) *v;
+    RANGE(struct vector3) *vn;
     RANGE(struct wavefront_obj_face) *f;
 };
 

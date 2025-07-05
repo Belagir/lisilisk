@@ -24,8 +24,8 @@ struct shader { GLuint frag_shader, vert_shader, program; };
 // -------------------------------------------------------------------------------------------------
 
 struct vertex {
-    struct vector3_t pos;
-    struct vector3_t normal;
+    struct vector3 pos;
+    struct vector3 normal;
 };
 
 /**
@@ -50,7 +50,7 @@ struct geometry {
  *
  */
 struct object {
-    struct matrix4_t transform;
+    struct matrix4 transform;
 
     struct shader *shader;
     struct geometry *geometry;
@@ -72,8 +72,8 @@ struct object {
  *
  */
 struct camera {
-    struct matrix4_t view;
-    struct matrix4_t projection;
+    struct matrix4 view;
+    struct matrix4 projection;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -97,8 +97,8 @@ void geometry_wavobj_mem(struct geometry *geometry, BUFFER *obj);
 void geometry_delete(struct geometry *geometry);
 
 void geometry_push_vertex(struct geometry *geometry, u32 *out_idx);
-void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3_t pos);
-void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3_t normal);
+void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos);
+void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3 normal);
 
 void geometry_push_face(struct geometry *geometry, u32 *out_idx);
 void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u]);
@@ -107,7 +107,7 @@ void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u
 // -------------------------------------------------------------------------------------------------
 // OBJECT ------------------------------------------------------------------------------------------
 
-void object_transform(struct object *object, struct matrix4_t transform);
+void object_transform(struct object *object, struct matrix4 transform);
 void object_geometry(struct object *object, struct geometry *geometry);
 void object_shader(struct object *object, struct shader *shader);
 void object_color(struct object *object, f32 color[3]);
@@ -119,7 +119,7 @@ void object_draw(struct object object);
 // -------------------------------------------------------------------------------------------------
 // CAMERA ------------------------------------------------------------------------------------------
 
-void camera_projection(struct camera *camera, struct matrix4_t projection);
-void camera_view(struct camera *camera, struct matrix4_t view);
+void camera_projection(struct camera *camera, struct matrix4 projection);
+void camera_view(struct camera *camera, struct matrix4 view);
 
 #endif

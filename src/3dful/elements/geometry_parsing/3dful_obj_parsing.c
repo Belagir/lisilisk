@@ -187,7 +187,7 @@ static i32 wavefront_parse_vertex(struct parser_state *state, struct wavefront_o
 
 static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefront_obj *out_obj)
 {
-    vector3_t pos = { 0 };
+    vector3 pos = { 0 };
 
     skip_whitespace(state);
 
@@ -204,7 +204,7 @@ static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefro
 
 static i32 wavefront_parse_vertex_normal(struct parser_state *state, struct wavefront_obj *out_obj)
 {
-    vector3_t normal = { 0 };
+    vector3 normal = { 0 };
 
     skip_whitespace(state);
 

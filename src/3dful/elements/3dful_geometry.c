@@ -82,7 +82,7 @@ void geometry_push_vertex(struct geometry *geometry, u32 *out_idx)
  * @param idx
  * @param pos
  */
-void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3_t pos)
+void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos)
 {
     geometry->vertices->data[idx].pos = pos;
 }
@@ -94,7 +94,7 @@ void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3_t pos)
  * @param idx
  * @param normal
  */
-void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3_t normal)
+void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3 normal)
 {
     geometry->vertices->data[idx].normal = normal;
 }

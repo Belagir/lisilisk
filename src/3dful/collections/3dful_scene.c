@@ -101,7 +101,7 @@ void scene_ambient_light_strength(struct scene *scene, f32 strength)
  * @param scene
  * @param pos
  */
-void scene_point_light_pos(struct scene *scene, vector3_t pos)
+void scene_point_light_pos(struct scene *scene, vector3 pos)
 {
     scene->point_light.pos = pos;
 

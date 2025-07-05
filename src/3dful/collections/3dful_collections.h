@@ -38,7 +38,7 @@ struct scene {
     } ambient_light;
 
     struct {
-        vector3_t pos;
+        vector3 pos;
     } point_light;
 };
 
@@ -50,7 +50,7 @@ void scene_camera(struct scene *scene, struct camera camera);
 void scene_ambient_light_color(struct scene *scene, f32 color[3]);
 void scene_ambient_light_strength(struct scene *scene, f32 strength);
 
-void scene_point_light_pos(struct scene *scene, vector3_t pos);
+void scene_point_light_pos(struct scene *scene, vector3 pos);
 
 void scene_draw(struct scene scene);
 

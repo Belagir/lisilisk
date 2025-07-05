@@ -7,7 +7,7 @@
  * @param camera
  * @param projection
  */
-void camera_projection(struct camera *camera, struct matrix4_t projection)
+void camera_projection(struct camera *camera, struct matrix4 projection)
 {
     camera->projection = projection;
 }
@@ -18,7 +18,7 @@ void camera_projection(struct camera *camera, struct matrix4_t projection)
  * @param camera
  * @param view
  */
-void camera_view(struct camera *camera, struct matrix4_t view)
+void camera_view(struct camera *camera, struct matrix4 view)
 {
     camera->view = view;
 }
