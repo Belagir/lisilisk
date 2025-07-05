@@ -183,6 +183,7 @@ static void scene_send_light_uniforms(struct scene *scene, struct object object)
 static void scene_send_camera_uniforms(struct scene *scene, struct object object)
 {
     f32 tmp[16] = { };
+    vector3 cam_pos = { };
     GLint uniform_name = -1;
 
     glUseProgram(object.shader->program);
@@ -194,6 +195,10 @@ static void scene_send_camera_uniforms(struct scene *scene, struct object object
     uniform_name = glGetUniformLocation(object.shader->program, "PROJECTION_MATRIX");
     matrix4_to_array(scene->camera.projection, &tmp);
     glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) tmp);
+
+    uniform_name = glGetUniformLocation(object.shader->program, "CAMERA_POS");
+    cam_pos = matrix_origin(scene->camera.view);
+    glUniform3f(uniform_name, cam_pos.x, cam_pos.y, cam_pos.z);
 
     glUseProgram(0);
 }

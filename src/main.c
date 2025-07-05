@@ -38,7 +38,7 @@ int main(void)
     scene_camera(&scene, camera);
     scene_ambient_light_color(&scene, (f32[3]) { 1, 1, 1 });
     scene_ambient_light_strength(&scene, 0.1);
-    scene_point_light_pos(&scene, (vector3) { 0, 5, 0 });
+    scene_point_light_pos(&scene, (vector3) { 0, 2, 0 });
     scene_add(&scene, object);
     scene_add(&scene, object2);
     scene_load(&scene);
