@@ -31,6 +31,7 @@ static i32 wavefront_parse_vertex(struct parser_state *state, struct wavefront_o
 static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefront_obj *out_obj);
 static i32 wavefront_parse_vertex_normal(struct parser_state *state, struct wavefront_obj *out_obj);
 static i32 wavefront_parse_face(struct parser_state *state, struct wavefront_obj *out_obj);
+static i32 wavefront_parse_face_point(struct parser_state *state, i32 read_idx[3]);
 
 static i32 wavefront_parse_value(struct parser_state *state, f32 *out_value);
 static i32 wavefront_parse_value_int(struct parser_state *state, i32 *out_value);
@@ -93,6 +94,7 @@ void wavefront_obj_parse(struct wavefront_obj *obj, BUFFER *buffer)
         } else if (wavefront_parse_face(&state, obj)) {
             // NOP
         } else {
+            expect(&state, NULL, 0, NULL);
             // ERROR SITE
             break;
         }
@@ -124,12 +126,6 @@ void wavefront_obj_to(struct wavefront_obj *obj, struct geometry *geometry)
         geometry_push_face(geometry, &idx_face);
         geometry_face_indices(geometry, idx_face, face_generated_indices);
     }
-
-    struct vertex v = { };
-    for (size_t i = 0 ; i < geometry->vertices->length ; i++) {
-        v = geometry->vertices->data[i];
-        printf("% 4.1f % 4.1f % 4.1f ; % 4.1f % 4.1f % 4.1f\n", v.pos.x, v.pos.y, v.pos.z, v.normal.x, v.normal.y, v.normal.z);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -148,13 +144,14 @@ static i32 wavefront_parse_comment(struct parser_state *state, struct wavefront_
     (void) out_obj;
 
     // detect comment character
-    if (accept(state, (char []) { '#' }, 1, NULL)) {
-        while (!lookup(state, (char []) { '\n' }, 1, NULL)) {
-            parser_state_advance(state);
-        }
-        return 1;
+    if (!accept(state, (char []) { '#' }, 1, NULL)) {
+        return 0;
     }
-    return 0;
+
+    while (!lookup(state, (char []) { '\n' }, 1, NULL)) {
+        parser_state_advance(state);
+    }
+    return 1;
 }
 
 static i32 wavefront_parse_obj_name(struct parser_state *state, struct wavefront_obj *out_obj)
@@ -162,29 +159,29 @@ static i32 wavefront_parse_obj_name(struct parser_state *state, struct wavefront
     (void) out_obj;
 
     // detect 'o' starting letter
-    if (accept(state, (char []) { 'o' }, 1, NULL)) {
-        while (!lookup(state, (char []) { '\n' }, 1, NULL)) {
-            parser_state_advance(state);
-        }
-        return 1;
+    if (!accept(state, (char []) { 'o' }, 1, NULL)) {
+        return 0;
     }
-    return 0;
+
+    while (!lookup(state, (char []) { '\n' }, 1, NULL)) {
+        parser_state_advance(state);
+    }
+    return 1;
 }
 
 static i32 wavefront_parse_vertex(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     skip_whitespace(state);
 
-    if (accept(state, (char []) { 'v' }, 1, NULL)) {
-
-        if (accept(state, (char []) { 'n' }, 1, NULL)) {
-            return wavefront_parse_vertex_normal(state, out_obj);
-        } else {
-            return wavefront_parse_vertex_pos(state, out_obj);
-        }
+    if (!accept(state, (char []) { 'v' }, 1, NULL)) {
+        return 0;
     }
 
-    return 0;
+    if (accept(state, (char []) { 'n' }, 1, NULL)) {
+        return wavefront_parse_vertex_normal(state, out_obj);
+    }
+
+    return wavefront_parse_vertex_pos(state, out_obj);
 }
 
 static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefront_obj *out_obj)
@@ -225,24 +222,54 @@ static i32 wavefront_parse_vertex_normal(struct parser_state *state, struct wave
 static i32 wavefront_parse_face(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     struct wavefront_obj_face face = { 0 };
-    i32 read_values[3] = { 0 };
+    i32 face_data[3][3] = { 0 };
 
-    if (accept(state, (char []) { 'f' }, 1, NULL)) {
-        skip_whitespace(state);
+    if (!accept(state, (char []) { 'f' }, 1, NULL)) {
+        return 0;
+    }
 
-        if (wavefront_parse_value_int(state, &read_values[0])
-                && wavefront_parse_value_int(state, &read_values[1])
-                && wavefront_parse_value_int(state, &read_values[2])) {
+    if (!(wavefront_parse_face_point(state, face_data[0])
+            && wavefront_parse_face_point(state, face_data[1])
+            && wavefront_parse_face_point(state, face_data[2]))) {
+        return 0;
+    }
 
-            face.v_idx[0] = ((u32) read_values[0]) - 1;
-            face.v_idx[1] = ((u32) read_values[1]) - 1;
-            face.v_idx[2] = ((u32) read_values[2]) - 1;
+    for (size_t i = 0 ; i < 3 ; i++) {
+        face.v_idx[i] = face_data[i][0] - 1;
+        // if (face_data[i][1] > 0) face.vt_idx[i] = face_data[i][1] - 1;
+        if (face_data[i][2] > 0) face.vn_idx[i] = face_data[i][2] - 1;
+    }
 
-            range_push(RANGE_TO_ANY(out_obj->f), &face);
+    range_push(RANGE_TO_ANY(out_obj->f), &face);
+    return 1;
+}
+
+static i32 wavefront_parse_face_point(struct parser_state *state, i32 read_idx[3])
+{
+    skip_whitespace(state);
+
+    read_idx[0] = 0;
+    read_idx[1] = 0;
+    read_idx[2] = 0;
+
+    if (!wavefront_parse_value_int(state, &read_idx[0])) {
+        return 0;
+    }
+
+    if (!accept(state, (char []) { '/' }, 1, NULL)) {
+        return 1;
+    }
+
+    if (!accept(state, (char []) { '/' }, 1, NULL)) {
+        wavefront_parse_value_int(state, &read_idx[1]);
+        if (accept(state, (char []) { '/' }, 1, NULL)) {
+            return wavefront_parse_value_int(state, &read_idx[2]);
+        } else {
             return 1;
         }
     }
-    return 0;
+
+    return wavefront_parse_value_int(state, &read_idx[2]);
 }
 
 static i32 wavefront_parse_value(struct parser_state *state, f32 *out_value)
@@ -346,9 +373,14 @@ static i32 expect(struct parser_state *state, char *alternatives, size_t nb, cha
 
     fprintf(stderr, "at line %d:%d ; ", state->line+1, state->column+1);
 
-    fprintf(stderr, "expected one of : ");
-    for (size_t i = 0 ; i < nb ; i++) {
-        fprintf(stderr, "%c ", alternatives[i]);
+    fprintf(stderr, "expected ");
+    if (nb == 0) {
+        fprintf(stderr, "end of stream");
+    } else {
+        fprintf(stderr, "one of : ");
+        for (size_t i = 0 ; i < nb ; i++) {
+            fprintf(stderr, "%c ", alternatives[i]);
+        }
     }
 
     fprintf(stderr, "\nbut found : ");
