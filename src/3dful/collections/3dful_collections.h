@@ -48,7 +48,6 @@ void scene_delete(struct scene *scene);
 void scene_add(struct scene *scene, struct object object);
 void scene_camera(struct scene *scene, struct camera camera);
 void scene_ambient_light_color(struct scene *scene, f32 color[3]);
-void scene_ambient_light_strength(struct scene *scene, f32 strength);
 
 void scene_point_light_pos(struct scene *scene, vector3 pos);
 

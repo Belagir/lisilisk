@@ -45,6 +45,15 @@ struct geometry {
 
 // -------------------------------------------------------------------------------------------------
 
+struct material {
+    vector3 ambient;
+    vector3 diffuse;
+    vector3 specular;
+    float shininess;
+};
+
+// -------------------------------------------------------------------------------------------------
+
 /**
  * @brief Stores data about a world object that can be rendered in the world.
  *
@@ -54,8 +63,7 @@ struct object {
 
     struct shader *shader;
     struct geometry *geometry;
-
-    f32 color[3];
+    struct material *material;
 
     // opengl names referencing the object's data on the gpu.
     struct {
@@ -105,12 +113,21 @@ void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+// MATERIAL ----------------------------------------------------------------------------------------
+
+void material_ambient(struct material *material, vector3 ambient);
+void material_diffuse(struct material *material, vector3 diffuse);
+void material_specular(struct material *material, vector3 specular);
+void material_shininess(struct material *material, float shininess);
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // OBJECT ------------------------------------------------------------------------------------------
 
 void object_transform(struct object *object, struct matrix4 transform);
 void object_geometry(struct object *object, struct geometry *geometry);
 void object_shader(struct object *object, struct shader *shader);
-void object_color(struct object *object, f32 color[3]);
+void object_material(struct object *object, struct material *material);
 void object_load(struct object *object);
 void object_unload(struct object *object);
 void object_draw(struct object object);

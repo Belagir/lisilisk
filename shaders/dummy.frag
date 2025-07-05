@@ -1,13 +1,18 @@
 #version 330 core
 
-uniform float AMBIENT_LIGHT_STRENGTH;
 uniform vec3 AMBIENT_LIGHT_COLOR;
 
 uniform vec3 POINT_LIGHT_POS;
 uniform vec3 CAMERA_POS;
 
-uniform vec3 COLOR;
-float specularStrength = 0.5;
+struct Material {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+};
+
+uniform Material MATERIAL;
 
 in vec3 Normal;
 in vec3 FragPos;
@@ -16,23 +21,23 @@ out vec4 FragColor;
 
 vec3 ambient_light()
 {
-    return AMBIENT_LIGHT_COLOR * AMBIENT_LIGHT_STRENGTH;
+    return AMBIENT_LIGHT_COLOR * MATERIAL.ambient;
 }
 
 vec3 diffuse_light(vec3 lightDir, vec3 norm)
 {
     float diff = max(dot(norm, lightDir), 0.0);
 
-    return diff * AMBIENT_LIGHT_COLOR;
+    return (diff * MATERIAL.diffuse) * AMBIENT_LIGHT_COLOR;
 }
 
 vec3 specular_light(vec3 lightDir, vec3 norm, vec3 viewPos)
 {
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), MATERIAL.shininess);
 
-    return specularStrength * spec * AMBIENT_LIGHT_COLOR;
+    return (MATERIAL.specular * spec) * AMBIENT_LIGHT_COLOR;
 }
 
 void main()
@@ -40,9 +45,9 @@ void main()
     vec3 lightDir = normalize(POINT_LIGHT_POS - FragPos);
     vec3 norm = normalize(Normal);
 
-    vec3 result = COLOR * (ambient_light()
+    vec3 result = ambient_light()
             + diffuse_light(lightDir, norm)
-            + specular_light(lightDir, norm, CAMERA_POS));
+            + specular_light(lightDir, norm, CAMERA_POS);
 
     FragColor = vec4(result, 1.0f);
 }

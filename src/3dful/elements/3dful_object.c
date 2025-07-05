@@ -46,13 +46,12 @@ void object_shader(struct object *object, struct shader *shader)
  * @brief
  *
  * @param object
- * @param color
+ * @param material
  */
-void object_color(struct object *object, f32 color[3])
+void object_material(struct object *object, struct material *material)
 {
-    object->color[0] = color[0];
-    object->color[1] = color[1];
-    object->color[2] = color[2];
+    object->material = material;
+    object_send_material_uniforms(*object);
 }
 
 /**
@@ -114,7 +113,6 @@ void object_unload(struct object *object)
 void object_draw(struct object object)
 {
     object_send_space_uniforms(object);
-    object_send_material_uniforms(object);
 
     glUseProgram(object.shader->program);
     glBindVertexArray(object.gpu_side.vao);
@@ -159,8 +157,17 @@ static void object_send_material_uniforms(struct object object)
 
     glUseProgram(object.shader->program);
 
-    unif_name = glGetUniformLocation(object.shader->program, "COLOR");
-    glUniform3fv(unif_name, 1, object.color);
+    unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.ambient");
+    glUniform3f(unif_name, object.material->ambient.x, object.material->ambient.y, object.material->ambient.z);
+
+    unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.diffuse");
+    glUniform3f(unif_name, object.material->diffuse.x, object.material->diffuse.y, object.material->diffuse.z);
+
+    unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.specular");
+    glUniform3f(unif_name, object.material->specular.x, object.material->specular.y, object.material->specular.z);
+
+    unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.shininess");
+    glUniform1f(unif_name, object.material->shininess);
 
     glUseProgram(0);
 }
