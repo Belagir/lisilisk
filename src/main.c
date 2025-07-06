@@ -7,13 +7,16 @@ int main(void)
 {
     struct shader shader = { };
     struct geometry geometry = { };
+    struct material material = { };
+
     struct object object = { };
     struct object object2 = { };
+
     struct camera camera = { };
     struct scene scene = { };
-    struct material material = { };
-    struct light_point light_point = { };
-    struct light_point light_point2 = { };
+
+    struct light_directional light_dir = { };
+    struct light_directional light_dir2 = { };
 
     struct application target = application_create("some name", 800, 800);
 
@@ -42,20 +45,18 @@ int main(void)
     camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
     camera_view(&camera, matrix4_get_view_matrix((vector3) { 6, 5, 10 }, VECTOR3_Z_NEGATIVE, VECTOR3_Y_POSITIVE));
 
-    light_position((struct light *) &light_point, (vector3) { 0, 6, 0 });
-    light_diffuse((struct light *) &light_point, (vector3) { .5, 0, 0 });
-    light_specular((struct light *) &light_point, (vector3) { 0, .5, 0 });
-    light_strength((struct light *) &light_point, 1.);
+    light_diffuse((struct light *)  &light_dir, (f32[4]) { 1., .5, 0, 1 });
+    light_specular((struct light *) &light_dir, (f32[4]) { 0, 1, 0, 1 });
+    light_directional_direction(&light_dir, (vector3) { -1, -.5, -.1 });
 
-    light_position((struct light *) &light_point2, (vector3) { 0, 0, 2 });
-    light_diffuse((struct light *)  &light_point2, (vector3) { 0, .2, 1. });
-    light_specular((struct light *) &light_point2, (vector3) { 0, 0, .2 });
-    light_strength((struct light *) &light_point2, 1.);
+    light_diffuse((struct light *)  &light_dir2, (f32[4]) { 0, 0, 1, 1 });
+    light_specular((struct light *) &light_dir2, (f32[4]) { 0, 0, 1, 1 });
+    light_directional_direction(&light_dir2, (vector3) { -.1, 0, -1 });
 
     scene_create(&scene);
     scene_camera(&scene, camera);
-    scene_light_point(&scene, light_point);
-    scene_light_point(&scene, light_point2);
+    scene_light_direc(&scene, light_dir);
+    scene_light_direc(&scene, light_dir2);
     scene_object(&scene, object);
     scene_object(&scene, object2);
 

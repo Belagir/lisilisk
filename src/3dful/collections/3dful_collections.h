@@ -13,8 +13,9 @@ struct scene {
     struct camera camera;
 
     RANGE(struct light_point) *point_lights;
-    GLuint vbo_point_lights;
+    GLuint ubo_point_lights;
     RANGE(struct light_directional) *direc_lights;
+    GLuint ubo_dir_lights;
 };
 
 void scene_create(struct scene *scene);

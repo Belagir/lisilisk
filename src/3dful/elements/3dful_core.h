@@ -88,24 +88,24 @@ struct camera {
 
 struct light {
     vector3 position;
+    f32 PADDING[1];
 
-    f32 strength;
-    vector3 diffuse;
-    vector3 specular;
+    f32 diffuse[4];
+    f32 specular[4];
 };
 
 struct light_point {
     struct light base;
     f32 constant, linear, quadratic;
 
-    f32 PADDING[3]; // This struct will be passed to opengl ; it must be aligned on 16 bytes.
+    f32 PADDING[1];
 };
 
 struct light_directional {
     struct light base;
     vector3 direction;
 
-    f32 PADDING[3]; // This struct will be passed to opengl ; it must be aligned on 16 bytes.
+    f32 PADDING[1];
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -159,7 +159,7 @@ void object_transform(struct object *object, struct matrix4 transform);
 void object_geometry(struct object *object, struct geometry *geometry);
 void object_shader(struct object *object, struct shader *shader);
 void object_material(struct object *object, struct material *material);
-void object_load(struct object *object, GLuint vbo_point_lights);
+void object_load(struct object *object, GLuint ubo_point_lights, GLuint ubo_directonal_lights);
 void object_unload(struct object *object);
 void object_draw(struct object object);
 
@@ -175,9 +175,8 @@ void camera_view(struct camera *camera, struct matrix4 view);
 // LIGHT -------------------------------------------------------------------------------------------
 
 void light_position(struct light *light, struct vector3 pos);
-void light_strength(struct light *light, f32 strength);
-void light_diffuse(struct light *light, vector3 diffuse);
-void light_specular(struct light *light, vector3 specular);
+void light_diffuse(struct light *light, f32 diffuse[4]);
+void light_specular(struct light *light, f32 specular[4]);
 
 void light_point_constant(struct light_point *light, f32 constant);
 void light_point_linear(struct light_point *light, f32 linear);
