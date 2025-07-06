@@ -41,6 +41,11 @@ struct face { u32 idx_vert[3u]; };
 struct geometry {
     RANGE(struct vertex) *vertices;
     RANGE(struct face) *faces;
+
+    struct {
+        GLuint vbo;
+        GLuint ebo;
+    } gpu_side;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -68,8 +73,6 @@ struct object {
     // opengl names referencing the object's data on the gpu.
     struct {
         GLuint vao;
-        GLuint vbo;
-        GLuint ebo;
     } gpu_side;
 };
 
@@ -131,9 +134,14 @@ void shader_delete(struct shader *shader);
 // GEOMETRY ----------------------------------------------------------------------------------------
 
 void geometry_create(struct geometry *geometry);
+void geometry_delete(struct geometry *geometry);
+
+void geometry_load(struct geometry *geometry);
+void geometry_unload(struct geometry *geometry);
+void geometry_attrib(struct geometry *geometry, struct object *object);
+
 void geometry_wavobj(struct geometry *geometry, const char *path);
 void geometry_wavobj_mem(struct geometry *geometry, BUFFER *obj);
-void geometry_delete(struct geometry *geometry);
 
 void geometry_push_vertex(struct geometry *geometry, u32 *out_idx);
 void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos);
@@ -182,6 +190,6 @@ void light_point_constant(struct light_point *light, f32 constant);
 void light_point_linear(struct light_point *light, f32 linear);
 void light_point_quadratic(struct light_point *light, f32 quadratic);
 
-void light_directional_direction(struct light_directional *light, vector3 direction);
+void light_directional_direction(struct light_directional *light, struct vector3 direction);
 
 #endif

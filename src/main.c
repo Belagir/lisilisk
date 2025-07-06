@@ -60,6 +60,7 @@ int main(void)
     scene_object(&scene, object);
     scene_object(&scene, object2);
 
+    geometry_load(&geometry);
     scene_load(&scene);
 
     int should_quit = 0;
@@ -80,6 +81,7 @@ int main(void)
     }
 
     scene_unload(&scene);
+    geometry_unload(&geometry);
 
     shader_delete(&shader);
     geometry_delete(&geometry);

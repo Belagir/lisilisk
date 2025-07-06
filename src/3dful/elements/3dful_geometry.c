@@ -67,6 +67,62 @@ void geometry_delete(struct geometry *geometry)
  * @brief
  *
  * @param geometry
+ */
+void geometry_load(struct geometry *geometry)
+{
+    glGenBuffers(1, &geometry->gpu_side.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, geometry->gpu_side.vbo);
+    glBufferData(GL_ARRAY_BUFFER,
+            geometry->vertices->length * sizeof(*geometry->vertices->data),
+            geometry->vertices->data, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &geometry->gpu_side.ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->gpu_side.ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+            geometry->faces->length * sizeof(*geometry->faces->data),
+            geometry->faces->data, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+/**
+ * @brief
+ *
+ * @param geometry
+ */
+void geometry_unload(struct geometry *geometry)
+{
+
+    glDeleteBuffers(1, &geometry->gpu_side.ebo);
+    glDeleteBuffers(1, &geometry->gpu_side.vbo);
+}
+
+/**
+ * @brief
+ *
+ * @param geometry
+ * @param object
+ */
+void geometry_attrib(struct geometry *geometry, struct object *object)
+{
+    glBindBuffer(GL_ARRAY_BUFFER, geometry->gpu_side.vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->gpu_side.ebo);
+
+    glUseProgram(object->shader->program);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, normal));
+    glEnableVertexAttribArray(1);
+
+    glUseProgram(0);
+}
+
+/**
+ * @brief
+ *
+ * @param geometry
  * @param out_idx
  */
 void geometry_push_vertex(struct geometry *geometry, u32 *out_idx)
