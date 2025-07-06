@@ -31,8 +31,11 @@ struct LightPoint {
 };
 
 #define LIGHT_POINTS_NB_MAX 32
-uniform LightPoint LIGHT_POINTS[LIGHT_POINTS_NB_MAX];
 uniform uint LIGHT_POINTS_NB;
+
+layout(std140) uniform BLOCK_LIGHT_POINTS {
+    LightPoint light_points[LIGHT_POINTS_NB_MAX];
+};
 
 // ---------------------------------------------------------
 // ---------------------------------------------------------
@@ -67,7 +70,7 @@ void main()
     vec3 result = vec3(0);
 
     for (uint i = 0u ; i < LIGHT_POINTS_NB ; i++) {
-        result += light_point_contribution(LIGHT_POINTS[i]);
+        result += light_point_contribution(light_points[i]);
     }
 
     FragColor = vec4(result, 1.0f);

@@ -97,11 +97,15 @@ struct light {
 struct light_point {
     struct light base;
     f32 constant, linear, quadratic;
+
+    f32 PADDING[3]; // This struct will be passed to opengl ; it must be aligned on 16 bytes.
 };
 
 struct light_directional {
     struct light base;
     vector3 direction;
+
+    f32 PADDING[3]; // This struct will be passed to opengl ; it must be aligned on 16 bytes.
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -155,7 +159,7 @@ void object_transform(struct object *object, struct matrix4 transform);
 void object_geometry(struct object *object, struct geometry *geometry);
 void object_shader(struct object *object, struct shader *shader);
 void object_material(struct object *object, struct material *material);
-void object_load(struct object *object);
+void object_load(struct object *object, GLuint vbo_point_lights);
 void object_unload(struct object *object);
 void object_draw(struct object object);
 

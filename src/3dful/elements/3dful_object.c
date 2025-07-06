@@ -59,7 +59,7 @@ void object_material(struct object *object, struct material *material)
  *
  * @param object
  */
-void object_load(struct object *object)
+void object_load(struct object *object, GLuint vbo_point_lights)
 {
     glGenVertexArrays(1, &object->gpu_side.vao);
 
@@ -83,6 +83,13 @@ void object_load(struct object *object)
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), (void*) (3 * sizeof(f32)));
             glEnableVertexAttribArray(1);
+
+            GLuint block = glGetUniformBlockIndex(object->shader->program, "BLOCK_LIGHT_POINTS");
+            glUniformBlockBinding(object->shader->program, block, 0);
+
+            glBindBuffer(GL_UNIFORM_BUFFER, vbo_point_lights);
+            glBindBufferBase(GL_UNIFORM_BUFFER, block, vbo_point_lights);
+            (void) vbo_point_lights;
         }
         glUseProgram(0);
     }

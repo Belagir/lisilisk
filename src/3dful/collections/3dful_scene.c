@@ -73,10 +73,6 @@ void scene_camera(struct scene *scene, struct camera camera)
 void scene_light_point(struct scene *scene, struct light_point light)
 {
     range_push(RANGE_TO_ANY(scene->point_lights), &light);
-
-    for (size_t i = 0 ; i < scene->objects->length ; i++) {
-        scene_send_light_uniforms(scene, scene->objects->data[i]);
-    }
 }
 
 /**
@@ -88,10 +84,6 @@ void scene_light_point(struct scene *scene, struct light_point light)
 void scene_light_direc(struct scene *scene, struct light_directional light)
 {
     range_push(RANGE_TO_ANY(scene->direc_lights), &light);
-
-    for (size_t i = 0 ; i < scene->objects->length ; i++) {
-        scene_send_light_uniforms(scene, scene->objects->data[i]);
-    }
 }
 
 /**
@@ -113,9 +105,23 @@ void scene_draw(struct scene scene)
  */
 void scene_load(struct scene *scene)
 {
+    // Load lights
+    glGenBuffers(1, &scene->vbo_point_lights);
+    glBindBuffer(GL_UNIFORM_BUFFER, scene->vbo_point_lights);
+    glBufferData(GL_UNIFORM_BUFFER,
+            scene->point_lights->length * sizeof(*scene->point_lights->data),
+            scene->point_lights->data, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
     for (size_t i = 0 ; i < scene->objects->length ; i++) {
-        object_load(&scene->objects->data[i]);
+        scene_send_light_uniforms(scene, scene->objects->data[i]);
     }
+
+    for (size_t i = 0 ; i < scene->objects->length ; i++) {
+        // send light buffer object to objects so they can bind it
+        object_load(&scene->objects->data[i], scene->vbo_point_lights);
+    }
+
 }
 
 /**
@@ -125,6 +131,8 @@ void scene_load(struct scene *scene)
  */
 void scene_unload(struct scene *scene)
 {
+    glDeleteBuffers(1, &scene->vbo_point_lights);
+
     for (size_t i = 0 ; i < scene->objects->length ; i++) {
         object_unload(&scene->objects->data[i]);
     }
@@ -149,7 +157,7 @@ static void scene_send_light_uniforms(struct scene *scene, struct object object)
     glUseProgram(object.shader->program);
 
     uniform_name = glGetUniformLocation(object.shader->program, "LIGHT_POINTS_NB");
-    glUniform1ui(uniform_name, 0);
+    glUniform1ui(uniform_name, scene->point_lights->length);
 
     glUseProgram(0);
 }

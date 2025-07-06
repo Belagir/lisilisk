@@ -13,6 +13,7 @@ int main(void)
     struct scene scene = { };
     struct material material = { };
     struct light_point light_point = { };
+    struct light_point light_point2 = { };
 
     struct application target = application_create("some name", 800, 800);
 
@@ -46,11 +47,17 @@ int main(void)
     light_specular((struct light *) &light_point, (vector3) { 0, .5, 0 });
     light_strength((struct light *) &light_point, 1.);
 
+    light_position((struct light *) &light_point2, (vector3) { 0, 0, 2 });
+    light_diffuse((struct light *)  &light_point2, (vector3) { 0, .2, 1. });
+    light_specular((struct light *) &light_point2, (vector3) { 0, 0, .2 });
+    light_strength((struct light *) &light_point2, 1.);
+
     scene_create(&scene);
     scene_camera(&scene, camera);
+    scene_light_point(&scene, light_point);
+    scene_light_point(&scene, light_point2);
     scene_object(&scene, object);
     scene_object(&scene, object2);
-    scene_light_point(&scene, light_point);
 
     scene_load(&scene);
 
