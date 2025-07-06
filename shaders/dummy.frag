@@ -3,6 +3,7 @@
 // ---------------------------------------------------------
 // ---------------------------------------------------------
 
+// Uniform containing the coordiantes of the point of view in world space.
 uniform vec3 CAMERA_POS;
 
 // ---------------------------------------------------------
@@ -18,11 +19,16 @@ uniform Material MATERIAL;
 
 // ---------------------------------------------------------
 
-struct LightPoint {
+// Mirrors the light struct in the codebase.
+struct Light {
     vec3 position;
 
     vec4 diffuse;
     vec4 specular;
+};
+
+struct LightPoint {
+    Light base;
 
     float constant;
     float linear;
@@ -30,10 +36,7 @@ struct LightPoint {
 };
 
 struct LightDirectional {
-    vec3 position;
-
-    vec4 diffuse;
-    vec4 specular;
+    Light base;
 
     vec3 direction;
 };
@@ -66,16 +69,32 @@ out vec4 FragColor;
 // ---------------------------------------------------------
 // ---------------------------------------------------------
 
-vec3 light_point_contribution(LightPoint l)
+vec3 light_diffuse(vec3 light_dir, Light l_base)
 {
-    vec3 light_dir = normalize(l.position - FragPos);
     float diff = max(dot(Normal, light_dir), 0.0);
-    vec3 diffuse = l.diffuse.a * l.diffuse.xyz * (diff * MATERIAL.diffuse);
+    return l_base.diffuse.a * l_base.diffuse.xyz * (diff * MATERIAL.diffuse);
+}
 
+// ---------------------------------------------------------
+
+vec3 light_specular(vec3 light_dir, Light l_base)
+{
     vec3 view_dir = normalize(CAMERA_POS - FragPos);
     vec3 reflect_dir = reflect(-light_dir, Normal);
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), MATERIAL.shininess);
-    vec3 specular = l.specular.a * l.specular.xyz * (spec * MATERIAL.specular);
+
+    return l_base.specular.a * l_base.specular.xyz * (spec * MATERIAL.specular);
+}
+
+// ---------------------------------------------------------
+// ---------------------------------------------------------
+
+vec3 light_point_contribution(LightPoint l)
+{
+    vec3 light_dir = normalize(l.base.position - FragPos);
+
+    vec3 diffuse = light_diffuse(light_dir, l.base);
+    vec3 specular = light_specular(light_dir, l.base);
 
     return diffuse + specular;
 }
@@ -85,10 +104,11 @@ vec3 light_point_contribution(LightPoint l)
 vec3 light_directional_contribution(LightDirectional l)
 {
     vec3 light_dir = normalize(-l.direction);
-    float diff = max(dot(Normal, light_dir), 0.0);
-    vec3 diffuse = l.diffuse.a * l.diffuse.xyz * (diff * MATERIAL.diffuse);
 
-    return diffuse;
+    vec3 diffuse = light_diffuse(light_dir, l.base);
+    vec3 specular = light_specular(light_dir, l.base);
+
+    return diffuse + specular;
 }
 
 // ---------------------------------------------------------
@@ -98,9 +118,9 @@ void main()
 {
     vec3 result = vec3(0);
 
-    // for (uint i = 0u ; i < LIGHT_POINTS_NB ; i++) {
-    //     result += light_point_contribution(light_points[i]);
-    // }
+    for (uint i = 0u ; i < LIGHT_POINTS_NB ; i++) {
+        result += light_point_contribution(light_points[i]);
+    }
     for (uint i = 0u ; i < LIGHT_DIRECTIONALS_NB ; i++) {
         result += light_directional_contribution(light_directionals[i]);
     }
