@@ -33,6 +33,8 @@ void scene_create(struct scene *scene)
 void scene_delete(struct scene *scene)
 {
     range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(scene->objects));
+    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(scene->point_lights));
+    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(scene->direc_lights));
 }
 
 /**

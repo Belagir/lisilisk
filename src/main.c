@@ -16,6 +16,7 @@ int main(void)
     struct scene scene = { };
 
     struct light_directional light_dir = { };
+    struct light_point light_point = { };
 
     struct application target = application_create("some name", 800, 800);
 
@@ -28,7 +29,7 @@ int main(void)
 
     material_ambient(&material,  (vector3) { 1.0, 0.5, 0.3 });
     material_diffuse(&material,  (vector3) { 1.0, 0.5, 0.3 });
-    material_specular(&material, (vector3) { 0.5, 0.5, 0.5 });
+    material_specular(&material, (vector3) { 0.8, 0.1, 0.1 });
     material_shininess(&material, 64.);
 
     object_transform(&object, matrix_translate(matrix4_identity(), (vector3) { .5, .5, 0 }));
@@ -48,9 +49,14 @@ int main(void)
     light_specular((struct light *) &light_dir, (f32[4]) { 1., 1., 1., .3 });
     light_directional_direction(&light_dir, (vector3) { -.6, -1, -.8 });
 
+    light_diffuse((struct light *)  &light_point, (f32[4]) { .8, .8, 1., .8 });
+    light_specular((struct light *) &light_point, (f32[4]) { .5, .5, .7, 1. });
+    light_position((struct light *) &light_point, (vector3) { 1.2, 1.1, 3 });
+
     scene_create(&scene);
     scene_camera(&scene, camera);
     scene_light_direc(&scene, light_dir);
+    scene_light_point(&scene, light_point);
     scene_object(&scene, object);
     scene_object(&scene, object2);
 
@@ -72,6 +78,8 @@ int main(void)
 
         SDL_Delay(100);
     }
+
+    scene_unload(&scene);
 
     shader_delete(&shader);
     geometry_delete(&geometry);
