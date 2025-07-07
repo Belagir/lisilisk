@@ -10,13 +10,10 @@ int main(void)
     struct material material = { };
 
     struct object object = { };
-    struct object object2 = { };
-
     struct camera camera = { };
     struct scene scene = { };
 
     struct light_directional light_dir = { };
-    struct light_point light_point = { };
 
     struct application target = application_create("some name", 800, 800);
 
@@ -32,33 +29,22 @@ int main(void)
     material_specular(&material, (vector3) { 0.8, 0.1, 0.1 });
     material_shininess(&material, 64.);
 
-    object_transform(&object, matrix_translate(matrix4_identity(), (vector3) { .5, .5, 0 }));
+    object_transform(&object, matrix_translate(matrix4_identity(), (vector3) { 0, 0, 0 }));
     object_geometry(&object, &geometry);
     object_shader(&object, &shader);
     object_material(&object, &material);
 
-    object_transform(&object2, matrix_translate(matrix4_identity(), (vector3) { -4, -.5, 0 }));
-    object_geometry(&object2, &geometry);
-    object_shader(&object2, &shader);
-    object_material(&object2, &material);
-
     camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
-    camera_view(&camera, matrix4_get_view_matrix((vector3) { 3, 2, 5 }, VECTOR3_Z_NEGATIVE, VECTOR3_Y_POSITIVE));
+    camera_view(&camera, matrix4_get_view_matrix((vector3) { 1.5, 2, 1.5 }, VECTOR3_ORIGIN, VECTOR3_Y_POSITIVE));
 
     light_diffuse((struct light *)  &light_dir, (f32[4]) { 1., 1., 1., .3 });
     light_specular((struct light *) &light_dir, (f32[4]) { 1., 1., 1., .3 });
     light_directional_direction(&light_dir, (vector3) { -.6, -1, -.8 });
 
-    light_diffuse((struct light *)  &light_point, (f32[4]) { .8, .8, 1., .8 });
-    light_specular((struct light *) &light_point, (f32[4]) { .5, .5, .7, 1. });
-    light_position((struct light *) &light_point, (vector3) { 4.2, 1.1, 18 });
-
     scene_create(&scene);
     scene_camera(&scene, camera);
     scene_light_direc(&scene, light_dir);
-    scene_light_point(&scene, light_point);
     scene_object(&scene, object);
-    // scene_object(&scene, object2);
 
     geometry_load(&geometry);
     scene_load(&scene);
