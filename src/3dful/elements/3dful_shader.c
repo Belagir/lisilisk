@@ -113,6 +113,24 @@ void shader_delete(struct shader *shader)
     *shader = (struct shader) { 0 };
 }
 
+/**
+ * @brief
+ *
+ * @param shader
+ * @param index
+ * @param stride
+ * @param offset
+ */
+void shader_vertex_attrib_vec3(struct shader *shader, u32 index, size_t stride, size_t offset)
+{
+    glUseProgram(shader->program);
+
+    glVertexAttribPointer(index, 3, GL_FLOAT, GL_FALSE, stride, (void *) offset);
+    glEnableVertexAttribArray(index);
+
+    glUseProgram(0);
+}
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 

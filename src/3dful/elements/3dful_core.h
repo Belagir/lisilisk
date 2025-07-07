@@ -128,6 +128,7 @@ void shader_vert(struct shader *shader, const char *path);
 void shader_frag(struct shader *shader, const char *path);
 void shader_link(struct shader *shader);
 void shader_delete(struct shader *shader);
+void shader_vertex_attrib_vec3(struct shader *shader, u32 index, size_t stride, size_t offset);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -138,7 +139,6 @@ void geometry_delete(struct geometry *geometry);
 
 void geometry_load(struct geometry *geometry);
 void geometry_unload(struct geometry *geometry);
-void geometry_attrib(struct geometry *geometry, struct object *object);
 
 void geometry_wavobj(struct geometry *geometry, const char *path);
 void geometry_wavobj_mem(struct geometry *geometry, BUFFER *obj);

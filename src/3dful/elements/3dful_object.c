@@ -66,7 +66,13 @@ void object_load(struct object *object, GLuint ubo_point_lights, GLuint ubo_dire
 
     glBindVertexArray(object->gpu_side.vao);
     {
-        geometry_attrib(object->geometry, object);
+        glBindBuffer(GL_ARRAY_BUFFER, object->geometry->gpu_side.vbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object->geometry->gpu_side.ebo);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, normal));
+        glEnableVertexAttribArray(1);
 
         glUseProgram(object->shader->program);
         {
