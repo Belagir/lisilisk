@@ -2,9 +2,6 @@
 #include "3dful_core.h"
 #include "geometry_parsing/3ful_geometry_parsing.h"
 
-/** Buffer size used to read a file. No file might exceed 4kB ? */
-#define GEOMETRY_FILEREAD_MAX_LENGTH (4096)
-
 /**
  * @brief Allocates memory for a geometry object so it can store vertices and faces.
  *

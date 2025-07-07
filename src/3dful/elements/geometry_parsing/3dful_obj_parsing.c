@@ -302,14 +302,15 @@ static i32 wavefront_parse_value_int(struct parser_state *state, i32 *out_value)
 {
     i32 value = 0;
     i32 sign = 1;
-    i32 mult = 1;
     i32 valid = 0;
     char read_c = '+';
 
     skip_whitespace(state);
 
-    accept(state, (char[]) { '+', '-' }, 2, &read_c);
-    if (read_c == '-') sign = -1;
+    if (lookup(state, (char[]) { '+', '-' }, 2, &read_c)) {
+        if (read_c == '-') sign = -1;
+        parser_state_advance(state);
+    }
 
     if (!expect(state, (char[]) { '0','1','2','3','4','5','6','7','8','9', }, 10, &read_c)) {
         return 0;
@@ -317,9 +318,8 @@ static i32 wavefront_parse_value_int(struct parser_state *state, i32 *out_value)
 
     do {
         valid = 1;
-        value *= mult;
+        value *= 10;
         value += read_c - '0';
-        mult *= 10;
     } while (accept(state, (char[]) { '0','1','2','3','4','5','6','7','8','9', }, 10, &read_c));
 
     if (valid) {

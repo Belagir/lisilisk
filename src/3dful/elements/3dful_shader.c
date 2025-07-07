@@ -7,8 +7,6 @@
 #define SHADER_DIAGNOSTIC_MAX_LENGTH (2048)
 static char static_shader_diagnostic_buffer[SHADER_DIAGNOSTIC_MAX_LENGTH] = { 0 };
 
-#define SHADER_FILEREAD_MAX_LENGTH (4096)
-
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
