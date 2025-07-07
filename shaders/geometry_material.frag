@@ -23,8 +23,7 @@ uniform Material MATERIAL;
 struct Light {
     vec3 position;
 
-    vec4 diffuse;
-    vec4 specular;
+    vec4 color;
 };
 
 struct LightPoint {
@@ -72,7 +71,7 @@ out vec4 FragColor;
 vec3 light_diffuse(vec3 light_dir, Light l_base)
 {
     float diff = max(dot(Normal, light_dir), 0.0);
-    return l_base.diffuse.a * l_base.diffuse.xyz * (diff * MATERIAL.diffuse);
+    return l_base.color.a * l_base.color.xyz * (diff * MATERIAL.diffuse);
 }
 
 // ---------------------------------------------------------
@@ -83,7 +82,7 @@ vec3 light_specular(vec3 light_dir, Light l_base)
     vec3 reflect_dir = reflect(-light_dir, Normal);
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), MATERIAL.shininess);
 
-    return l_base.specular.a * l_base.specular.xyz * (spec * MATERIAL.specular);
+    return l_base.color.a * l_base.color.xyz * (spec * MATERIAL.specular);
 }
 
 // ---------------------------------------------------------

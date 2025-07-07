@@ -106,8 +106,7 @@ struct light {
     vector3 position;
     f32 PADDING[1];
 
-    f32 diffuse[4];
-    f32 specular[4];
+    f32 color[4];
 };
 
 /**
@@ -205,8 +204,7 @@ void camera_view(struct camera *camera, struct matrix4 view);
 // LIGHT -------------------------------------------------------------------------------------------
 
 void light_position(struct light *light, struct vector3 pos);
-void light_diffuse(struct light *light, f32 diffuse[4]);
-void light_specular(struct light *light, f32 specular[4]);
+void light_color(struct light *light, f32 color[4]);
 
 void light_point_constant(struct light_point *light, f32 constant);
 void light_point_linear(struct light_point *light, f32 linear);

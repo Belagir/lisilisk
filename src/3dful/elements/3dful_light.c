@@ -11,30 +11,16 @@ void light_position(struct light *light, struct vector3 pos)
 {
     light->position = pos;
 }
-
 /**
- * @brief Sets a light's diffuse strength value : indices 0, 1 and 2 are the color, 3 the strength.
+ * @brief Sets a light's color value : indices 0, 1 and 2 are the color's rgb, and 3 the strength.
  *
  * @param[inout] light
- * @param[in] diffuse
+ * @param[in] color
  */
-void light_diffuse(struct light *light, f32 diffuse[4])
+void light_color(struct light *light, f32 color[4])
 {
     for (size_t i = 0 ; i < 4 ; i++) {
-        light->diffuse[i] = diffuse[i];
-    }
-}
-
-/**
- * @brief Sets a light's specular strength value : indices 0, 1 and 2 are the color, 3 the strength.
- *
- * @param[inout] light
- * @param[in] specular
- */
-void light_specular(struct light *light, f32 specular[4])
-{
-    for (size_t i = 0 ; i < 4 ; i++) {
-        light->specular[i] = specular[i];
+        light->color[i] = color[i];
     }
 }
 
