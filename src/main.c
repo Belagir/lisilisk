@@ -20,8 +20,8 @@ int main(void)
 
     struct application target = application_create("some name", 800, 800);
 
-    shader_frag(&shader, "shaders/dummy.frag");
-    shader_vert(&shader, "shaders/dummy.vert");
+    shader_frag(&shader, "shaders/geometry_material.frag");
+    shader_vert(&shader, "shaders/geometry.vert");
     shader_link(&shader);
 
     geometry_create(&geometry);
