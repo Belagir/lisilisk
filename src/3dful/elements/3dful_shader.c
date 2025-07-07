@@ -20,10 +20,10 @@ static GLuint shader_compile(BUFFER *shader_source, GLenum kind);
 // -------------------------------------------------------------------------------------------------
 
 /**
- * @brief
+ * @brief Compiles a vertex shader from its source loaded in memory.
  *
- * @param shader
- * @param source
+ * @param[inout] shader
+ * @param[in] source
  */
 void shader_vert_mem(struct shader *shader, BUFFER *source)
 {
@@ -31,10 +31,10 @@ void shader_vert_mem(struct shader *shader, BUFFER *source)
 }
 
 /**
- * @brief
+ * @brief Compiles a fragment shader from its source loaded in memory.
  *
- * @param shader
- * @param source
+ * @param[inout] shader
+ * @param[in] source
  */
 void shader_frag_mem(struct shader *shader, BUFFER *source)
 {
@@ -42,10 +42,10 @@ void shader_frag_mem(struct shader *shader, BUFFER *source)
 }
 
 /**
- * @brief
+ * @brief Compiles a vertex shader from its source found in a file.
  *
- * @param shader
- * @param path
+ * @param[inout] shader
+ * @param[in] path
  */
 void shader_vert(struct shader *shader, const char *path)
 {
@@ -61,10 +61,10 @@ void shader_vert(struct shader *shader, const char *path)
 }
 
 /**
- * @brief
+ * @brief Compiles a fragment shader from its source found in a file.
  *
- * @param shader
- * @param path
+ * @param[inout] shader
+ * @param[in] path
  */
 void shader_frag(struct shader *shader, const char *path)
 {
@@ -80,9 +80,9 @@ void shader_frag(struct shader *shader, const char *path)
 }
 
 /**
- * @brief
+ * @brief Links a shader program, assembling the vertex part and fragment part into one usable object.
  *
- * @param shader
+ * @param[inout] shader
  */
 void shader_link(struct shader *shader)
 {
@@ -98,9 +98,9 @@ void shader_link(struct shader *shader)
 }
 
 /**
- * @brief
+ * @brief Releases all data buffers and objects taken by a shader, invalidating it.
  *
- * @param shader
+ * @param[inout] shader
  */
 void shader_delete(struct shader *shader)
 {

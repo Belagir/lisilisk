@@ -11,20 +11,23 @@ static void object_send_material_uniforms(struct object object);
 // -------------------------------------------------------------------------------------------------
 
 /**
- * @brief
+ * @brief Sets the transform matrix of an object to an arbitrary one.
  *
- * @param object
- * @param transform
+ * @see matrix4_get_model_matrix()
+ *
+ * @param[inout] object
+ * @param[in] transform
  */
 void object_transform(struct object *object, struct matrix4 transform)
 {
     object->transform = transform;
 }
+
 /**
- * @brief
+ * @brief Links an object to a geometry. The object will be rendered with the geometry's mesh.
  *
- * @param object
- * @param geometry
+ * @param[inout] object
+ * @param[in] geometry
  */
 void object_geometry(struct object *object, struct geometry *geometry)
 {
@@ -32,10 +35,10 @@ void object_geometry(struct object *object, struct geometry *geometry)
 }
 
 /**
- * @brief
+ * @brief Links an object to a shader. The object's geometry will be rendered with this shader.
  *
- * @param object
- * @param shader
+ * @param[inout] object
+ * @param[in] shader
  */
 void object_shader(struct object *object, struct shader *shader)
 {
@@ -43,10 +46,10 @@ void object_shader(struct object *object, struct shader *shader)
 }
 
 /**
- * @brief
+ * @brief Links an object to a material. The object's shader will receive the material's data.
  *
- * @param object
- * @param material
+ * @param[inout] object
+ * @param[in] material
  */
 void object_material(struct object *object, struct material *material)
 {
@@ -55,9 +58,10 @@ void object_material(struct object *object, struct material *material)
 }
 
 /**
- * @brief
+ * @brief Loads an object to the GPU with OpenGL.
+ * Most of the trafic will be to tell which data is linked and sent to the shader.
  *
- * @param object
+ * @param[inout] object
  */
 void object_load(struct object *object)
 {
@@ -77,38 +81,34 @@ void object_load(struct object *object)
 }
 
 /**
- * @brief
+ * @brief Unloads the object from GPU memory.
  *
- * @param object
+ * @param[inout] object
  */
 void object_unload(struct object *object)
 {
-    // glDeleteBuffers(1, &object->gpu_side.ebo);
-    // glDeleteBuffers(1, &object->gpu_side.vbo);
     glDeleteVertexArrays(1, &object->gpu_side.vao);
-
-    // object->gpu_side.ebo = 0;
-    // object->gpu_side.vbo = 0;
     object->gpu_side.vao = 0;
 }
 
 /**
- * @brief
+ * @brief Renders an object to the current OpenGL context. The object should have been loaded.
  *
- * @param object
+ * @param[in] object
  */
 void object_draw(struct object object)
 {
     object_send_space_uniforms(object);
 
     glUseProgram(object.shader->program);
-    glBindVertexArray(object.gpu_side.vao);
-
-    glDrawElements(GL_TRIANGLES, object.geometry->faces->length*3, GL_UNSIGNED_INT, 0);
-
-    glBindVertexArray(0);
+    {
+        glBindVertexArray(object.gpu_side.vao);
+        {
+            glDrawElements(GL_TRIANGLES, object.geometry->faces->length*3, GL_UNSIGNED_INT, 0);
+        }
+        glBindVertexArray(0);
+    }
     glUseProgram(0);
-
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -125,11 +125,11 @@ static void object_send_space_uniforms(struct object object)
     f32 tmp[16] = { };
 
     glUseProgram(object.shader->program);
-
-    unif_name = glGetUniformLocation(object.shader->program, "MODEL_MATRIX");
-    matrix4_to_array(object.transform, &tmp);
-    glUniformMatrix4fv(unif_name, 1, GL_FALSE, (const GLfloat *) tmp);
-
+    {
+        unif_name = glGetUniformLocation(object.shader->program, "MODEL_MATRIX");
+        matrix4_to_array(object.transform, &tmp);
+        glUniformMatrix4fv(unif_name, 1, GL_FALSE, (const GLfloat *) tmp);
+    }
     glUseProgram(0);
 }
 
@@ -143,18 +143,18 @@ static void object_send_material_uniforms(struct object object)
     GLint unif_name = -1;
 
     glUseProgram(object.shader->program);
+    {
+        unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.ambient");
+        glUniform3f(unif_name, object.material->ambient.x, object.material->ambient.y, object.material->ambient.z);
 
-    unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.ambient");
-    glUniform3f(unif_name, object.material->ambient.x, object.material->ambient.y, object.material->ambient.z);
+        unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.diffuse");
+        glUniform3f(unif_name, object.material->diffuse.x, object.material->diffuse.y, object.material->diffuse.z);
 
-    unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.diffuse");
-    glUniform3f(unif_name, object.material->diffuse.x, object.material->diffuse.y, object.material->diffuse.z);
+        unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.specular");
+        glUniform3f(unif_name, object.material->specular.x, object.material->specular.y, object.material->specular.z);
 
-    unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.specular");
-    glUniform3f(unif_name, object.material->specular.x, object.material->specular.y, object.material->specular.z);
-
-    unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.shininess");
-    glUniform1f(unif_name, object.material->shininess);
-
+        unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.shininess");
+        glUniform1f(unif_name, object.material->shininess);
+    }
     glUseProgram(0);
 }

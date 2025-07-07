@@ -2,10 +2,10 @@
 #include "3dful_core.h"
 
 /**
- * @brief
+ * @brief Sets a light's position to some point in 3D space.
  *
- * @param light
- * @param transform
+ * @param[inout] light
+ * @param[in] pos
  */
 void light_position(struct light *light, struct vector3 pos)
 {
@@ -13,38 +13,36 @@ void light_position(struct light *light, struct vector3 pos)
 }
 
 /**
- * @brief
+ * @brief Sets a light's diffuse strength value : indices 0, 1 and 2 are the color, 3 the strength.
  *
- * @param light
- * @param diffuse
+ * @param[inout] light
+ * @param[in] diffuse
  */
 void light_diffuse(struct light *light, f32 diffuse[4])
 {
-    light->diffuse[0] = diffuse[0];
-    light->diffuse[1] = diffuse[1];
-    light->diffuse[2] = diffuse[2];
-    light->diffuse[3] = diffuse[3];
+    for (size_t i = 0 ; i < 4 ; i++) {
+        light->diffuse[i] = diffuse[i];
+    }
 }
 
 /**
- * @brief
+ * @brief Sets a light's specular strength value : indices 0, 1 and 2 are the color, 3 the strength.
  *
- * @param light
- * @param specular
+ * @param[inout] light
+ * @param[in] specular
  */
 void light_specular(struct light *light, f32 specular[4])
 {
-    light->specular[0] = specular[0];
-    light->specular[1] = specular[1];
-    light->specular[2] = specular[2];
-    light->specular[3] = specular[3];
+    for (size_t i = 0 ; i < 4 ; i++) {
+        light->specular[i] = specular[i];
+    }
 }
 
 /**
- * @brief
+ * @brief Sets a directional light's direction of rays.
  *
- * @param light
- * @param direction
+ * @param[inout] light
+ * @param[in] direction
  */
 void light_directional_direction(struct light_directional *light, vector3 direction)
 {

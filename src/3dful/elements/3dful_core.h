@@ -23,6 +23,10 @@ struct shader { GLuint frag_shader, vert_shader, program; };
 
 // -------------------------------------------------------------------------------------------------
 
+/**
+ * @brief Piece of data passed to OpengGL to represent a vertice composing a mesh.
+ *
+ */
 struct vertex {
     struct vector3 pos;
     struct vector3 normal;
@@ -50,6 +54,10 @@ struct geometry {
 
 // -------------------------------------------------------------------------------------------------
 
+/**
+ * @brief Describes how some surface behaves in contact with light.
+ * Passed to a material shader.
+ */
 struct material {
     vector3 ambient;
     vector3 diffuse;
@@ -89,6 +97,11 @@ struct camera {
 
 // -------------------------------------------------------------------------------------------------
 
+/**
+ * @brief Stores some light information.
+ * @todo Keep those fields aligned to 16 bytes. OpenGL expects vec4-aligned data for its Uniform Blocks Objects.
+ *
+ */
 struct light {
     vector3 position;
     f32 PADDING[1];
@@ -97,6 +110,11 @@ struct light {
     f32 specular[4];
 };
 
+/**
+ * @brief Stores data about a specific light that is emmited from a point in space.
+ * @todo Keep those fields aligned to 16 bytes. OpenGL expects vec4-aligned data for its Uniform Blocks Objects.
+ *
+ */
 struct light_point {
     struct light base;
     f32 constant, linear, quadratic;
@@ -104,6 +122,11 @@ struct light_point {
     f32 PADDING[1];
 };
 
+/**
+ * @brief Stores data about a specific light that is emitted from very far away.
+ * @todo Keep those fields aligned to 16 bytes. OpenGL expects vec4-aligned data for its Uniform Blocks Objects.
+ *
+ */
 struct light_directional {
     struct light base;
     vector3 direction;

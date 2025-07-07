@@ -2,10 +2,10 @@
 #include "3dful_core.h"
 
 /**
- * @brief
+ * @brief Translates a transform matrix by some amount.
  *
- * @param matrix
- * @param offset
+ * @param[inout] matrix
+ * @param[in] offset
  */
 void transform_translate(struct matrix4 *matrix, vector3 offset)
 {
@@ -13,10 +13,10 @@ void transform_translate(struct matrix4 *matrix, vector3 offset)
 }
 
 /**
- * @brief
+ * @brief Translates a position vector by some amount.
  *
- * @param pos
- * @param offset
+ * @param[inout] pos
+ * @param[in] offset
  */
 void position_translate(struct vector3 *pos, vector3 offset)
 {

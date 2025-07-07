@@ -2,10 +2,10 @@
 #include "3dful_core.h"
 
 /**
- * @brief
+ * @brief Sets how a material reflects ambient, global light.
  *
- * @param material
- * @param ambient
+ * @param[inout] material
+ * @param[in] ambient
  */
 void material_ambient(struct material *material, vector3 ambient)
 {
@@ -13,10 +13,10 @@ void material_ambient(struct material *material, vector3 ambient)
 }
 
 /**
- * @brief
+ * @brief Sets how a material diffuses light.
  *
- * @param material
- * @param diffuse
+ * @param[inout] material
+ * @param[in] diffuse
  */
 void material_diffuse(struct material *material, vector3 diffuse)
 {
@@ -24,10 +24,10 @@ void material_diffuse(struct material *material, vector3 diffuse)
 }
 
 /**
- * @brief
+ * @brief Sets how a material reflects light.
  *
- * @param material
- * @param specular
+ * @param[inout] material
+ * @param[in] specular
  */
 void material_specular(struct material *material, vector3 specular)
 {
@@ -35,14 +35,12 @@ void material_specular(struct material *material, vector3 specular)
 }
 
 /**
- * @brief
+ * @brief Sets how clearly a material reflects specular lights.
  *
- * @param material
- * @param shininess
+ * @param[inout] material
+ * @param[in] shininess
  */
 void material_shininess(struct material *material, float shininess)
 {
     material->shininess = shininess;
 }
-
-
