@@ -7,9 +7,11 @@
  * @param[inout] material
  * @param[in] ambient
  */
-void material_ambient(struct material *material, vector3 ambient)
+void material_ambient(struct material *material, f32 ambient[4])
 {
-    material->ambient = ambient;
+    for (size_t i = 0 ; i < 4 ; i++) {
+        material->ambient[i] = ambient[i];
+    }
 }
 
 /**
@@ -18,9 +20,11 @@ void material_ambient(struct material *material, vector3 ambient)
  * @param[inout] material
  * @param[in] diffuse
  */
-void material_diffuse(struct material *material, vector3 diffuse)
+void material_diffuse(struct material *material, f32 diffuse[4])
 {
-    material->diffuse = diffuse;
+    for (size_t i = 0 ; i < 4 ; i++) {
+        material->diffuse[i] = diffuse[i];
+    }
 }
 
 /**
@@ -29,9 +33,11 @@ void material_diffuse(struct material *material, vector3 diffuse)
  * @param[inout] material
  * @param[in] specular
  */
-void material_specular(struct material *material, vector3 specular)
+void material_specular(struct material *material, f32 specular[4])
 {
-    material->specular = specular;
+    for (size_t i = 0 ; i < 4 ; i++) {
+        material->specular[i] = specular[i];
+    }
 }
 
 /**

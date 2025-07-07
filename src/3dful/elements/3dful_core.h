@@ -59,10 +59,14 @@ struct geometry {
  * Passed to a material shader.
  */
 struct material {
-    vector3 ambient;
-    vector3 diffuse;
-    vector3 specular;
+    f32 ambient[4];
+    f32 diffuse[4];
+    f32 specular[4];
     float shininess;
+
+    struct {
+        GLuint ubo;
+    } gpu_side;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -175,9 +179,9 @@ void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u
 // -------------------------------------------------------------------------------------------------
 // MATERIAL ----------------------------------------------------------------------------------------
 
-void material_ambient(struct material *material, vector3 ambient);
-void material_diffuse(struct material *material, vector3 diffuse);
-void material_specular(struct material *material, vector3 specular);
+void material_ambient(struct material *material, f32 ambient[4]);
+void material_diffuse(struct material *material, f32 diffuse[4]);
+void material_specular(struct material *material, f32 specular[4]);
 void material_shininess(struct material *material, float shininess);
 
 // -------------------------------------------------------------------------------------------------

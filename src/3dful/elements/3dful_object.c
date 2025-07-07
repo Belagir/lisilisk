@@ -145,13 +145,13 @@ static void object_send_material_uniforms(struct object object)
     glUseProgram(object.shader->program);
     {
         unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.ambient");
-        glUniform3f(unif_name, object.material->ambient.x, object.material->ambient.y, object.material->ambient.z);
+        glUniform4fv(unif_name, 1, object.material->ambient);
 
         unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.diffuse");
-        glUniform3f(unif_name, object.material->diffuse.x, object.material->diffuse.y, object.material->diffuse.z);
+        glUniform4fv(unif_name, 1, object.material->diffuse);
 
         unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.specular");
-        glUniform3f(unif_name, object.material->specular.x, object.material->specular.y, object.material->specular.z);
+        glUniform4fv(unif_name, 1, object.material->specular);
 
         unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.shininess");
         glUniform1f(unif_name, object.material->shininess);

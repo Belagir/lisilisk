@@ -10,9 +10,9 @@ uniform vec3 CAMERA_POS;
 // ---------------------------------------------------------
 
 struct Material {
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
     float shininess;
 };
 uniform Material MATERIAL;
@@ -68,44 +68,44 @@ out vec4 FragColor;
 // ---------------------------------------------------------
 // ---------------------------------------------------------
 
-vec3 light_diffuse(vec3 light_dir, Light l_base)
+vec4 light_diffuse(vec3 light_dir, Light l_base)
 {
     float diff = max(dot(Normal, light_dir), 0.0);
-    return l_base.color.a * l_base.color.xyz * (diff * MATERIAL.diffuse);
+    return l_base.color * (diff * MATERIAL.diffuse);
 }
 
 // ---------------------------------------------------------
 
-vec3 light_specular(vec3 light_dir, Light l_base)
+vec4 light_specular(vec3 light_dir, Light l_base)
 {
     vec3 view_dir = normalize(CAMERA_POS - FragPos);
     vec3 reflect_dir = reflect(-light_dir, Normal);
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), MATERIAL.shininess);
 
-    return l_base.color.a * l_base.color.xyz * (spec * MATERIAL.specular);
+    return l_base.color * (spec * MATERIAL.specular);
 }
 
 // ---------------------------------------------------------
 // ---------------------------------------------------------
 
-vec3 light_point_contribution(LightPoint l)
+vec4 light_point_contribution(LightPoint l)
 {
     vec3 light_dir = normalize(l.base.position - FragPos);
 
-    vec3 diffuse = light_diffuse(light_dir, l.base);
-    vec3 specular = light_specular(light_dir, l.base);
+    vec4 diffuse = light_diffuse(light_dir, l.base);
+    vec4 specular = light_specular(light_dir, l.base);
 
     return diffuse + specular;
 }
 
 // ---------------------------------------------------------
 
-vec3 light_directional_contribution(LightDirectional l)
+vec4 light_directional_contribution(LightDirectional l)
 {
     vec3 light_dir = normalize(-l.direction);
 
-    vec3 diffuse = light_diffuse(light_dir, l.base);
-    vec3 specular = light_specular(light_dir, l.base);
+    vec4 diffuse = light_diffuse(light_dir, l.base);
+    vec4 specular = light_specular(light_dir, l.base);
 
     return diffuse + specular;
 }
@@ -115,7 +115,7 @@ vec3 light_directional_contribution(LightDirectional l)
 
 void main()
 {
-    vec3 result = vec3(0);
+    vec4 result = vec4(0);
 
     for (uint i = 0u ; i < LIGHT_POINTS_NB ; i++) {
         result += light_point_contribution(light_points[i]);
@@ -124,5 +124,5 @@ void main()
         result += light_directional_contribution(light_directionals[i]);
     }
 
-    FragColor = vec4(result, 1.0f);
+    FragColor = result;
 }

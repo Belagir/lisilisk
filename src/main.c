@@ -26,9 +26,9 @@ int main(void)
     geometry_create(&geometry);
     geometry_wavobj(&geometry, "models/monke.obj");
 
-    material_ambient(&material,  (vector3) { 1.0, 0.5, 0.3 });
-    material_diffuse(&material,  (vector3) { 1.0, 0.5, 0.3 });
-    material_specular(&material, (vector3) { 0.8, 0.1, 0.1 });
+    material_ambient(&material,  (f32[4]) { 1.0, 0.5, 0.3, 1. });
+    material_diffuse(&material,  (f32[4]) { 1.0, 0.5, 0.3, 1. });
+    material_specular(&material, (f32[4]) { 0.8, 0.1, 0.1, 1. });
     material_shininess(&material, 64.);
 
     object_transform(&object, matrix_translate(matrix4_identity(), (vector3) { -1.5, 0, 0 }));
@@ -46,8 +46,8 @@ int main(void)
 
     light_color((struct light *)  &light_dir, (f32[4]) { 1., 1., 1., .3 });
     light_directional_direction(&light_dir, (vector3) { -.6, -1, -.8 });
-    light_color((struct light *)  &light_point, (f32[4]) { 1., 1., 1., .3 });
-    light_position((struct light *)  &light_point, (vector3) { 0, .5, 2 });
+    light_color((struct light *)  &light_point, (f32[4]) { 1., 1., 1., .8 });
+    light_position((struct light *)  &light_point, (vector3) { -1.5, 1.2, 0 });
 
     scene_create(&scene);
     scene_camera(&scene, camera);
