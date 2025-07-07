@@ -35,6 +35,7 @@ static i32 wavefront_parse_face_point(struct parser_state *state, i32 read_idx[3
 
 static i32 wavefront_parse_value(struct parser_state *state, f32 *out_value);
 static i32 wavefront_parse_value_int(struct parser_state *state, i32 *out_value);
+static i32 wavefront_parse_value_uint(struct parser_state *state, i32 *out_value);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -48,9 +49,9 @@ static i32 wavefront_parse_value_int(struct parser_state *state, i32 *out_value)
 void wavefront_obj_create(struct wavefront_obj *obj)
 {
     *obj = (struct wavefront_obj) {
-            .v  = range_create_dynamic(make_system_allocator(), sizeof(*obj->v->data), 256),
-            .vn = range_create_dynamic(make_system_allocator(), sizeof(*obj->vn->data), 256),
-            .f  = range_create_dynamic(make_system_allocator(), sizeof(*obj->f->data), 256),
+            .v  = range_create_dynamic(make_system_allocator(), sizeof(*obj->v->data), 2),
+            .vn = range_create_dynamic(make_system_allocator(), sizeof(*obj->vn->data), 2),
+            .f  = range_create_dynamic(make_system_allocator(), sizeof(*obj->f->data), 2),
     };
 }
 
@@ -129,6 +130,26 @@ void wavefront_obj_to(struct wavefront_obj *obj, struct geometry *geometry)
     }
 }
 
+/**
+ * @brief
+ *
+ * @param obj
+ * @param file
+ */
+void wavefront_obj_dump(struct wavefront_obj *obj, FILE *file)
+{
+    for (size_t i = 0 ; i < obj->v->length ; i++) {
+        fprintf(file, "v %.6f %.6f %.6f\n", obj->v->data[i].x, obj->v->data[i].y, obj->v->data[i].z);
+    }
+    for (size_t i = 0 ; i < obj->vn->length ; i++) {
+        fprintf(file, "vn %.4f %.4f %.4f\n", obj->vn->data[i].x, obj->vn->data[i].y, obj->vn->data[i].z);
+    }
+    for (size_t i = 0 ; i < obj->f->length ; i++) {
+        fprintf(file, "f %d//%d %d//%d %d//%d\n", obj->f->data[i].v_idx[0]+1, obj->f->data[i].vn_idx[0]+1,
+                obj->f->data[i].v_idx[1]+1, obj->f->data[i].vn_idx[1]+1, obj->f->data[i].v_idx[2]+1, obj->f->data[i].vn_idx[2]+1);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -195,6 +216,7 @@ static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefro
             && wavefront_parse_value(state, &pos.y)
             && wavefront_parse_value(state, &pos.z)) {
 
+        out_obj->v = range_ensure_capacity(make_system_allocator(), RANGE_TO_ANY(out_obj->v), 1);
         range_push(RANGE_TO_ANY(out_obj->v), &pos);
         return 1;
     }
@@ -212,6 +234,7 @@ static i32 wavefront_parse_vertex_normal(struct parser_state *state, struct wave
             && wavefront_parse_value(state, &normal.y)
             && wavefront_parse_value(state, &normal.z)) {
 
+        out_obj->vn = range_ensure_capacity(make_system_allocator(), RANGE_TO_ANY(out_obj->vn), 1);
         range_push(RANGE_TO_ANY(out_obj->vn), &normal);
         return 1;
     }
@@ -241,6 +264,7 @@ static i32 wavefront_parse_face(struct parser_state *state, struct wavefront_obj
         if (face_data[i][2] > 0) face.vn_idx[i] = face_data[i][2] - 1;
     }
 
+    out_obj->f = range_ensure_capacity(make_system_allocator(), RANGE_TO_ANY(out_obj->f), 1);
     range_push(RANGE_TO_ANY(out_obj->f), &face);
     return 1;
 }
@@ -253,7 +277,7 @@ static i32 wavefront_parse_face_point(struct parser_state *state, i32 read_idx[3
     read_idx[1] = 0;
     read_idx[2] = 0;
 
-    if (!wavefront_parse_value_int(state, &read_idx[0])) {
+    if (!wavefront_parse_value_uint(state, &read_idx[0])) {
         return 0;
     }
 
@@ -262,9 +286,9 @@ static i32 wavefront_parse_face_point(struct parser_state *state, i32 read_idx[3
     }
 
     if (!accept(state, (char []) { '/' }, 1, NULL)) {
-        wavefront_parse_value_int(state, &read_idx[1]);
+        wavefront_parse_value_uint(state, &read_idx[1]);
         if (accept(state, (char []) { '/' }, 1, NULL)) {
-            return wavefront_parse_value_int(state, &read_idx[2]);
+            return wavefront_parse_value_uint(state, &read_idx[2]);
         } else {
             return 1;
         }
@@ -275,25 +299,36 @@ static i32 wavefront_parse_face_point(struct parser_state *state, i32 read_idx[3
 
 static i32 wavefront_parse_value(struct parser_state *state, f32 *out_value)
 {
-    i32 int_part = 0;
-    i32 frac_part = 0;
-    u32 frac_part_length = 1;
+    i32 parsed_value = 0;
+    f32 int_part = 0.f;
+    f32 frac_part = 0.f;
+    f32 sign = 1.f;
+    size_t frac_part_start = 0;
+    size_t frac_part_length = 0;
 
     skip_whitespace(state);
 
-    if (!wavefront_parse_value_int(state, &int_part)) {
+    if (accept(state, (char[]) { '-' }, 1, NULL)) {
+        sign = -1.f;
+    }
+
+    if (!wavefront_parse_value_uint(state, &parsed_value)) {
         return 0;
     }
+    int_part = parsed_value;
 
     if (accept(state, (char[]) { '.' }, 1, NULL)) {
-        wavefront_parse_value_int(state, &frac_part);
+        frac_part_start = state->buffer_idx;
+        wavefront_parse_value_uint(state, &parsed_value);
+        frac_part_length = state->buffer_idx - frac_part_start;
+        frac_part = (f32) parsed_value;
     }
 
-    while ((u32) frac_part > (frac_part_length * 10)) {
-        frac_part_length *= 10;
+    for (size_t i = 0 ; i < frac_part_length ; i++) {
+        frac_part /= 10.f;
     }
 
-    *out_value = (f32) int_part + ((f32) frac_part / (f32) frac_part_length);
+    *out_value = sign * (int_part + frac_part);
 
     return 1;
 }
@@ -312,6 +347,20 @@ static i32 wavefront_parse_value_int(struct parser_state *state, i32 *out_value)
         parser_state_advance(state);
     }
 
+    valid = wavefront_parse_value_uint(state, &value);
+    if (valid) {
+        *out_value = sign * value;
+    }
+
+    return valid;
+}
+
+static i32 wavefront_parse_value_uint(struct parser_state *state, i32 *out_value)
+{
+    i32 value = 0;
+    i32 valid = 0;
+    char read_c = '\0';
+
     if (!expect(state, (char[]) { '0','1','2','3','4','5','6','7','8','9', }, 10, &read_c)) {
         return 0;
     }
@@ -323,7 +372,7 @@ static i32 wavefront_parse_value_int(struct parser_state *state, i32 *out_value)
     } while (accept(state, (char[]) { '0','1','2','3','4','5','6','7','8','9', }, 10, &read_c));
 
     if (valid) {
-        *out_value = sign * value;
+        *out_value = value;
     }
 
     return valid;

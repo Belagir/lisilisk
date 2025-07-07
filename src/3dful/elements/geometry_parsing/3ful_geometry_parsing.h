@@ -22,5 +22,6 @@ void wavefront_obj_create(struct wavefront_obj *obj);
 void wavefront_obj_delete(struct wavefront_obj *obj);
 void wavefront_obj_parse(struct wavefront_obj *obj, BUFFER *buffer);
 void wavefront_obj_to(struct wavefront_obj *obj, struct geometry *geometry);
+void wavefront_obj_dump(struct wavefront_obj *obj, FILE *file);
 
 #endif

@@ -9,10 +9,9 @@
  */
 void geometry_create(struct geometry *geometry)
 {
-    // TODO : set starting sizes to more sensible values
     *geometry = (struct geometry) {
-        .vertices = range_create_dynamic(make_system_allocator(), sizeof(*geometry->vertices->data), 256),
-        .faces    = range_create_dynamic(make_system_allocator(), sizeof(*geometry->faces->data), 256),
+        .vertices = range_create_dynamic(make_system_allocator(), sizeof(*geometry->vertices->data), 2),
+        .faces    = range_create_dynamic(make_system_allocator(), sizeof(*geometry->faces->data), 2),
     };
 }
 
@@ -111,7 +110,7 @@ void geometry_unload(struct geometry *geometry)
  */
 void geometry_push_vertex(struct geometry *geometry, u32 *out_idx)
 {
-    // TODO : ensure capacity
+    geometry->vertices = range_ensure_capacity(make_system_allocator(), RANGE_TO_ANY(geometry->vertices), 1);
     range_push(RANGE_TO_ANY(geometry->vertices), &(struct vertex) { 0 });
     if (out_idx) *out_idx = (u32) geometry->vertices->length - 1;
 }
@@ -148,7 +147,7 @@ void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3 norma
  */
 void geometry_push_face(struct geometry *geometry, u32 *out_idx)
 {
-    // TODO : ensure capacity
+    geometry->faces = range_ensure_capacity(make_system_allocator(), RANGE_TO_ANY(geometry->faces), 1);
     range_push(RANGE_TO_ANY(geometry->faces), &(struct face) { 0 });
     if (out_idx) *out_idx = (u32) geometry->faces->length - 1;
 }
