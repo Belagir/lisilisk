@@ -6,6 +6,7 @@
 
 typedef RANGE(byte) BUFFER;
 
-i32 file_read(const char *path, BUFFER *out_buffer);
+size_t file_length(const char *path);
+i32    file_read(const char *path, BUFFER *out_buffer);
 
 #endif

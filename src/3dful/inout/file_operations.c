@@ -7,13 +7,39 @@
  * @brief
  *
  * @param path
+ * @return size_t
+ */
+size_t file_length(const char *path)
+{
+    FILE *fd = 0;
+    size_t length = 0u;
+
+    if (!path) {
+        return 0;
+    }
+
+    fd = fopen(path, "r");
+    if (!fd) {
+        return 0;
+    }
+
+    fseek(fd, 0, SEEK_END);
+    length = ftell(fd);
+    fclose(fd);
+
+    return length;
+}
+
+/**
+ * @brief
+ *
+ * @param path
  * @param out_buffer
  */
 i32 file_read(const char *path, BUFFER *out_buffer)
 {
     FILE *fd = 0;
-    size_t length = 0u;
-    i32 err_code = 0;
+    size_t read_length = 0;
 
     if (!path || !out_buffer) {
         return -1;
@@ -24,20 +50,9 @@ i32 file_read(const char *path, BUFFER *out_buffer)
         return -2;
     }
 
-    fseek(fd, 0, SEEK_END);
-    length = ftell(fd);
+    read_length = fread(out_buffer->data, 1, out_buffer->capacity, fd);
+    out_buffer->length = read_length;
 
-    if (out_buffer->capacity < (length + 1)) {
-        err_code = -3;
-        goto cleanup_on_error;
-    }
-
-    fseek(fd, 0, SEEK_SET);
-    fread(out_buffer->data, length, 1, fd);
-    out_buffer->length = length;
-    range_push(RANGE_TO_ANY(out_buffer), &(char) {'\0'});
-
-cleanup_on_error:
     fclose(fd);
-    return err_code;
+    return 0;
 }

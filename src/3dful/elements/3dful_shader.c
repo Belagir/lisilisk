@@ -49,7 +49,7 @@ void shader_frag_mem(struct shader *shader, BUFFER *source)
  */
 void shader_vert(struct shader *shader, const char *path)
 {
-    BUFFER *buffer = range_create_dynamic(make_system_allocator(), sizeof(*buffer->data), 4096);
+    BUFFER *buffer = range_create_dynamic(make_system_allocator(), sizeof(*buffer->data), file_length(path));
 
     if (file_read(path, buffer) == 0) {
         shader_vert_mem(shader, buffer);
@@ -68,7 +68,7 @@ void shader_vert(struct shader *shader, const char *path)
  */
 void shader_frag(struct shader *shader, const char *path)
 {
-    BUFFER *buffer = range_create_dynamic(make_system_allocator(), sizeof(*buffer->data), 4096);
+    BUFFER *buffer = range_create_dynamic(make_system_allocator(), sizeof(*buffer->data), file_length(path));
 
     if (file_read(path, buffer) == 0) {
         shader_frag_mem(shader, buffer);
@@ -172,9 +172,9 @@ static GLuint shader_compile(BUFFER *shader_source, GLenum kind)
 {
     GLuint shader = glCreateShader(kind);
     const GLchar* buffer = (const GLchar*) shader_source->data;
-    // GLint length = shader_source->length;
+    GLint length = shader_source->length;
 
-    glShaderSource(shader, 1, &buffer, NULL);
+    glShaderSource(shader, 1, &buffer, &length);
     glCompileShader(shader);
 
     if (!check_shader_compilation(shader)) {

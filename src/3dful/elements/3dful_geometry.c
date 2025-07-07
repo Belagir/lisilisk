@@ -28,7 +28,7 @@ void geometry_create(struct geometry *geometry)
  */
 void geometry_wavobj(struct geometry *geometry, const char *path)
 {
-    BUFFER *buffer = range_create_dynamic(make_system_allocator(), sizeof(*buffer->data), GEOMETRY_FILEREAD_MAX_LENGTH);
+    BUFFER *buffer = range_create_dynamic(make_system_allocator(), sizeof(*buffer->data), file_length(path));
 
     if (file_read(path, buffer) == 0) {
         geometry_wavobj_mem(geometry, buffer);

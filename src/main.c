@@ -25,7 +25,7 @@ int main(void)
     shader_link(&shader);
 
     geometry_create(&geometry);
-    geometry_wavobj(&geometry, "models/cube_triangles.obj");
+    geometry_wavobj(&geometry, "models/monke.obj");
 
     material_ambient(&material,  (vector3) { 1.0, 0.5, 0.3 });
     material_diffuse(&material,  (vector3) { 1.0, 0.5, 0.3 });
