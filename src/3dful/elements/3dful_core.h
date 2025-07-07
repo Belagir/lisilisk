@@ -128,7 +128,6 @@ void shader_vert(struct shader *shader, const char *path);
 void shader_frag(struct shader *shader, const char *path);
 void shader_link(struct shader *shader);
 void shader_delete(struct shader *shader);
-void shader_vertex_attrib_vec3(struct shader *shader, u32 index, size_t stride, size_t offset);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -167,7 +166,7 @@ void object_transform(struct object *object, struct matrix4 transform);
 void object_geometry(struct object *object, struct geometry *geometry);
 void object_shader(struct object *object, struct shader *shader);
 void object_material(struct object *object, struct material *material);
-void object_load(struct object *object, GLuint ubo_point_lights, GLuint ubo_directonal_lights);
+void object_load(struct object *object);
 void object_unload(struct object *object);
 void object_draw(struct object object);
 

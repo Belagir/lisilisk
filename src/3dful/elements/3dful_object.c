@@ -59,9 +59,8 @@ void object_material(struct object *object, struct material *material)
  *
  * @param object
  */
-void object_load(struct object *object, GLuint ubo_point_lights, GLuint ubo_directonal_lights)
+void object_load(struct object *object)
 {
-    GLuint block = 0;
     glGenVertexArrays(1, &object->gpu_side.vao);
 
     glBindVertexArray(object->gpu_side.vao);
@@ -73,27 +72,6 @@ void object_load(struct object *object, GLuint ubo_point_lights, GLuint ubo_dire
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, normal));
         glEnableVertexAttribArray(1);
-
-        glUseProgram(object->shader->program);
-        {
-
-            block = glGetUniformBlockIndex(object->shader->program, "BLOCK_LIGHT_POINTS");
-            glUniformBlockBinding(object->shader->program, block, 0);
-
-            glBindBuffer(GL_UNIFORM_BUFFER, ubo_point_lights);
-            glBindBufferBase(GL_UNIFORM_BUFFER, block, ubo_point_lights);
-
-            // ----
-
-            block = glGetUniformBlockIndex(object->shader->program, "BLOCK_LIGHT_DIRECTIONALS");
-            glUniformBlockBinding(object->shader->program, block, 1);
-
-            glBindBuffer(GL_UNIFORM_BUFFER, ubo_directonal_lights);
-            glBindBufferBase(GL_UNIFORM_BUFFER, block, ubo_directonal_lights);
-
-            // ---- ----
-        }
-        glUseProgram(0);
     }
     glBindVertexArray(0);
 }

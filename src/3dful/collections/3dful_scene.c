@@ -128,8 +128,7 @@ void scene_load(struct scene *scene)
     }
 
     for (size_t i = 0 ; i < scene->objects->length ; i++) {
-        // send light buffer object to objects so they can bind it
-        object_load(&scene->objects->data[i], scene->ubo_point_lights, scene->ubo_dir_lights);
+        object_load(&scene->objects->data[i]);
     }
 
 }
@@ -164,8 +163,21 @@ static void scene_send_light_uniforms(struct scene *scene, struct object object)
     (void) scene;
 
     GLint uniform_name = -1;
+    GLint block_name = -1;
 
     glUseProgram(object.shader->program);
+
+    block_name = glGetUniformBlockIndex(object.shader->program, "BLOCK_LIGHT_POINTS");
+    glUniformBlockBinding(object.shader->program, block_name, 0);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_point_lights);
+    glBindBufferBase(GL_UNIFORM_BUFFER, block_name, scene->ubo_point_lights);
+
+    block_name = glGetUniformBlockIndex(object.shader->program, "BLOCK_LIGHT_DIRECTIONALS");
+    glUniformBlockBinding(object.shader->program, block_name, 1);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_dir_lights);
+    glBindBufferBase(GL_UNIFORM_BUFFER, block_name, scene->ubo_dir_lights);
 
     uniform_name = glGetUniformLocation(object.shader->program, "LIGHT_POINTS_NB");
     glUniform1ui(uniform_name, scene->point_lights->length);
