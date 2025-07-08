@@ -7,16 +7,15 @@
 uniform vec3 CAMERA_POS;
 
 // ---------------------------------------------------------
-// ---------------------------------------------------------
 
-struct Material {
+layout(std140) uniform BLOCK_MATERIAL {
     vec4 ambient;
     vec4 diffuse;
     vec4 specular;
     float shininess;
-};
-uniform Material MATERIAL;
+} MATERIAL;
 
+// ---------------------------------------------------------
 // ---------------------------------------------------------
 
 // Mirrors the light struct in the codebase.
@@ -82,7 +81,7 @@ vec4 light_specular(vec3 light_dir, Light l_base)
     vec3 reflect_dir = reflect(-light_dir, Normal);
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), MATERIAL.shininess);
 
-    return l_base.color * (spec * MATERIAL.specular);
+    return l_base.color * spec * MATERIAL.specular;
 }
 
 // ---------------------------------------------------------

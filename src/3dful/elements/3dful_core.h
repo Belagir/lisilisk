@@ -15,6 +15,15 @@
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
+enum shader_ubo_binding {
+    SHADER_UBO_MATERIAL,
+    SHADER_UBO_LIGHT_POINT,
+    SHADER_UBO_LIGHT_DIREC,
+};
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
 /**
  * @brief Stores names of vertex, fragment, and whole shader program.
  *
@@ -59,10 +68,14 @@ struct geometry {
  * Passed to a material shader.
  */
 struct material {
-    f32 ambient[4];
-    f32 diffuse[4];
-    f32 specular[4];
-    float shininess;
+    struct {
+        f32 ambient[4];
+        f32 diffuse[4];
+        f32 specular[4];
+        f32 shininess;
+
+        f32 PADDING[3];
+    } properties;
 
     struct {
         GLuint ubo;
@@ -183,6 +196,10 @@ void material_ambient(struct material *material, f32 ambient[4]);
 void material_diffuse(struct material *material, f32 diffuse[4]);
 void material_specular(struct material *material, f32 specular[4]);
 void material_shininess(struct material *material, float shininess);
+
+void material_load(struct material *material);
+void material_unload(struct material *material);
+void material_send_uniforms(struct material *material, struct shader *shader);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------

@@ -10,7 +10,7 @@
 void material_ambient(struct material *material, f32 ambient[4])
 {
     for (size_t i = 0 ; i < 4 ; i++) {
-        material->ambient[i] = ambient[i];
+        material->properties.ambient[i] = ambient[i];
     }
 }
 
@@ -23,7 +23,7 @@ void material_ambient(struct material *material, f32 ambient[4])
 void material_diffuse(struct material *material, f32 diffuse[4])
 {
     for (size_t i = 0 ; i < 4 ; i++) {
-        material->diffuse[i] = diffuse[i];
+        material->properties.diffuse[i] = diffuse[i];
     }
 }
 
@@ -36,7 +36,7 @@ void material_diffuse(struct material *material, f32 diffuse[4])
 void material_specular(struct material *material, f32 specular[4])
 {
     for (size_t i = 0 ; i < 4 ; i++) {
-        material->specular[i] = specular[i];
+        material->properties.specular[i] = specular[i];
     }
 }
 
@@ -48,5 +48,50 @@ void material_specular(struct material *material, f32 specular[4])
  */
 void material_shininess(struct material *material, float shininess)
 {
-    material->shininess = shininess;
+    material->properties.shininess = shininess;
+}
+
+/**
+ * @brief
+ *
+ * @param material
+ */
+void material_load(struct material *material)
+{
+    glGenBuffers(1, &material->gpu_side.ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, material->gpu_side.ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(material->properties),
+            material, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+/**
+ * @brief
+ *
+ * @param material
+ */
+void material_unload(struct material *material)
+{
+    glDeleteBuffers(1, &material->gpu_side.ubo);
+}
+
+/**
+ * @brief
+ *
+ * @param material
+ * @param shader
+ */
+void material_send_uniforms(struct material *material, struct shader *shader)
+{
+    GLint block_name = -1;
+
+    glUseProgram(shader->program);
+
+    block_name = glGetUniformBlockIndex(shader->program, "BLOCK_MATERIAL");
+    glUniformBlockBinding(shader->program, block_name, SHADER_UBO_MATERIAL);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, material->gpu_side.ubo);
+    glBindBufferBase(GL_UNIFORM_BUFFER, block_name, material->gpu_side.ubo);
+
+    glUseProgram(0);
 }

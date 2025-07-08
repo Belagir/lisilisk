@@ -25,11 +25,13 @@ int main(void)
 
     geometry_create(&geometry);
     geometry_wavobj(&geometry, "models/monke.obj");
+    geometry_load(&geometry);
 
-    material_ambient(&material,  (f32[4]) { 1.0, 0.5, 0.3, 1. });
-    material_diffuse(&material,  (f32[4]) { 1.0, 0.5, 0.3, 1. });
-    material_specular(&material, (f32[4]) { 0.8, 0.1, 0.1, 1. });
-    material_shininess(&material, 64.);
+    material_ambient(&material,  (f32[4]) { 1.0, 1.0, 0.0, 1.0 });
+    material_diffuse(&material,  (f32[4]) { 1.0, 1.0, 0.0, 1.0 });
+    material_specular(&material, (f32[4]) { 1.0, 1.0, 0.0, 1.0 });
+    material_shininess(&material, 4.);
+    material_load(&material);
 
     object_transform(&object, matrix_translate(matrix4_identity(), (vector3) { -1.5, 0, 0 }));
     object_geometry(&object, &geometry);
@@ -56,7 +58,6 @@ int main(void)
     scene_object(&scene, object);
     scene_object(&scene, object2);
 
-    geometry_load(&geometry);
     scene_load(&scene);
 
     int should_quit = 0;
@@ -76,6 +77,10 @@ int main(void)
         SDL_Delay(100);
     }
 
+    object_unload(&object);
+    object_unload(&object);
+
+    material_unload(&material);
     scene_unload(&scene);
     geometry_unload(&geometry);
 

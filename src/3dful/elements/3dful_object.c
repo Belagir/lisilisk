@@ -5,7 +5,7 @@
 // -------------------------------------------------------------------------------------------------
 
 static void object_send_space_uniforms(struct object object);
-static void object_send_material_uniforms(struct object object);
+// static void object_send_material_uniforms(struct object object);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -54,7 +54,8 @@ void object_shader(struct object *object, struct shader *shader)
 void object_material(struct object *object, struct material *material)
 {
     object->material = material;
-    object_send_material_uniforms(*object);
+    // object_send_material_uniforms(*object);
+    material_send_uniforms(material, object->shader);
 }
 
 /**
@@ -133,28 +134,28 @@ static void object_send_space_uniforms(struct object object)
     glUseProgram(0);
 }
 
-/**
- * @brief
- *
- * @param object
- */
-static void object_send_material_uniforms(struct object object)
-{
-    GLint unif_name = -1;
+// /**
+//  * @brief
+//  *
+//  * @param object
+//  */
+// static void object_send_material_uniforms(struct object object)
+// {
+//     GLint unif_name = -1;
 
-    glUseProgram(object.shader->program);
-    {
-        unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.ambient");
-        glUniform4fv(unif_name, 1, object.material->ambient);
+//     glUseProgram(object.shader->program);
+//     {
+//         unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.ambient");
+//         glUniform4fv(unif_name, 1, object.material->properties.ambient);
 
-        unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.diffuse");
-        glUniform4fv(unif_name, 1, object.material->diffuse);
+//         unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.diffuse");
+//         glUniform4fv(unif_name, 1, object.material->properties.diffuse);
 
-        unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.specular");
-        glUniform4fv(unif_name, 1, object.material->specular);
+//         unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.specular");
+//         glUniform4fv(unif_name, 1, object.material->properties.specular);
 
-        unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.shininess");
-        glUniform1f(unif_name, object.material->shininess);
-    }
-    glUseProgram(0);
-}
+//         unif_name = glGetUniformLocation(object.shader->program, "MATERIAL.shininess");
+//         glUniform1f(unif_name, object.material->properties.shininess);
+//     }
+//     glUseProgram(0);
+// }
