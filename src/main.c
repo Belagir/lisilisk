@@ -29,8 +29,8 @@ int main(void)
 
     material_ambient(&material,  (f32[4]) { 1.0, 1.0, 0.0, 1.0 });
     material_diffuse(&material,  (f32[4]) { 1.0, 1.0, 0.0, 1.0 });
-    material_specular(&material, (f32[4]) { 1.0, 1.0, 0.0, 1.0 });
-    material_shininess(&material, 4.);
+    material_specular(&material, (f32[4]) { 0.5, 0.5, 0.0, 0.2 });
+    material_shininess(&material, 32.);
     material_load(&material);
 
     object_transform(&object, matrix_translate(matrix4_identity(), (vector3) { -1.5, 0, 0 }));

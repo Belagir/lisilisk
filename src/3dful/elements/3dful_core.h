@@ -219,6 +219,7 @@ void object_draw(struct object object);
 
 void camera_projection(struct camera *camera, struct matrix4 projection);
 void camera_view(struct camera *camera, struct matrix4 view);
+void camera_send_uniforms(struct camera *camera, struct shader *shader);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------

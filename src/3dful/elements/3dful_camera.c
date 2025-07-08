@@ -28,3 +28,32 @@ void camera_view(struct camera *camera, struct matrix4 view)
 {
     camera->view = view;
 }
+
+/**
+ * @brief
+ *
+ * @param camera
+ * @param shader
+ */
+void camera_send_uniforms(struct camera *camera, struct shader *shader)
+{
+    f32 tmp[16] = { };
+    vector3 cam_pos = { };
+    GLint uniform_name = -1;
+
+    glUseProgram(shader->program);
+
+    uniform_name = glGetUniformLocation(shader->program, "VIEW_MATRIX");
+    matrix4_to_array(camera->view, &tmp);
+    glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) tmp);
+
+    uniform_name = glGetUniformLocation(shader->program, "PROJECTION_MATRIX");
+    matrix4_to_array(camera->projection, &tmp);
+    glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) tmp);
+
+    uniform_name = glGetUniformLocation(shader->program, "CAMERA_POS");
+    cam_pos = matrix_origin(camera->view);
+    glUniform3f(uniform_name, cam_pos.x, cam_pos.y, cam_pos.z);
+
+    glUseProgram(0);
+}

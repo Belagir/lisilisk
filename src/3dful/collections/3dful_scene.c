@@ -5,7 +5,6 @@
 // -------------------------------------------------------------------------------------------------
 
 static void scene_send_light_uniforms(struct scene *scene, struct shader *shader);
-static void scene_send_camera_uniforms(struct scene *scene, struct shader *shader);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -45,9 +44,6 @@ void scene_delete(struct scene *scene)
  */
 void scene_object(struct scene *scene, struct object object)
 {
-    scene_send_light_uniforms(scene, object.shader);
-    scene_send_camera_uniforms(scene, object.shader);
-
     range_push(RANGE_TO_ANY(scene->objects), &object);
 }
 
@@ -60,10 +56,6 @@ void scene_object(struct scene *scene, struct object object)
 void scene_camera(struct scene *scene, struct camera camera)
 {
     scene->camera = camera;
-
-    for (size_t i = 0 ; i < scene->objects->length ; i++) {
-        scene_send_camera_uniforms(scene, scene->objects->data[i].shader);
-    }
 }
 
 /**
@@ -96,6 +88,8 @@ void scene_light_direc(struct scene *scene, struct light_directional light)
 void scene_draw(struct scene scene)
 {
     for (size_t i = 0 ; i < scene.objects->length ; i++) {
+        scene_send_light_uniforms(&scene, scene.objects->data[i].shader);
+        camera_send_uniforms(&scene.camera, scene.objects->data[i].shader);
         object_draw(scene.objects->data[i]);
     }
 }
@@ -184,35 +178,6 @@ static void scene_send_light_uniforms(struct scene *scene, struct shader *shader
 
     uniform_name = glGetUniformLocation(shader->program, "LIGHT_DIRECTIONALS_NB");
     glUniform1ui(uniform_name, scene->direc_lights->length);
-
-    glUseProgram(0);
-}
-
-/**
- * @brief
- *
- * @param scene
- * @param object
- */
-static void scene_send_camera_uniforms(struct scene *scene, struct shader *shader)
-{
-    f32 tmp[16] = { };
-    vector3 cam_pos = { };
-    GLint uniform_name = -1;
-
-    glUseProgram(shader->program);
-
-    uniform_name = glGetUniformLocation(shader->program, "VIEW_MATRIX");
-    matrix4_to_array(scene->camera.view, &tmp);
-    glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) tmp);
-
-    uniform_name = glGetUniformLocation(shader->program, "PROJECTION_MATRIX");
-    matrix4_to_array(scene->camera.projection, &tmp);
-    glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) tmp);
-
-    uniform_name = glGetUniformLocation(shader->program, "CAMERA_POS");
-    cam_pos = matrix_origin(scene->camera.view);
-    glUniform3f(uniform_name, cam_pos.x, cam_pos.y, cam_pos.z);
 
     glUseProgram(0);
 }
