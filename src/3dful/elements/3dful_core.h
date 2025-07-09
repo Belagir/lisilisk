@@ -21,6 +21,12 @@ enum shader_ubo_binding {
     SHADER_UBO_LIGHT_DIREC,
 };
 
+enum shader_vertex_binding {
+    SHADER_VERT_POS,
+    SHADER_VERT_NORMAL,
+    SHADER_VERT_INSTANCE,
+};
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
@@ -98,6 +104,17 @@ struct object {
     // opengl names referencing the object's data on the gpu.
     struct {
         GLuint vao;
+    } gpu_side;
+};
+
+// -------------------------------------------------------------------------------------------------
+
+struct instances {
+    struct object *target;
+    RANGE(matrix4) *transforms;
+
+    struct {
+        GLuint vbo;
     } gpu_side;
 };
 
@@ -212,6 +229,19 @@ void object_material(struct object *object, struct material *material);
 void object_load(struct object *object);
 void object_unload(struct object *object);
 void object_draw(struct object object);
+void object_send_uniforms(struct object *object, struct shader *shader);
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+// INSTANCES ---------------------------------------------------------------------------------------
+
+void instances_create(struct instances *instances);
+void instances_delete(struct instances *instances);
+void instances_of(struct instances *instances, struct object *object);
+void instances_load(struct instances *instances);
+void instances_unload(struct instances *instances);
+void instances_draw(struct instances *instances);
+void instances_push(struct instances *instances, struct matrix4 transform);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------

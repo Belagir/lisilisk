@@ -4,11 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
-static void object_send_space_uniforms(struct object object);
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-
 /**
  * @brief Sets the transform matrix of an object to an arbitrary one.
  *
@@ -96,7 +91,7 @@ void object_unload(struct object *object)
  */
 void object_draw(struct object object)
 {
-    object_send_space_uniforms(object);
+    object_send_uniforms(&object, object.shader);
     material_send_uniforms(object.material, object.shader);
 
     glUseProgram(object.shader->program);
@@ -110,22 +105,19 @@ void object_draw(struct object object)
     glUseProgram(0);
 }
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-
 /**
  * @brief
  *
  * @param object
  */
-static void object_send_space_uniforms(struct object object)
+void object_send_uniforms(struct object *object, struct shader *shader)
 {
     GLint unif_name = -1;
 
-    glUseProgram(object.shader->program);
+    glUseProgram(shader->program);
     {
-        unif_name = glGetUniformLocation(object.shader->program, "MODEL_MATRIX");
-        glUniformMatrix4fv(unif_name, 1, GL_FALSE, (const GLfloat *) &object.transform);
+        unif_name = glGetUniformLocation(shader->program, "MODEL_MATRIX");
+        glUniformMatrix4fv(unif_name, 1, GL_FALSE, (const GLfloat *) &object->transform);
     }
     glUseProgram(0);
 }

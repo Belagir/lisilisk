@@ -118,13 +118,8 @@ void scene_load(struct scene *scene)
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     for (size_t i = 0 ; i < scene->objects->length ; i++) {
-        scene_send_light_uniforms(scene, scene->objects->data[i].shader);
-    }
-
-    for (size_t i = 0 ; i < scene->objects->length ; i++) {
         object_load(&scene->objects->data[i]);
     }
-
 }
 
 /**
