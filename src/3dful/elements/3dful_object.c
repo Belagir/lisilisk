@@ -121,13 +121,11 @@ void object_draw(struct object object)
 static void object_send_space_uniforms(struct object object)
 {
     GLint unif_name = -1;
-    f32 tmp[16] = { };
 
     glUseProgram(object.shader->program);
     {
         unif_name = glGetUniformLocation(object.shader->program, "MODEL_MATRIX");
-        matrix4_to_array(object.transform, &tmp);
-        glUniformMatrix4fv(unif_name, 1, GL_FALSE, (const GLfloat *) tmp);
+        glUniformMatrix4fv(unif_name, 1, GL_FALSE, (const GLfloat *) &object.transform);
     }
     glUseProgram(0);
 }
