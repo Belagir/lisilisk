@@ -52,13 +52,13 @@ void instances_load(struct instances *instances)
     glBindBuffer(GL_ARRAY_BUFFER, instances->gpu_side.vbo);
 
     glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW0);
-    glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m0)));
+    glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW0, 4, GL_FLOAT, GL_FALSE, 16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m0)));
     glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW1);
-    glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW1, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m4)));
+    glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW1, 4, GL_FLOAT, GL_FALSE, 16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m4)));
     glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW2);
-    glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW2, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m8)));
+    glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW2, 4, GL_FLOAT, GL_FALSE, 16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m8)));
     glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW3);
-    glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW3, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m12)));
+    glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW3, 4, GL_FLOAT, GL_FALSE, 16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m12)));
 
     glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW0, 1);
     glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW1, 1);

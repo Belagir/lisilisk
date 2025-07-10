@@ -30,7 +30,7 @@ int main(void)
     material_load(&material);
     material_send_uniforms(&material, &shader);
 
-    object_transform(&object, matrix4_identity());
+    object_transform(&object, matrix_translate(matrix4_identity(), (vector3) { -4, 0, 0 }));
     object_geometry(&object, &geometry);
     object_shader(&object, &shader);
     object_material(&object, &material);
@@ -38,11 +38,10 @@ int main(void)
 
     instances_create(&instances);
     instances_of(&instances, &object);
-    // instances_push(&instances, matrix4_translate(matrix4_identity(), (vector3) { 0, 0, 1 }));
-    instances_push(&instances, matrix_translate(matrix4_identity(), (vector3) { 0, 0, 0 }));
-    instances_push(&instances, matrix_translate(matrix4_identity(), (vector3) { 1, 0, 0 }));
-    instances_push(&instances, matrix_translate(matrix4_identity(), (vector3) { 0, 1, 0 }));
-    instances_push(&instances, matrix_translate(matrix4_identity(), (vector3) { 0, 0, 1 }));
+    instances_push(&instances, matrix_translate(matrix4_identity(), (vector3) { 0.0, 0, 0 }));
+    instances_push(&instances, matrix_translate(matrix4_identity(), (vector3) { 2.0, 0, 0 }));
+    instances_push(&instances, matrix_translate(matrix4_identity(), (vector3) { 4.0, 0, 0 }));
+    instances_push(&instances, matrix_translate(matrix4_identity(), (vector3) { 6.0, 0, 0 }));
     instances_load(&instances);
 
     camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
