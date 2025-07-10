@@ -10,7 +10,7 @@ int main(void)
     struct material material = { };
     struct object object = { };
 
-    struct instances instances = { };
+    struct scene scene = { };
     struct camera camera = { };
 
     struct application target = application_create("some name", 800, 800);
@@ -30,24 +30,23 @@ int main(void)
     material_load(&material);
     material_send_uniforms(&material, &shader);
 
-    object_transform(&object, matrix_translate(matrix4_identity(), (vector3) { -4, 0, 0 }));
+    object_create(&object);
     object_geometry(&object, &geometry);
     object_shader(&object, &shader);
     object_material(&object, &material);
-    object_load(&object);
-
-    instances_create(&instances);
-    instances_of(&instances, &object);
-    instances_push(&instances, matrix_translate(matrix4_identity(), (vector3) { 0.0, 0, 0 }));
-    instances_push(&instances, matrix_translate(matrix4_identity(), (vector3) { 2.0, 0, 0 }));
-    instances_push(&instances, matrix_translate(matrix4_identity(), (vector3) { 4.0, 0, 0 }));
-    instances_push(&instances, matrix_translate(matrix4_identity(), (vector3) { 6.0, 0, 0 }));
-    instances_load(&instances);
+    object_instantiate(&object, matrix4_identity());
+    object_instantiate(&object, matrix_translate(matrix4_identity(), (vector3) {-3, 0, 0}));
+    object_instantiate(&object, matrix_translate(matrix4_identity(), (vector3) { 3, 0, 0}));
+    // object_load(&object);
 
     camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
     camera_view(&camera, matrix4_get_view_matrix((vector3) { 6, 2, 6 }, VECTOR3_ORIGIN, VECTOR3_Y_POSITIVE));
     camera_send_uniforms(&camera, &shader);
 
+    scene_create(&scene);
+    scene_camera(&scene, camera);
+    scene_object(&scene, object);
+    scene_load(&scene);
 
     int should_quit = 0;
     SDL_Event event = { };
@@ -59,20 +58,20 @@ int main(void)
         glClearColor(0.2, 0.2, 0.2, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         {
-            instances_draw(&instances);
+            scene_draw(scene);
             // object_draw(object);
         }
         SDL_GL_SwapWindow(target.sdl_window);
 
-        SDL_Delay(100);
+        SDL_Delay(10);
     }
 
     object_unload(&object);
-    instances_unload(&instances);
     material_unload(&material);
     geometry_unload(&geometry);
 
-    instances_delete(&instances);
+    scene_delete(&scene);
+    object_delete(&object);
     shader_delete(&shader);
     geometry_delete(&geometry);
 

@@ -98,26 +98,16 @@ struct material {
  *
  */
 struct object {
-    struct matrix4 transform;
-
     struct shader *shader;
     struct geometry *geometry;
     struct material *material;
 
+    RANGE(matrix4) *tr_instances;
+
     // opengl names referencing the object's data on the gpu.
     struct {
         GLuint vao;
-    } gpu_side;
-};
-
-// -------------------------------------------------------------------------------------------------
-
-struct instances {
-    struct object *target;
-    RANGE(matrix4) *transforms;
-
-    struct {
-        GLuint vbo;
+        GLuint vbo_instances;
     } gpu_side;
 };
 
@@ -181,9 +171,10 @@ void position_translate(struct vector3 *pos, vector3 offset);
 // SHADERS -----------------------------------------------------------------------------------------
 
 void shader_vert_mem(struct shader *shader, BUFFER *source);
-void shader_frag_mem(struct shader *shader, BUFFER *source);
 void shader_vert(struct shader *shader, const char *path);
+void shader_frag_mem(struct shader *shader, BUFFER *source);
 void shader_frag(struct shader *shader, const char *path);
+
 void shader_link(struct shader *shader);
 void shader_delete(struct shader *shader);
 
@@ -224,26 +215,18 @@ void material_send_uniforms(struct material *material, struct shader *shader);
 // -------------------------------------------------------------------------------------------------
 // OBJECT ------------------------------------------------------------------------------------------
 
-void object_transform(struct object *object, struct matrix4 transform);
+void object_create(struct object *object);
+void object_delete(struct object *object);
+
 void object_geometry(struct object *object, struct geometry *geometry);
 void object_shader(struct object *object, struct shader *shader);
 void object_material(struct object *object, struct material *material);
+
+void object_instantiate(struct object *object, struct matrix4 tr);
+
 void object_load(struct object *object);
 void object_unload(struct object *object);
 void object_draw(struct object object);
-void object_send_uniforms(struct object *object, struct shader *shader);
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// INSTANCES ---------------------------------------------------------------------------------------
-
-void instances_create(struct instances *instances);
-void instances_delete(struct instances *instances);
-void instances_of(struct instances *instances, struct object *object);
-void instances_load(struct instances *instances);
-void instances_unload(struct instances *instances);
-void instances_draw(struct instances *instances);
-void instances_push(struct instances *instances, struct matrix4 transform);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------

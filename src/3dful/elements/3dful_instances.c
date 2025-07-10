@@ -1,6 +1,7 @@
 
 #include "3dful_core.h"
 
+#if 0
 /**
  * @brief
  *
@@ -86,8 +87,6 @@ void instances_unload(struct instances *instances)
  */
 void instances_draw(struct instances *instances)
 {
-    object_send_uniforms(instances->target, instances->target->shader);
-
     glUseProgram(instances->target->shader->program);
     {
         glBindVertexArray(instances->target->gpu_side.vao);
@@ -112,3 +111,4 @@ void instances_push(struct instances *instances, struct matrix4 transform)
     instances->transforms = range_ensure_capacity(make_system_allocator(), RANGE_TO_ANY(instances->transforms), 1);
     range_push(RANGE_TO_ANY(instances->transforms), &transform);
 }
+#endif
