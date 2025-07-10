@@ -39,6 +39,8 @@ struct LightDirectional {
     vec3 direction;
 };
 
+// ---------------------------------------------------------
+
 #define LIGHT_POINTS_NB_MAX 32
 uniform uint LIGHT_POINTS_NB;
 
@@ -46,12 +48,18 @@ layout(std140) uniform BLOCK_LIGHT_POINTS {
     LightPoint array[LIGHT_POINTS_NB_MAX];
 } LIGHT_POINTS;
 
+// ---------------------------------------------------------
+
 #define LIGHT_DIRECTIONALS_NB_MAX 8
 uniform uint LIGHT_DIRECTIONALS_NB;
 
 layout(std140) uniform BLOCK_LIGHT_DIRECTIONALS {
     LightDirectional array[LIGHT_DIRECTIONALS_NB_MAX];
 } LIGHT_DIRECTIONALS;
+
+// ---------------------------------------------------------
+
+uniform vec4 LIGHT_AMBIENT;
 
 // ---------------------------------------------------------
 // ---------------------------------------------------------
@@ -113,11 +121,18 @@ vec4 light_directional_contribution(LightDirectional l)
 }
 
 // ---------------------------------------------------------
+
+vec4 light_ambient_contribution(vec4 l)
+{
+    return l * MATERIAL.ambient;
+}
+
+// ---------------------------------------------------------
 // ---------------------------------------------------------
 
 void main()
 {
-    vec4 result = vec4(0);
+    vec4 result = light_ambient_contribution(LIGHT_AMBIENT);
 
     for (uint i = 0u ; i < LIGHT_POINTS_NB ; i++) {
         result += light_point_contribution(LIGHT_POINTS.array[i]);

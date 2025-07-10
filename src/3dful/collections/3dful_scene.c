@@ -84,6 +84,17 @@ void scene_light_direc(struct scene *scene, struct light_directional light)
  * @brief
  *
  * @param scene
+ * @param light
+ */
+void scene_light_ambient(struct scene *scene, struct light light)
+{
+    scene->ambient_light = light;
+}
+
+/**
+ * @brief
+ *
+ * @param scene
  */
 void scene_draw(struct scene scene)
 {
@@ -169,11 +180,16 @@ static void scene_send_light_uniforms(struct scene *scene, struct shader *shader
     glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_dir_lights);
     glBindBufferBase(GL_UNIFORM_BUFFER, block_name, scene->ubo_dir_lights);
 
+    // -----
+
     uniform_name = glGetUniformLocation(shader->program, "LIGHT_POINTS_NB");
     glUniform1ui(uniform_name, scene->point_lights->length);
 
     uniform_name = glGetUniformLocation(shader->program, "LIGHT_DIRECTIONALS_NB");
     glUniform1ui(uniform_name, scene->direc_lights->length);
+
+    uniform_name = glGetUniformLocation(shader->program, "LIGHT_AMBIENT");
+    glUniform4fv(uniform_name, 1, scene->ambient_light.color);
 
     glUseProgram(0);
 }

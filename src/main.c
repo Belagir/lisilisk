@@ -10,10 +10,11 @@ int main(void)
     struct material material = { };
     struct object object = { };
 
-    struct scene scene = { };
     struct light_directional dirlight = { };
     struct light_point pointlight = { };
+    struct light ambient = { };
     struct camera camera = { };
+    struct scene scene = { };
 
     struct application target = application_create("some name", 800, 800);
 
@@ -25,9 +26,9 @@ int main(void)
     geometry_wavobj(&geometry, "models/monke.obj");
     geometry_load(&geometry);
 
-    material_ambient(&material,  (f32[4]) { 1.0, 1.0, 1.0, 1.0 });
-    material_diffuse(&material,  (f32[4]) { 1.0, 1.0, 1.0, 1.0 });
-    material_specular(&material, (f32[4]) { 1.0, 1.0, 1.0, 1.0 });
+    material_ambient(&material,  (f32[4]) { 0.01, 0.01, 0.01, 0.0 });
+    material_diffuse(&material,  (f32[4]) { 0.50, 1.00, 1.00, 0.0 });
+    material_specular(&material, (f32[4]) { 0.10, 1.00, 1.00, 0.0 });
     material_shininess(&material, 32.);
     material_load(&material);
     material_send_uniforms(&material, &shader);
@@ -39,16 +40,17 @@ int main(void)
     object_instantiate(&object, matrix4_identity());
     object_instantiate(&object, matrix_translate(matrix4_identity(), (vector3) {-3, 0, 0}));
     object_instantiate(&object, matrix_translate(matrix4_identity(), (vector3) { 3, 0, 0}));
-    // object_load(&object);
 
     light_color((struct light *) &dirlight, (f32[4]) { 1, .5, .2, 1 });
     light_directional_direction(&dirlight, (vector3) { 1, 1, 0 });
 
-    light_color((struct light *) &pointlight, (f32[4]) { 1, 0, .1, 1 });
+    light_color((struct light *) &pointlight, (f32[4]) { 1, .2, .1, 1 });
     light_position(&pointlight, (vector3) { 3, 2, 0 });
     light_point_linear(&pointlight,    1.0);
     light_point_constant(&pointlight,  0.7);
     light_point_quadratic(&pointlight, 1.8);
+
+    light_color(&ambient, (f32[4]) { 1.0, 1.0, 1.0, 0.1 });
 
     camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
     camera_view(&camera, matrix4_get_view_matrix((vector3) { 6, 2, 6 }, VECTOR3_ORIGIN, VECTOR3_Y_POSITIVE));
@@ -57,6 +59,7 @@ int main(void)
     scene_create(&scene);
     scene_light_direc(&scene, dirlight);
     scene_light_point(&scene, pointlight);
+    scene_light_ambient(&scene, ambient);
     scene_camera(&scene, camera);
     scene_object(&scene, object);
     scene_load(&scene);
