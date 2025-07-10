@@ -11,6 +11,8 @@ int main(void)
     struct object object = { };
 
     struct scene scene = { };
+    struct light_directional dirlight = { };
+    struct light_point pointlight = { };
     struct camera camera = { };
 
     struct application target = application_create("some name", 800, 800);
@@ -39,11 +41,18 @@ int main(void)
     object_instantiate(&object, matrix_translate(matrix4_identity(), (vector3) { 3, 0, 0}));
     // object_load(&object);
 
+    light_color((struct light *) &dirlight, (f32[4]) { 1, .5, .2, 1 });
+    light_directional_direction(&dirlight, (vector3) { 1, 1, 0 });
+    light_color((struct light *) &pointlight, (f32[4]) { 1, 0, .1, 1 });
+    light_position(&pointlight, (vector3) { 3, 2, 0 });
+
     camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
     camera_view(&camera, matrix4_get_view_matrix((vector3) { 6, 2, 6 }, VECTOR3_ORIGIN, VECTOR3_Y_POSITIVE));
     camera_send_uniforms(&camera, &shader);
 
     scene_create(&scene);
+    scene_light_direc(&scene, dirlight);
+    scene_light_point(&scene, pointlight);
     scene_camera(&scene, camera);
     scene_object(&scene, object);
     scene_load(&scene);

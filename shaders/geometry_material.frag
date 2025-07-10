@@ -123,6 +123,5 @@ void main()
         result += light_directional_contribution(LIGHT_DIRECTIONALS.array[i]);
     }
 
-    // FragColor = result;
-    FragColor = vec4(Normal, 1);
+    FragColor = result;
 }
