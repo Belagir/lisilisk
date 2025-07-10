@@ -94,7 +94,10 @@ vec4 light_point_contribution(LightPoint l)
     vec4 diffuse = light_diffuse(light_dir, l.base);
     vec4 specular = light_specular(light_dir, l.base);
 
-    return diffuse + specular;
+    float dist = length(l.position.xyz - FragPos);
+    float attenuation = 1. / (l.constant + l.linear*dist + l.quadratic*(dist*dist));
+
+    return (diffuse + specular) * attenuation;
 }
 
 // ---------------------------------------------------------

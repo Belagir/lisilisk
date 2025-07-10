@@ -43,8 +43,12 @@ int main(void)
 
     light_color((struct light *) &dirlight, (f32[4]) { 1, .5, .2, 1 });
     light_directional_direction(&dirlight, (vector3) { 1, 1, 0 });
+
     light_color((struct light *) &pointlight, (f32[4]) { 1, 0, .1, 1 });
     light_position(&pointlight, (vector3) { 3, 2, 0 });
+    light_point_linear(&pointlight,    1.0);
+    light_point_constant(&pointlight,  0.7);
+    light_point_quadratic(&pointlight, 1.8);
 
     camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
     camera_view(&camera, matrix4_get_view_matrix((vector3) { 6, 2, 6 }, VECTOR3_ORIGIN, VECTOR3_Y_POSITIVE));
