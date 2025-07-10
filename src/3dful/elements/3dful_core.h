@@ -24,7 +24,10 @@ enum shader_ubo_binding {
 enum shader_vertex_binding {
     SHADER_VERT_POS,
     SHADER_VERT_NORMAL,
-    SHADER_VERT_INSTANCE,
+    SHADER_VERT_INSTANCEMATRIX_ROW0,
+    SHADER_VERT_INSTANCEMATRIX_ROW1,
+    SHADER_VERT_INSTANCEMATRIX_ROW2,
+    SHADER_VERT_INSTANCEMATRIX_ROW3,
 };
 
 // -------------------------------------------------------------------------------------------------

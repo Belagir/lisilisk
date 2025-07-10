@@ -45,15 +45,25 @@ void instances_load(struct instances *instances)
     glBufferData(GL_ARRAY_BUFFER,
             sizeof(*instances->transforms->data) * instances->transforms->length,
             instances->transforms->data, GL_STATIC_DRAW);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindVertexArray(instances->target->gpu_side.vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, instances->gpu_side.vbo);
-    glEnableVertexAttribArray(SHADER_VERT_INSTANCE);
-    glVertexAttribPointer(SHADER_VERT_INSTANCE, 16, GL_FLOAT, GL_FALSE, sizeof(*instances->transforms->data), (void*)0);
-    glVertexAttribDivisor(SHADER_VERT_INSTANCE, 1);
+
+    glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW0);
+    glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m0)));
+    glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW1);
+    glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW1, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m4)));
+    glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW2);
+    glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW2, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m8)));
+    glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW3);
+    glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW3, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m12)));
+
+    glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW0, 1);
+    glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW1, 1);
+    glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW2, 1);
+    glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW3, 1);
 
     glBindVertexArray(0);
 }
@@ -77,7 +87,6 @@ void instances_unload(struct instances *instances)
 void instances_draw(struct instances *instances)
 {
     object_send_uniforms(instances->target, instances->target->shader);
-    material_send_uniforms(instances->target->material, instances->target->shader);
 
     glUseProgram(instances->target->shader->program);
     {

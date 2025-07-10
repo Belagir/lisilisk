@@ -117,14 +117,12 @@ void main()
     vec4 result = vec4(0);
 
     for (uint i = 0u ; i < LIGHT_POINTS_NB ; i++) {
-        // result += vec4(abs(LIGHT_POINTS.array[i].base.color.xyz), 1);
         result += light_point_contribution(LIGHT_POINTS.array[i]);
     }
     for (uint i = 0u ; i < LIGHT_DIRECTIONALS_NB ; i++) {
-        // result += vec4(abs(LIGHT_DIRECTIONALS.array[i].direction.xyz), 1);
         result += light_directional_contribution(LIGHT_DIRECTIONALS.array[i]);
     }
-    // result = MATERIAL.specular;
 
-    FragColor = result;
+    // FragColor = result;
+    FragColor = vec4(Normal, 1);
 }
