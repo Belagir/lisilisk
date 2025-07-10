@@ -16,9 +16,9 @@
 // -------------------------------------------------------------------------------------------------
 
 enum shader_ubo_binding {
-    SHADER_UBO_MATERIAL,
-    SHADER_UBO_LIGHT_POINT,
     SHADER_UBO_LIGHT_DIREC,
+    SHADER_UBO_LIGHT_POINT,
+    SHADER_UBO_MATERIAL,
 };
 
 enum shader_vertex_binding {
@@ -137,9 +137,6 @@ struct camera {
  *
  */
 struct light {
-    vector3 position;
-    f32 PADDING[1];
-
     f32 color[4];
 };
 
@@ -149,7 +146,9 @@ struct light {
  *
  */
 struct light_point {
-    struct light base;
+    f32 color[4];
+    vector3 position;
+
     f32 constant, linear, quadratic;
 
     f32 PADDING[1];
@@ -161,7 +160,7 @@ struct light_point {
  *
  */
 struct light_directional {
-    struct light base;
+    f32 color[4];
     vector3 direction;
 
     f32 PADDING[1];
@@ -255,9 +254,9 @@ void camera_send_uniforms(struct camera *camera, struct shader *shader);
 // -------------------------------------------------------------------------------------------------
 // LIGHT -------------------------------------------------------------------------------------------
 
-void light_position(struct light *light, struct vector3 pos);
 void light_color(struct light *light, f32 color[4]);
 
+void light_position(struct light_point *light, struct vector3 pos);
 void light_point_constant(struct light_point *light, f32 constant);
 void light_point_linear(struct light_point *light, f32 linear);
 void light_point_quadratic(struct light_point *light, f32 quadratic);

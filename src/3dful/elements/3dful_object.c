@@ -69,6 +69,8 @@ void object_load(struct object *object)
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, normal));
         glEnableVertexAttribArray(1);
+
+        material_send_uniforms(object->material, object->shader);
     }
     glBindVertexArray(0);
 }
@@ -92,7 +94,6 @@ void object_unload(struct object *object)
 void object_draw(struct object object)
 {
     object_send_uniforms(&object, object.shader);
-    material_send_uniforms(object.material, object.shader);
 
     glUseProgram(object.shader->program);
     {

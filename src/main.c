@@ -11,6 +11,7 @@ int main(void)
     struct object object = { };
 
     struct light_directional light_dir = { };
+    struct light_point light_point = { };
     struct camera camera = { };
     struct scene scene = { };
 
@@ -24,13 +25,13 @@ int main(void)
     geometry_wavobj(&geometry, "models/monke.obj");
     geometry_load(&geometry);
 
-    material_ambient(&material,  (f32[4]) { 1.0, 1.0, 0.0, 1.0 });
-    material_diffuse(&material,  (f32[4]) { 1.0, 1.0, 0.0, 1.0 });
-    material_specular(&material, (f32[4]) { 0.5, 0.5, 0.0, 0.2 });
+    material_ambient(&material,  (f32[4]) { 1.0, 1.0, 1.0, 1.0 });
+    material_diffuse(&material,  (f32[4]) { 1.0, 1.0, 1.0, 1.0 });
+    material_specular(&material, (f32[4]) { 1.0, 1.0, 1.0, 1.0 });
     material_shininess(&material, 32.);
     material_load(&material);
 
-    object_transform(&object, matrix_translate(matrix4_identity(), (vector3) { -1.5, 0, 0 }));
+    object_transform(&object, matrix4_identity());
     object_geometry(&object, &geometry);
     object_shader(&object, &shader);
     object_material(&object, &material);
@@ -38,13 +39,16 @@ int main(void)
     camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
     camera_view(&camera, matrix4_get_view_matrix((vector3) { 3, 2, 3 }, VECTOR3_ORIGIN, VECTOR3_Y_POSITIVE));
 
-    light_position((struct light *)  &light_dir, (vector3) { 1., 0, 0 });
-    light_color((struct light *)  &light_dir, (f32[4]) { 1., 1., 1., 1. });
+    light_color((struct light *)  &light_dir, (f32[4]) { 1., 1., 0., 1. });
     light_directional_direction(&light_dir, (vector3) { 0, -1, 0 });
+
+    light_color((struct light *)  &light_point, (f32[4]) { .5, 1., 0., 1. }); // lime
+    light_position(&light_point, (vector3) { 1, .5, 0 }); // orange
 
     scene_create(&scene);
     scene_camera(&scene, camera);
     scene_light_direc(&scene, light_dir);
+    scene_light_point(&scene, light_point);
     scene_object(&scene, object);
 
     scene_load(&scene);

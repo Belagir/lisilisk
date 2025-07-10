@@ -7,7 +7,7 @@
  * @param[inout] light
  * @param[in] pos
  */
-void light_position(struct light *light, struct vector3 pos)
+void light_position(struct light_point *light, struct vector3 pos)
 {
     light->position = pos;
 }
