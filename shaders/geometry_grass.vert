@@ -15,10 +15,22 @@ uniform uint TIME;
 out vec3 Normal;
 out vec3 FragPos;
 
+mat4 scale_matrix(mat4 matrix, vec3 scale)
+{
+    matrix[0].x *= scale.x;
+    matrix[1].y *= scale.y;
+    matrix[2].z *= scale.z;
+
+    return matrix;
+}
+
 void main()
 {
-    Normal = normalize(mat3(transpose(inverse(InstanceMatrix))) * VertexNormal);
-    FragPos = vec3(InstanceMatrix * vec4(VertexPos, 1.0));
+    float zscale = .8+.4*sin((float(TIME)/100.));
+    mat4 scaled_matrix = scale_matrix(InstanceMatrix, vec3(1, zscale, 1));
 
-    gl_Position = PROJECTION_MATRIX * VIEW_MATRIX * InstanceMatrix * vec4(VertexPos, 1.0);
+    Normal = normalize(mat3(transpose(inverse(scaled_matrix))) * VertexNormal);
+    FragPos = vec3(scaled_matrix * vec4(VertexPos, 1.0));
+
+    gl_Position = PROJECTION_MATRIX * VIEW_MATRIX * scaled_matrix * vec4(VertexPos, 1.0);
 }
