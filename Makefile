@@ -5,7 +5,7 @@
 
 ## Name of the project. This will be the name of the executable placed in the
 ## executable directory.
-PROJECT_NAME = hexworld
+PROJECT_NAME = lisilisk
 ## Root source directory. Contains the c implementation files.
 SRC_DIR = src
 ## Root include directory. Contains the c header files. Passed with -I to

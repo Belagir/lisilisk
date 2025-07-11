@@ -28,11 +28,15 @@ Data structures could start with this `opengl_object` that count users and other
 
 ### Review uniform setting procedures
 
-Not very confident in how I handle uniforms and uniform blocks buffers.
+Not very confident in how I handle uniforms and uniform blocks buffers. Also, there are some limits (array capacities) that are not well reflected in the backend.
 
 ### Textures
 
 There should be a new data object to deal with textures. Those textures should be passable to shaders as samplers.
+
+### World object
+
+There should be a world data object that is responsible for : the ambient light, fog (?), the skybox (?).
 
 ### UVs & quads
 
@@ -50,7 +54,7 @@ The backend should take shader fragments rather than whole shaders. Those fragme
 
 ### Freestanding instance objects
 
-When instancing a model, creating a light or a camera, the user should be given an instance handle that can act on the corresponding data (transforms, colors etc.).
+When instancing a model, creating a light or a camera, the user should be given an instance handle that can act on the corresponding data (transforms, colors etc.) through a dedicated set of functions.
 
 ### Spaghetti interface
 
@@ -63,10 +67,12 @@ lisk_add("some_scene_identifier", lisk_instanciate(m, (vector3) { 0,0,0 }));
 lisk_load("some_scene_identifier");
 ```
 
-The snippet would create a geometry from the file, build a model with it using a default shader and a default material, and register the geometry to the path of the file.
+1. The snippet would create a geometry from the file, build a model with it using a default shader and a default material, and register the geometry to the path of the file. This file is added to a `programdata` file that will be packeged with the executable.
 
-The code would then change the material of the model to a new material the user loaded before.
+2. The code would then change the material of the model to a new material the user loaded before.
 
-Then, the engine checks for the existence of the scene (creating it if not found) and adds the object + instance in the scene.
+3. Then, the engine checks for the existence of the scene (creating it if not found) and adds the object + instance in the scene.
 
-Finally, the scene is loaded : the object is loaded, the geometry is loaded, the material is loaded, and the scene is added to the redendered scenes in the main loop.
+4. Finally, the scene is loaded : the object is loaded, the geometry is loaded, the material is loaded, and the scene is added to the redendered scenes in the main loop.
+
+Basically, the interface should initialize a static global instance of the backend, and register data objects to string names when the user needs to. Those objects are created when the user needs them and load dynamically depending on what is needed.
