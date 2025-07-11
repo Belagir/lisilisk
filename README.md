@@ -1,5 +1,7 @@
 # LISILISK
 
+Lisilisk is a work in progress. It is a collection of functions that streamline some OpenGL actions.
+
 ## TODO list
 
 So much to do, so many other projects calling my name.
