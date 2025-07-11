@@ -6,6 +6,8 @@
 // Uniform containing the coordiantes of the point of view in world space.
 uniform vec3 CAMERA_POS;
 
+uniform uint TIME;
+
 // ---------------------------------------------------------
 
 layout(std140) uniform BLOCK_MATERIAL {

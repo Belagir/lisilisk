@@ -29,7 +29,7 @@ void scene_light_point(struct scene *scene, struct light_point light);
 void scene_light_direc(struct scene *scene, struct light_directional light);
 void scene_light_ambient(struct scene *scene, struct light light);
 
-void scene_draw(struct scene scene);
+void scene_draw(struct scene scene, u32 time);
 
 void scene_load(struct scene *scene);
 void scene_unload(struct scene *scene);

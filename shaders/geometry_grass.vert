@@ -10,6 +10,8 @@ layout (location = 2) in mat4 InstanceMatrix;
 uniform mat4 VIEW_MATRIX;
 uniform mat4 PROJECTION_MATRIX;
 
+uniform uint TIME;
+
 out vec3 Normal;
 out vec3 FragPos;
 
