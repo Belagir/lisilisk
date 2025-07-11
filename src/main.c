@@ -14,10 +14,10 @@ int main(void)
     shader_vert(&grass_shader, "shaders/geometry_grass.vert");
     shader_link(&grass_shader);
 
-    struct shader ground_shader = { };
-    shader_frag(&ground_shader, "shaders/geometry_material.frag");
-    shader_vert(&ground_shader, "shaders/geometry.vert");
-    shader_link(&ground_shader);
+    struct shader standard_shader = { };
+    shader_frag(&standard_shader, "shaders/geometry_material.frag");
+    shader_vert(&standard_shader, "shaders/geometry.vert");
+    shader_link(&standard_shader);
 
     struct geometry grass_geometry = { };
     geometry_create(&grass_geometry);
@@ -28,6 +28,11 @@ int main(void)
     geometry_create(&ground_geometry);
     geometry_wavobj(&ground_geometry, "models/plane.obj");
     geometry_load(&ground_geometry);
+
+    struct geometry saucer_geometry = { };
+    geometry_create(&saucer_geometry);
+    geometry_wavobj(&saucer_geometry, "models/saucer.obj");
+    geometry_load(&saucer_geometry);
 
     struct material grass_material = { };
     material_ambient(&grass_material,  (f32[4]) { .70, .85, .70, 1 });
@@ -42,6 +47,13 @@ int main(void)
     material_diffuse(&ground_material,  (f32[4]) { .30, .25, .20, 1 });
     material_shininess(&ground_material, 1.);
     material_load(&ground_material);
+
+    struct material saucer_material = { };
+    material_ambient(&saucer_material,  (f32[4]) { .10, .10, .10, 1 });
+    material_specular(&saucer_material, (f32[4]) { .95, .95, 1.0, 1 });
+    material_diffuse(&saucer_material,  (f32[4]) { .32, .32, .32, 1 });
+    material_shininess(&saucer_material, 32.);
+    material_load(&saucer_material);
 
     struct object grass = { };
     object_create(&grass);
@@ -69,25 +81,31 @@ int main(void)
     struct object ground = { };
     object_create(&ground);
     object_geometry(&ground, &ground_geometry);
-    object_shader(&ground, &ground_shader);
+    object_shader(&ground, &standard_shader);
     object_material(&ground, &ground_material);
-
     object_instantiate(&ground, matrix4_scale(matrix4_identity(), (vector3) { 50., 1., 50. }));
 
+    struct object saucer = { };
+    object_create(&saucer);
+    object_geometry(&saucer, &saucer_geometry);
+    object_shader(&saucer, &standard_shader);
+    object_material(&saucer, &saucer_material);
+    object_instantiate(&saucer, matrix4_translate(matrix4_identity(), (vector3) { 2., 12., 0. }));
+
     struct camera camera = { };
-    camera_position(&camera, (vector3) { -50, 12, -40 });
+    camera_position(&camera, (vector3) { -30, 12, -20 });
     camera_fov(&camera, 60);
     camera_target(&camera, VECTOR3_ORIGIN);
     camera_limits(&camera, 0.1, 300);
     camera_aspect(&camera, 1.5);
 
     struct light_directional lightdir = { };
-    light_color((struct light *) &lightdir, (f32[4]) { .8, .6, .6, 1 });
+    light_color((struct light *) &lightdir, (f32[4]) { .7, .7, .7, 1 });
     light_directional_direction(&lightdir, (vector3) { 1, -.2, 1 });
 
     struct light_point lightpoint = { };
-    light_color((struct light *) &lightpoint, (f32[4]) { .7, .6, .2, 1 });
-    light_position(&lightpoint, (vector3) { 0, 2, 0 });
+    light_color((struct light *) &lightpoint, (f32[4]) { .9, 1.5, 1.2, 1 });
+    light_position(&lightpoint, (vector3) { 1, 15, 0 });
     light_point_linear(&lightpoint,    1.0);
     light_point_constant(&lightpoint,  0.09);
     light_point_quadratic(&lightpoint, 0.032);
@@ -99,6 +117,7 @@ int main(void)
     scene_light_point(&scene, lightpoint);
     scene_camera(&scene, camera);
     scene_object(&scene, ground);
+    scene_object(&scene, saucer);
     scene_object(&scene, grass);
     scene_load(&scene);
 
@@ -128,16 +147,20 @@ int main(void)
     scene_unload(&scene);
     geometry_unload(&grass_geometry);
     geometry_unload(&ground_geometry);
+    geometry_unload(&saucer_geometry);
     material_unload(&grass_material);
     material_unload(&ground_material);
+    material_unload(&saucer_material);
 
     scene_delete(&scene);
     geometry_delete(&grass_geometry);
     geometry_delete(&ground_geometry);
+    geometry_delete(&saucer_geometry);
     object_delete(&grass);
     object_delete(&ground);
+    object_delete(&saucer);
     shader_delete(&grass_shader);
-    shader_delete(&ground_shader);
+    shader_delete(&standard_shader);
 
     application_destroy(&target);
 
