@@ -81,17 +81,21 @@ void material_unload(struct material *material)
  * @param material
  * @param shader
  */
-void material_send_uniforms(struct material *material, struct shader *shader)
+void material_send_uniforms(struct material *material, struct object *object)
 {
-    GLint block_name = -1;
+    glUseProgram(object->shader->program);
+    {
+        glBindVertexArray(object->gpu_side.vao);
+        {
+            GLint block_name = -1;
 
-    glUseProgram(shader->program);
+            block_name = glGetUniformBlockIndex(object->shader->program, "BLOCK_MATERIAL");
+            glUniformBlockBinding(object->shader->program, block_name, SHADER_UBO_MATERIAL);
 
-    block_name = glGetUniformBlockIndex(shader->program, "BLOCK_MATERIAL");
-    glUniformBlockBinding(shader->program, block_name, SHADER_UBO_MATERIAL);
-
-    glBindBuffer(GL_UNIFORM_BUFFER, material->gpu_side.ubo);
-    glBindBufferBase(GL_UNIFORM_BUFFER, block_name, material->gpu_side.ubo);
-
+            glBindBuffer(GL_UNIFORM_BUFFER, material->gpu_side.ubo);
+            glBindBufferBase(GL_UNIFORM_BUFFER, block_name, material->gpu_side.ubo);
+        }
+        glBindVertexArray(0);
+    }
     glUseProgram(0);
 }

@@ -35,22 +35,26 @@ void camera_view(struct camera *camera, struct matrix4 view)
  * @param camera
  * @param shader
  */
-void camera_send_uniforms(struct camera *camera, struct shader *shader)
+void camera_send_uniforms(struct camera *camera, struct object *object)
 {
     vector3 cam_pos = { };
     GLint uniform_name = -1;
 
-    glUseProgram(shader->program);
+    glUseProgram(object->shader->program);
+    {
+        glBindVertexArray(object->gpu_side.vao);
+        {
+            uniform_name = glGetUniformLocation(object->shader->program, "VIEW_MATRIX");
+            glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->view);
 
-    uniform_name = glGetUniformLocation(shader->program, "VIEW_MATRIX");
-    glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->view);
+            uniform_name = glGetUniformLocation(object->shader->program, "PROJECTION_MATRIX");
+            glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->projection);
 
-    uniform_name = glGetUniformLocation(shader->program, "PROJECTION_MATRIX");
-    glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->projection);
-
-    uniform_name = glGetUniformLocation(shader->program, "CAMERA_POS");
-    cam_pos = matrix_origin(camera->view);
-    glUniform3f(uniform_name, cam_pos.x, cam_pos.y, cam_pos.z);
-
+            uniform_name = glGetUniformLocation(object->shader->program, "CAMERA_POS");
+            cam_pos = matrix4_origin(camera->view);
+            glUniform3f(uniform_name, cam_pos.x, cam_pos.y, cam_pos.z);
+        }
+        glBindVertexArray(0);
+    }
     glUseProgram(0);
 }

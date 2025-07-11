@@ -209,7 +209,7 @@ void material_shininess(struct material *material, float shininess);
 
 void material_load(struct material *material);
 void material_unload(struct material *material);
-void material_send_uniforms(struct material *material, struct shader *shader);
+void material_send_uniforms(struct material *material, struct object *object);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ void object_draw(struct object object);
 
 void camera_projection(struct camera *camera, struct matrix4 projection);
 void camera_view(struct camera *camera, struct matrix4 view);
-void camera_send_uniforms(struct camera *camera, struct shader *shader);
+void camera_send_uniforms(struct camera *camera, struct object *object);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------

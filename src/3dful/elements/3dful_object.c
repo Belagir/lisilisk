@@ -121,9 +121,6 @@ void object_load(struct object *object)
         glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW1, 1);
         glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW2, 1);
         glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW3, 1);
-
-        // material bonus
-        material_send_uniforms(object->material, object->shader);
     }
     glBindVertexArray(0);
 }
@@ -149,10 +146,13 @@ void object_unload(struct object *object)
  */
 void object_draw(struct object object)
 {
+    material_send_uniforms(object.material, &object);
+
     glUseProgram(object.shader->program);
     {
         glBindVertexArray(object.gpu_side.vao);
         {
+
             glDrawElementsInstanced(GL_TRIANGLES, object.geometry->faces->length*3,
                 GL_UNSIGNED_INT, 0, object.tr_instances->length);
         }

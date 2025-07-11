@@ -27,6 +27,7 @@ static i32 wavefront_parse_end_line(struct parser_state *state, struct wavefront
 static i32 wavefront_parse_end_of_obj(struct parser_state *state, struct wavefront_obj *out_obj);
 
 static i32 wavefront_parse_obj_name(struct parser_state *state, struct wavefront_obj *out_obj);
+static i32 wavefront_parse_obj_smoothing(struct parser_state *state, struct wavefront_obj *out_obj);
 static i32 wavefront_parse_vertex(struct parser_state *state, struct wavefront_obj *out_obj);
 static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefront_obj *out_obj);
 static i32 wavefront_parse_vertex_normal(struct parser_state *state, struct wavefront_obj *out_obj);
@@ -90,13 +91,15 @@ void wavefront_obj_parse(struct wavefront_obj *obj, BUFFER *buffer)
             // NOP
         } else if (wavefront_parse_obj_name(&state, obj)) {
             // NOP
+        } else if (wavefront_parse_obj_smoothing(&state, obj)) {
+            // NOP
         } else if (wavefront_parse_vertex(&state, obj)) {
             // NOP
         } else if (wavefront_parse_face(&state, obj)) {
             // NOP
         } else {
             fprintf(stderr, "at line %d:%d ; parsing error. The resulting geometry may be malformed.\n",
-                    state.line, state.column);
+                    state.line+1, state.column+1);
             // ERROR SITE
             break;
         }
@@ -182,6 +185,21 @@ static i32 wavefront_parse_obj_name(struct parser_state *state, struct wavefront
 
     // detect 'o' starting letter
     if (!accept(state, (char []) { 'o' }, 1, NULL)) {
+        return 0;
+    }
+
+    while (!lookup(state, (char []) { '\n' }, 1, NULL)) {
+        parser_state_advance(state);
+    }
+    return 1;
+}
+
+static i32 wavefront_parse_obj_smoothing(struct parser_state *state, struct wavefront_obj *out_obj)
+{
+    (void) out_obj;
+
+    // detect 'o' starting letter
+    if (!accept(state, (char []) { 's' }, 1, NULL)) {
         return 0;
     }
 

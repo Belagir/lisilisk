@@ -5,91 +5,130 @@
 
 int main(void)
 {
-    struct shader shader = { };
-    struct geometry geometry = { };
-    struct material material = { };
-    struct object object = { };
+    srand(42);
 
-    struct light_directional dirlight = { };
-    struct light_point pointlight = { };
-    struct light ambient = { };
+    struct application target = application_create("some name", 1200, 800);
+
+    struct shader grass_shader = { };
+    shader_frag(&grass_shader, "shaders/geometry_material.frag");
+    shader_vert(&grass_shader, "shaders/geometry_grass.vert");
+    shader_link(&grass_shader);
+
+    struct shader ground_shader = { };
+    shader_frag(&ground_shader, "shaders/geometry_material.frag");
+    shader_vert(&ground_shader, "shaders/geometry.vert");
+    shader_link(&ground_shader);
+
+    struct geometry grass_geometry = { };
+    geometry_create(&grass_geometry);
+    geometry_wavobj(&grass_geometry, "models/grass_blade.obj");
+    geometry_load(&grass_geometry);
+
+    struct geometry ground_geometry = { };
+    geometry_create(&ground_geometry);
+    geometry_wavobj(&ground_geometry, "models/plane.obj");
+    geometry_load(&ground_geometry);
+
+    struct material grass_material = { };
+    material_ambient(&grass_material,  (f32[4]) { .3, .3, .30, 1 });
+    material_specular(&grass_material, (f32[4]) { .3, .8, .05, 1 });
+    material_diffuse(&grass_material,  (f32[4]) { .2, .7, .05, 1 });
+    material_shininess(&grass_material, 4.);
+    material_load(&grass_material);
+
+    struct material ground_material = { };
+    material_ambient(&ground_material,  (f32[4]) { .30, .25, .20, 1 });
+    material_specular(&ground_material, (f32[4]) { .60, .50, .40, 1 });
+    material_diffuse(&ground_material,  (f32[4]) { .30, .25, .20, 1 });
+    material_shininess(&ground_material, 1.);
+    material_load(&ground_material);
+
+    struct object grass = { };
+    object_create(&grass);
+    object_geometry(&grass, &grass_geometry);
+    object_shader(&grass, &grass_shader);
+    object_material(&grass, &grass_material);
+
+    f32 x_offset = 0.f;
+    f32 y_offset = 0.f;
+    f32 scale = 0.f;
+    for (f32 x = -50. ; x < 100. ; x += 0.3) {
+        for (f32 y = -50. ; y < 100. ; y += 0.3) {
+            x_offset = 0. + ((f32) (rand() % 128) / 128.f) * .15;
+            y_offset = 0. + ((f32) (rand() % 128) / 128.f) * .15;
+            scale    = .8 + ((f32) (rand() % 128) / 128.f) * .4;
+            object_instantiate(&grass,
+                matrix4_translate(
+                    matrix4_scale(matrix4_identity(), (vector3) { scale, scale, scale }),
+                    (vector3) { x + x_offset, 0, y + y_offset }
+                ));
+        }
+    }
+    printf("there are %ld individual blades of grass !\n", grass.tr_instances->length);
+
+    struct object ground = { };
+    object_create(&ground);
+    object_geometry(&ground, &ground_geometry);
+    object_shader(&ground, &ground_shader);
+    object_material(&ground, &ground_material);
+
+    object_instantiate(&ground, matrix4_scale(matrix4_identity(), (vector3) { 51., 1., 51. }));
+
     struct camera camera = { };
+    camera_view(&camera, matrix4_get_view_matrix((vector3) { -50, 12, -40 }, (vector3) { -25, 0, -25 }, VECTOR3_Y_POSITIVE));
+    camera_projection(&camera, matrix4_get_projection_matrix(0.1, 300, 60, 1.5));
+
+    struct light_directional lightdir = { };
+    light_color((struct light *) &lightdir, (f32[4]) { .8, .6, .6, 1 });
+    light_directional_direction(&lightdir, (vector3) { 1, -.2, 1 });
+
+    struct light_point lightpoint = { };
+    light_color((struct light *) &lightpoint, (f32[4]) { .7, .6, .2, 1 });
+    light_position(&lightpoint, (vector3) { 0, 2, 0 });
+    light_point_linear(&lightpoint,    1.0);
+    light_point_constant(&lightpoint,  0.09);
+    light_point_quadratic(&lightpoint, 0.032);
+
     struct scene scene = { };
-
-    struct application target = application_create("some name", 800, 800);
-
-    shader_frag(&shader, "shaders/geometry_material.frag");
-    shader_vert(&shader, "shaders/geometry.vert");
-    shader_link(&shader);
-
-    geometry_create(&geometry);
-    geometry_wavobj(&geometry, "models/monke.obj");
-    geometry_load(&geometry);
-
-    material_ambient(&material,  (f32[4]) { 0.01, 0.01, 0.01, 0.0 });
-    material_diffuse(&material,  (f32[4]) { 0.50, 1.00, 1.00, 0.0 });
-    material_specular(&material, (f32[4]) { 0.10, 1.00, 1.00, 0.0 });
-    material_shininess(&material, 32.);
-    material_load(&material);
-    material_send_uniforms(&material, &shader);
-
-    object_create(&object);
-    object_geometry(&object, &geometry);
-    object_shader(&object, &shader);
-    object_material(&object, &material);
-    object_instantiate(&object, matrix4_identity());
-    object_instantiate(&object, matrix_translate(matrix4_identity(), (vector3) {-3, 0, 0}));
-    object_instantiate(&object, matrix_translate(matrix4_identity(), (vector3) { 3, 0, 0}));
-
-    light_color((struct light *) &dirlight, (f32[4]) { 1, .5, .2, 1 });
-    light_directional_direction(&dirlight, (vector3) { 1, 1, 0 });
-
-    light_color((struct light *) &pointlight, (f32[4]) { 1, .2, .1, 1 });
-    light_position(&pointlight, (vector3) { 3, 2, 0 });
-    light_point_linear(&pointlight,    1.0);
-    light_point_constant(&pointlight,  0.7);
-    light_point_quadratic(&pointlight, 1.8);
-
-    light_color(&ambient, (f32[4]) { 1.0, 1.0, 1.0, 0.1 });
-
-    camera_projection(&camera, matrix4_get_projection_matrix(.1, 100, 45, 1));
-    camera_view(&camera, matrix4_get_view_matrix((vector3) { 6, 2, 6 }, VECTOR3_ORIGIN, VECTOR3_Y_POSITIVE));
-    camera_send_uniforms(&camera, &shader);
-
     scene_create(&scene);
-    scene_light_direc(&scene, dirlight);
-    scene_light_point(&scene, pointlight);
-    scene_light_ambient(&scene, ambient);
+    scene_light_ambient(&scene, (struct light) { .color = { .3, .3, .3, 1 } });
+    scene_light_direc(&scene, lightdir);
+    scene_light_point(&scene, lightpoint);
     scene_camera(&scene, camera);
-    scene_object(&scene, object);
+    scene_object(&scene, ground);
+    scene_object(&scene, grass);
     scene_load(&scene);
 
-    int should_quit = 0;
+    i32 should_quit = 0;
     SDL_Event event = { };
     while (!should_quit) {
         while (SDL_PollEvent(&event)) {
             should_quit = event.type == SDL_QUIT;
         }
 
-        glClearColor(0.2, 0.2, 0.2, 1.0);
+        glClearColor(0.4, 0.5, 0.7, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         {
             scene_draw(scene);
-            // object_draw(object);
         }
         SDL_GL_SwapWindow(target.sdl_window);
 
         SDL_Delay(10);
     }
 
-    object_unload(&object);
-    material_unload(&material);
-    geometry_unload(&geometry);
+    scene_unload(&scene);
+    geometry_unload(&grass_geometry);
+    geometry_unload(&ground_geometry);
+    material_unload(&grass_material);
+    material_unload(&ground_material);
 
     scene_delete(&scene);
-    object_delete(&object);
-    shader_delete(&shader);
-    geometry_delete(&geometry);
+    geometry_delete(&grass_geometry);
+    geometry_delete(&ground_geometry);
+    object_delete(&grass);
+    object_delete(&ground);
+    shader_delete(&grass_shader);
+    shader_delete(&ground_shader);
 
     application_destroy(&target);
 

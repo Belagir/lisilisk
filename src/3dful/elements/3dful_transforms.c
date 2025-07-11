@@ -9,7 +9,7 @@
  */
 void transform_translate(struct matrix4 *matrix, vector3 offset)
 {
-    *matrix = matrix_translate(*matrix, offset);
+    *matrix = matrix4_translate(*matrix, offset);
 }
 
 /**

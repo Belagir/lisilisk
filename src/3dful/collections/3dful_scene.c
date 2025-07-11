@@ -99,7 +99,7 @@ void scene_light_ambient(struct scene *scene, struct light light)
 void scene_draw(struct scene scene)
 {
     for (size_t i = 0 ; i < scene.objects->length ; i++) {
-        camera_send_uniforms(&scene.camera, scene.objects->data[i].shader);
+        camera_send_uniforms(&scene.camera, scene.objects->data + i);
         object_draw(scene.objects->data[i]);
     }
 }
@@ -126,7 +126,6 @@ void scene_load(struct scene *scene)
             scene->direc_lights->length * sizeof(*scene->direc_lights->data),
             scene->direc_lights->data, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
 
     for (size_t i = 0 ; i < scene->objects->length ; i++) {
         scene_send_light_uniforms(scene, scene->objects->data[i].shader);
