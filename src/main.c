@@ -30,15 +30,15 @@ int main(void)
     geometry_load(&ground_geometry);
 
     struct material grass_material = { };
-    material_ambient(&grass_material,  (f32[4]) { .3, .3, .30, 1 });
-    material_specular(&grass_material, (f32[4]) { .3, .8, .05, 1 });
-    material_diffuse(&grass_material,  (f32[4]) { .2, .7, .05, 1 });
+    material_ambient(&grass_material,  (f32[4]) { .70, .85, .70, 1 });
+    material_specular(&grass_material, (f32[4]) { .10, .16, .10, 1 });
+    material_diffuse(&grass_material,  (f32[4]) { .30, .50, .30, 1 });
     material_shininess(&grass_material, 4.);
     material_load(&grass_material);
 
     struct material ground_material = { };
     material_ambient(&ground_material,  (f32[4]) { .30, .25, .20, 1 });
-    material_specular(&ground_material, (f32[4]) { .60, .50, .40, 1 });
+    material_specular(&ground_material, (f32[4]) { .30, .25, .20, 1 });
     material_diffuse(&ground_material,  (f32[4]) { .30, .25, .20, 1 });
     material_shininess(&ground_material, 1.);
     material_load(&ground_material);
@@ -52,11 +52,11 @@ int main(void)
     f32 x_offset = 0.f;
     f32 y_offset = 0.f;
     f32 scale = 0.f;
-    for (f32 x = -50. ; x < 100. ; x += 0.3) {
-        for (f32 y = -50. ; y < 100. ; y += 0.3) {
-            x_offset = 0. + ((f32) (rand() % 128) / 128.f) * .15;
-            y_offset = 0. + ((f32) (rand() % 128) / 128.f) * .15;
-            scale    = .8 + ((f32) (rand() % 128) / 128.f) * .4;
+    for (f32 x = -50. ; x < 50. ; x += 0.3) {
+        for (f32 y = -50. ; y < 50. ; y += 0.3) {
+            x_offset = 0. + ((f32) (rand() % 128) / 128.f) * .25;
+            y_offset = 0. + ((f32) (rand() % 128) / 128.f) * .25;
+            scale    = .5 + ((f32) (rand() % 128) / 128.f) * 1.5;
             object_instantiate(&grass,
                 matrix4_translate(
                     matrix4_scale(matrix4_identity(), (vector3) { scale, scale, scale }),
@@ -72,11 +72,14 @@ int main(void)
     object_shader(&ground, &ground_shader);
     object_material(&ground, &ground_material);
 
-    object_instantiate(&ground, matrix4_scale(matrix4_identity(), (vector3) { 51., 1., 51. }));
+    object_instantiate(&ground, matrix4_scale(matrix4_identity(), (vector3) { 50., 1., 50. }));
 
     struct camera camera = { };
-    camera_view(&camera, matrix4_get_view_matrix((vector3) { -50, 12, -40 }, (vector3) { -25, 0, -25 }, VECTOR3_Y_POSITIVE));
-    camera_projection(&camera, matrix4_get_projection_matrix(0.1, 300, 60, 1.5));
+    camera_position(&camera, (vector3) { -50, 12, -40 });
+    camera_fov(&camera, 60);
+    camera_target(&camera, VECTOR3_ORIGIN);
+    camera_limits(&camera, 0.1, 300);
+    camera_aspect(&camera, 1.5);
 
     struct light_directional lightdir = { };
     light_color((struct light *) &lightdir, (f32[4]) { .8, .6, .6, 1 });
@@ -101,6 +104,7 @@ int main(void)
 
     i32 should_quit = 0;
     SDL_Event event = { };
+    struct quaternion cam_rotat = quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, .002);
     u32 time = 0;
     while (!should_quit) {
         while (SDL_PollEvent(&event)) {
@@ -114,6 +118,9 @@ int main(void)
             time += 1;
         }
         SDL_GL_SwapWindow(target.sdl_window);
+
+        camera_position(&scene.camera,
+                vector3_rotate_by_quaternion(scene.camera.pos, cam_rotat));
 
         SDL_Delay(10);
     }

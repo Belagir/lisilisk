@@ -2,31 +2,70 @@
 #include "3dful_core.h"
 
 /**
- * @brief Sets a camera's projection to an arbitrary matrix.
- * This matrix governs how a camera distorts space it sees.
+ * @brief
  *
- * @see matrix4_get_projection_matrix
- *
- * @param[inout] camera
- * @param[in] projection
+ * @param camera
+ * @param pos
  */
-void camera_projection(struct camera *camera, struct matrix4 projection)
+void camera_position(struct camera *camera, struct vector3 pos)
 {
-    camera->projection = projection;
+    camera->pos = pos;
+    camera->view = matrix4_get_view_matrix(camera->pos,
+            camera->target, VECTOR3_Y_POSITIVE);
 }
 
 /**
- * @brief Sets a camera's view to an arbitrary matrix.
- * This matrix governs where a camera sees from.
+ * @brief
  *
- * @see matrix4_get_view_matrix
- *
- * @param[inout] camera
- * @param[in] view
+ * @param camera
+ * @param fov
  */
-void camera_view(struct camera *camera, struct matrix4 view)
+void camera_fov(struct camera *camera, f32 fov)
 {
-    camera->view = view;
+    camera->fov = fov;
+    camera->projection = matrix4_get_projection_matrix(camera->near,
+            camera->far, camera->fov, camera->aspect);
+}
+
+/**
+ * @brief
+ *
+ * @param camera
+ * @param target
+ */
+void camera_target(struct camera *camera, struct vector3 target)
+{
+    camera->target = target;
+    camera->view = matrix4_get_view_matrix(camera->pos,
+            camera->target, VECTOR3_Y_POSITIVE);
+}
+
+/**
+ * @brief
+ *
+ * @param camera
+ * @param near
+ * @param far
+ */
+void camera_limits(struct camera *camera, f32 near, f32 far)
+{
+    camera->near = near;
+    camera->far = far;
+    camera->projection = matrix4_get_projection_matrix(camera->near,
+            camera->far, camera->fov, camera->aspect);
+}
+
+/**
+ * @brief
+ *
+ * @param camera
+ * @param aspect
+ */
+void camera_aspect(struct camera *camera, f32 aspect)
+{
+    camera->aspect = aspect;
+    camera->projection = matrix4_get_projection_matrix(camera->near,
+            camera->far, camera->fov, camera->aspect);
 }
 
 /**
@@ -37,7 +76,6 @@ void camera_view(struct camera *camera, struct matrix4 view)
  */
 void camera_send_uniforms(struct camera *camera, struct object *object)
 {
-    vector3 cam_pos = { };
     GLint uniform_name = -1;
 
     glUseProgram(object->shader->program);
@@ -51,8 +89,7 @@ void camera_send_uniforms(struct camera *camera, struct object *object)
             glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->projection);
 
             uniform_name = glGetUniformLocation(object->shader->program, "CAMERA_POS");
-            cam_pos = matrix4_origin(camera->view);
-            glUniform3f(uniform_name, cam_pos.x, cam_pos.y, cam_pos.z);
+            glUniform3f(uniform_name, camera->pos.x, camera->pos.y, camera->pos.z);
         }
         glBindVertexArray(0);
     }

@@ -19,7 +19,7 @@ void scene_create(struct scene *scene)
 {
     *scene = (struct scene) {
             .objects = range_create_dynamic(make_system_allocator(), sizeof(*scene->objects->data), 256),
-            .camera = { matrix4_identity(), matrix4_identity() },
+            .camera = { .view = matrix4_identity(), .projection = matrix4_identity() },
             .point_lights = range_create_dynamic(make_system_allocator(), sizeof(*scene->point_lights->data), 32),
             .direc_lights = range_create_dynamic(make_system_allocator(), sizeof(*scene->direc_lights->data), 8),
     };

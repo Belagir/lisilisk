@@ -118,6 +118,11 @@ struct object {
  *
  */
 struct camera {
+    vector3 pos;
+    f32 fov, aspect;
+    vector3 target;
+    f32 near, far;
+
     struct matrix4 view;
     struct matrix4 projection;
 };
@@ -232,8 +237,11 @@ void object_draw(struct object object);
 // -------------------------------------------------------------------------------------------------
 // CAMERA ------------------------------------------------------------------------------------------
 
-void camera_projection(struct camera *camera, struct matrix4 projection);
-void camera_view(struct camera *camera, struct matrix4 view);
+void camera_position(struct camera *camera, struct vector3 pos);
+void camera_fov(struct camera *camera, f32 fov);
+void camera_target(struct camera *camera, struct vector3 target);
+void camera_limits(struct camera *camera, f32 near, f32 far);
+void camera_aspect(struct camera *camera, f32 aspect);
 void camera_send_uniforms(struct camera *camera, struct object *object);
 
 // -------------------------------------------------------------------------------------------------
