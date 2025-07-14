@@ -15,12 +15,27 @@
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
+#define LOADABLE_FLAG_NONE   (0x0)
+#define LOADABLE_FLAG_LOADED (0x1)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * @brief Assigns integer values to semantic names for Uniform Buffer Objects binding indices.
+ *
+ */
 enum shader_ubo_binding {
     SHADER_UBO_LIGHT_DIREC,
     SHADER_UBO_LIGHT_POINT,
     SHADER_UBO_MATERIAL,
 };
 
+/**
+ * @brief  Assigns integer values to semantic names for vertex pointers.
+ *
+ */
 enum shader_vertex_binding {
     SHADER_VERT_POS,
     SHADER_VERT_NORMAL,
@@ -34,10 +49,25 @@ enum shader_vertex_binding {
 // -------------------------------------------------------------------------------------------------
 
 /**
+ * @brief
+ *
+ */
+struct loadable {
+    u16 flags;
+    u16 nb_users;
+};
+
+// -------------------------------------------------------------------------------------------------
+
+/**
  * @brief Stores names of vertex, fragment, and whole shader program.
  *
  */
-struct shader { GLuint frag_shader, vert_shader, program; };
+struct shader {
+    GLuint frag_shader;
+    GLuint vert_shader;
+    GLuint program;
+};
 
 // -------------------------------------------------------------------------------------------------
 
@@ -45,10 +75,7 @@ struct shader { GLuint frag_shader, vert_shader, program; };
  * @brief Piece of data passed to OpengGL to represent a vertice composing a mesh.
  *
  */
-struct vertex {
-    struct vector3 pos;
-    struct vector3 normal;
-};
+struct vertex { struct vector3 pos, normal; };
 
 /**
  * @brief Stores indices of a vertices array to describe triangular faces.
@@ -61,6 +88,8 @@ struct face { u32 idx_vert[3u]; };
  *
  */
 struct geometry {
+    struct loadable load_state;
+
     RANGE(struct vertex) *vertices;
     RANGE(struct face) *faces;
 
@@ -77,6 +106,8 @@ struct geometry {
  * Passed to a material shader.
  */
 struct material {
+    struct loadable load_state;
+
     struct {
         f32 ambient[4];
         f32 diffuse[4];
@@ -98,6 +129,8 @@ struct material {
  *
  */
 struct model {
+    struct loadable load_state;
+
     struct shader *shader;
     struct geometry *geometry;
     struct material *material;
@@ -170,6 +203,15 @@ struct light_directional {
 
 void transform_translate(struct matrix4 *matrix, vector3 offset);
 void position_translate(struct vector3 *pos, vector3 offset);
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+// GENRAL LOADABLES --------------------------------------------------------------------------------
+
+void loadable_add_user(struct loadable *obj);
+void loadable_remove_user(struct loadable *obj);
+i32 loadable_needs_loading(struct loadable *obj);
+i32 loadable_needs_unloading(struct loadable *obj);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------

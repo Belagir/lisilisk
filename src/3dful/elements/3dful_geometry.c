@@ -72,20 +72,27 @@ void geometry_delete(struct geometry *geometry)
  */
 void geometry_load(struct geometry *geometry)
 {
-    glGenBuffers(1, &geometry->gpu_side.vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, geometry->gpu_side.vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-            geometry->vertices->length * sizeof(*geometry->vertices->data),
-            geometry->vertices->data, GL_STATIC_DRAW);
+    loadable_add_user((struct loadable *) geometry);
 
-    glGenBuffers(1, &geometry->gpu_side.ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->gpu_side.ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-            geometry->faces->length * sizeof(*geometry->faces->data),
-            geometry->faces->data, GL_STATIC_DRAW);
+    if (loadable_needs_loading((struct loadable *) geometry)) {
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glGenBuffers(1, &geometry->gpu_side.vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, geometry->gpu_side.vbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                geometry->vertices->length * sizeof(*geometry->vertices->data),
+                geometry->vertices->data, GL_STATIC_DRAW);
+
+        glGenBuffers(1, &geometry->gpu_side.ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->gpu_side.ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                geometry->faces->length * sizeof(*geometry->faces->data),
+                geometry->faces->data, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+        geometry->load_state.flags |= LOADABLE_FLAG_LOADED;
+    }
 }
 
 /**
@@ -95,11 +102,19 @@ void geometry_load(struct geometry *geometry)
  */
 void geometry_unload(struct geometry *geometry)
 {
-    glDeleteBuffers(1, &geometry->gpu_side.ebo);
-    glDeleteBuffers(1, &geometry->gpu_side.vbo);
+    loadable_remove_user((struct loadable *) geometry);
 
-    geometry->gpu_side.ebo = 0;
-    geometry->gpu_side.vbo = 0;
+    if (loadable_needs_unloading((struct loadable *) geometry)) {
+        printf("unloading geometry...\n");
+
+        glDeleteBuffers(1, &geometry->gpu_side.ebo);
+        glDeleteBuffers(1, &geometry->gpu_side.vbo);
+
+        geometry->gpu_side.ebo = 0;
+        geometry->gpu_side.vbo = 0;
+
+        geometry->load_state.flags &= ~LOADABLE_FLAG_LOADED;
+    }
 }
 
 /**

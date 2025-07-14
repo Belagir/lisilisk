@@ -12,7 +12,7 @@ So much to do, so many other projects calling my name.
 
 > "object" has been renamed to "model".
 
-### Dynamic Loading & unloading
+### ~~Dynamic Loading & unloading~~
 
 Data objects tied to some OpenGL data should be able to be loaded when at least another object need them, and unloaded when nothing needs them.
 
@@ -27,10 +27,12 @@ Data objects tied to some OpenGL data should be able to be loaded when at least 
 struct opengl_object {
     u32 flags;
     u32 nb_users;
-}
+};
 ```
 
 Data structures could start with this `opengl_object` that count users and other information about the state of the object. Functions modifying this data would `load()`, `draw()` or `unload()` depending of the actual number of users and flags.
+
+> Done ! There is space left intentionally (the flags) for future evolutions. The implementation still uses some boilerplate but it's okay, nothing major.
 
 ### Review uniform setting procedures
 

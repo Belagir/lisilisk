@@ -58,11 +58,18 @@ void material_shininess(struct material *material, float shininess)
  */
 void material_load(struct material *material)
 {
-    glGenBuffers(1, &material->gpu_side.ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, material->gpu_side.ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(material->properties),
-            material, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    loadable_add_user((struct loadable *) material);
+
+    if (loadable_needs_loading((struct loadable *) material)) {
+
+        glGenBuffers(1, &material->gpu_side.ubo);
+        glBindBuffer(GL_UNIFORM_BUFFER, material->gpu_side.ubo);
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(material->properties),
+                &(material->properties), GL_STATIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        material->load_state.flags |= LOADABLE_FLAG_LOADED;
+    }
 }
 
 /**
@@ -72,7 +79,15 @@ void material_load(struct material *material)
  */
 void material_unload(struct material *material)
 {
-    glDeleteBuffers(1, &material->gpu_side.ubo);
+    loadable_remove_user((struct loadable *) material);
+
+    if (loadable_needs_unloading((struct loadable *) material)) {
+        printf("unloading material...\n");
+
+        glDeleteBuffers(1, &material->gpu_side.ubo);
+        material->load_state.flags &= ~LOADABLE_FLAG_LOADED;
+    }
+
 }
 
 /**

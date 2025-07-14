@@ -18,6 +18,7 @@ static void scene_time_send_uniforms(u32 time, struct model *model);
 void scene_create(struct scene *scene)
 {
     *scene = (struct scene) {
+            .load_state = { .flags = LOADABLE_FLAG_NONE, .nb_users = 0u },
             .models = range_create_dynamic(make_system_allocator(), sizeof(*scene->models->data), 256),
             .camera = { .view = matrix4_identity(), .projection = matrix4_identity() },
             .point_lights = range_create_dynamic(make_system_allocator(), sizeof(*scene->point_lights->data), 32),
@@ -43,8 +44,11 @@ void scene_delete(struct scene *scene)
  * @param scene
  * @param model
  */
-void scene_model(struct scene *scene, struct model model)
+void scene_model(struct scene *scene, struct model *model)
 {
+    if (scene->load_state.flags & LOADABLE_FLAG_LOADED) {
+        model_load(model);
+    }
     range_push(RANGE_TO_ANY(scene->models), &model);
 }
 
@@ -100,9 +104,9 @@ void scene_light_ambient(struct scene *scene, struct light light)
 void scene_draw(struct scene scene, u32 time)
 {
     for (size_t i = 0 ; i < scene.models->length ; i++) {
-        camera_send_uniforms(&scene.camera, scene.models->data + i);
-        scene_time_send_uniforms(time, scene.models->data + i);
-        model_draw(scene.models->data[i]);
+        camera_send_uniforms(&scene.camera, scene.models->data[i]);
+        scene_time_send_uniforms(time, scene.models->data[i]);
+        model_draw(*(scene.models->data[i]));
     }
 }
 
@@ -113,25 +117,32 @@ void scene_draw(struct scene scene, u32 time)
  */
 void scene_load(struct scene *scene)
 {
-    // Load lights -- point lights
-    glGenBuffers(1, &scene->ubo_point_lights);
-    glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_point_lights);
-    glBufferData(GL_UNIFORM_BUFFER,
-            scene->point_lights->length * sizeof(*scene->point_lights->data),
-            scene->point_lights->data, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    loadable_add_user((struct loadable *) scene);
 
-    // Load lights -- point lights
-    glGenBuffers(1, &scene->ubo_dir_lights);
-    glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_dir_lights);
-    glBufferData(GL_UNIFORM_BUFFER,
-            scene->direc_lights->length * sizeof(*scene->direc_lights->data),
-            scene->direc_lights->data, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    if (loadable_needs_loading((struct loadable *) scene)) {
+        // Load lights -- point lights
+        glGenBuffers(1, &scene->ubo_point_lights);
+        glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_point_lights);
+        glBufferData(GL_UNIFORM_BUFFER,
+                scene->point_lights->length * sizeof(*scene->point_lights->data),
+                scene->point_lights->data, GL_STATIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    for (size_t i = 0 ; i < scene->models->length ; i++) {
-        scene_lights_send_uniforms(scene, scene->models->data + i);
-        model_load(&scene->models->data[i]);
+        // Load lights -- point lights
+        glGenBuffers(1, &scene->ubo_dir_lights);
+        glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_dir_lights);
+        glBufferData(GL_UNIFORM_BUFFER,
+                scene->direc_lights->length * sizeof(*scene->direc_lights->data),
+                scene->direc_lights->data, GL_STATIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        scene->load_state.flags |= LOADABLE_FLAG_LOADED;
+
+        // load models assigned to the scene
+        for (size_t i = 0 ; i < scene->models->length ; i++) {
+            scene_lights_send_uniforms(scene, scene->models->data[i]);
+            model_load(scene->models->data[i]);
+        }
     }
 }
 
@@ -142,12 +153,21 @@ void scene_load(struct scene *scene)
  */
 void scene_unload(struct scene *scene)
 {
-    glDeleteBuffers(1, &scene->ubo_point_lights);
-    glDeleteBuffers(1, &scene->ubo_dir_lights);
+    loadable_remove_user((struct loadable *) scene);
 
-    for (size_t i = 0 ; i < scene->models->length ; i++) {
-        model_unload(&scene->models->data[i]);
+    if (loadable_needs_unloading((struct loadable *) scene)) {
+        printf("unloading scene...\n");
+        // destroy buffers
+        glDeleteBuffers(1, &scene->ubo_point_lights);
+        glDeleteBuffers(1, &scene->ubo_dir_lights);
+
+        scene->load_state.flags &= ~LOADABLE_FLAG_LOADED;
+
+        for (size_t i = 0 ; i < scene->models->length ; i++) {
+            model_unload(scene->models->data[i]);
+        }
     }
+
 }
 
 // -------------------------------------------------------------------------------------------------
