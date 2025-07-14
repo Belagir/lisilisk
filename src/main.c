@@ -3,11 +3,13 @@
 #include "3dful/elements/3dful_core.h"
 #include "3dful/collections/3dful_collections.h"
 
-int main(void)
+int main(int argc, const char *argv[])
 {
+    (void) argc;
+
     srand(42);
 
-    struct application target = application_create("some name", 1200, 800);
+    struct application target = application_create(argv[0], 1200, 800);
 
     struct shader grass_shader = { };
     shader_frag(&grass_shader, "shaders/geometry_material.frag");

@@ -15,9 +15,11 @@ So much to do, so many other projects calling my name.
 Data objects tied to some OpenGL data should be able to be loaded when at least another object need them, and unloaded when nothing needs them.
 
 ```c
-#define OPENGL_OBJECT_FLAG_NONE     (0x0)
-#define OPENGL_OBJECT_FLAG_LOADED   (0x1)
-#define OPENGL_OBJECT_FLAG_NOTSHOWN (0x2)
+#define OPENGL_OBJECT_FLAG_NONE      (0x0)
+#define OPENGL_OBJECT_FLAG_LOADED    (0x1)
+#define OPENGL_OBJECT_FLAG_SHOWN     (0x2)
+#define OPENGL_OBJECT_FLAG_FACECULL  (0x4)
+#define OPENGL_OBJECT_FLAG_DEPTHTEST (0x8)
 // ...
 
 struct opengl_object {
@@ -78,3 +80,7 @@ lisk_load("some_scene_identifier");
 4. Finally, the scene is loaded : the object is loaded, the geometry is loaded, the material is loaded, and the scene is added to the redendered scenes in the main loop.
 
 Basically, the interface should initialize a static global instance of the backend, and register data objects to string names when the user needs to. Those objects are created when the user needs them and load dynamically depending on what is needed.
+
+### Transforms hierarchy
+
+There should be a way to bind transforms to form a tree, having children transforms offset by their parents'. This would also create a `load()` hierarchy ?
