@@ -7,95 +7,95 @@
 /**
  * @brief
  *
- * @param object
+ * @param model
  */
-void object_create(struct object *object)
+void model_create(struct model *model)
 {
-    object->tr_instances = range_create_dynamic(make_system_allocator(),
-            sizeof(*object->tr_instances->data), 64);
+    model->tr_instances = range_create_dynamic(make_system_allocator(),
+            sizeof(*model->tr_instances->data), 64);
 }
 
 /**
  * @brief
  *
- * @param object
+ * @param model
  */
-void object_delete(struct object *object)
+void model_delete(struct model *model)
 {
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(object->tr_instances));
+    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(model->tr_instances));
 }
 
 /**
- * @brief Links an object to a geometry. The object will be rendered with the geometry's mesh.
+ * @brief Links a model to a geometry. The model will be rendered with the geometry's mesh.
  *
- * @param[inout] object
+ * @param[inout] model
  * @param[in] geometry
  */
-void object_geometry(struct object *object, struct geometry *geometry)
+void model_geometry(struct model *model, struct geometry *geometry)
 {
-    object->geometry = geometry;
+    model->geometry = geometry;
 }
 
 /**
- * @brief Links an object to a shader. The object's geometry will be rendered with this shader.
+ * @brief Links a model to a shader. The model's geometry will be rendered with this shader.
  *
- * @param[inout] object
+ * @param[inout] model
  * @param[in] shader
  */
-void object_shader(struct object *object, struct shader *shader)
+void model_shader(struct model *model, struct shader *shader)
 {
-    object->shader = shader;
+    model->shader = shader;
 }
 
 /**
- * @brief Links an object to a material. The object's shader will receive the material's data.
+ * @brief Links a model to a material. The model's shader will receive the material's data.
  *
- * @param[inout] object
+ * @param[inout] model
  * @param[in] material
  */
-void object_material(struct object *object, struct material *material)
+void model_material(struct model *model, struct material *material)
 {
-    object->material = material;
+    model->material = material;
 }
 
 /**
  * @brief
  *
- * @param object
+ * @param model
  * @param tr
  */
-void object_instantiate(struct object *object, struct matrix4 tr)
+void model_instantiate(struct model *model, struct matrix4 tr)
 {
-    object->tr_instances = range_ensure_capacity(make_system_allocator(),
-            RANGE_TO_ANY(object->tr_instances), 1);
-    range_push(RANGE_TO_ANY(object->tr_instances), &tr);
+    model->tr_instances = range_ensure_capacity(make_system_allocator(),
+            RANGE_TO_ANY(model->tr_instances), 1);
+    range_push(RANGE_TO_ANY(model->tr_instances), &tr);
 }
 
 /**
- * @brief Loads an object to the GPU with OpenGL.
+ * @brief Loads a model to the GPU with OpenGL.
  * Most of the trafic will be to tell which data is linked and sent to the shader.
  *
- * @param[inout] object
+ * @param[inout] model
  */
-void object_load(struct object *object)
+void model_load(struct model *model)
 {
-    // object's vao
-    glGenVertexArrays(1, &object->gpu_side.vao);
+    // model's vao
+    glGenVertexArrays(1, &model->gpu_side.vao);
 
     // instances data
-    glGenBuffers(1, &object->gpu_side.vbo_instances);
-    glBindBuffer(GL_ARRAY_BUFFER, object->gpu_side.vbo_instances);
+    glGenBuffers(1, &model->gpu_side.vbo_instances);
+    glBindBuffer(GL_ARRAY_BUFFER, model->gpu_side.vbo_instances);
     glBufferData(GL_ARRAY_BUFFER,
-            sizeof(*object->tr_instances->data) * object->tr_instances->length,
-            object->tr_instances->data, GL_STATIC_DRAW);
+            sizeof(*model->tr_instances->data) * model->tr_instances->length,
+            model->tr_instances->data, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // binding scenario for this VAO
-    glBindVertexArray(object->gpu_side.vao);
+    glBindVertexArray(model->gpu_side.vao);
     {
         // vertex data from geometry
-        glBindBuffer(GL_ARRAY_BUFFER, object->geometry->gpu_side.vbo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object->geometry->gpu_side.ebo);
+        glBindBuffer(GL_ARRAY_BUFFER, model->geometry->gpu_side.vbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->geometry->gpu_side.ebo);
 
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
         glEnableVertexAttribArray(0);
@@ -103,7 +103,7 @@ void object_load(struct object *object)
         glEnableVertexAttribArray(1);
 
         // instances data
-        glBindBuffer(GL_ARRAY_BUFFER, object->gpu_side.vbo_instances);
+        glBindBuffer(GL_ARRAY_BUFFER, model->gpu_side.vbo_instances);
         glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW0);
         glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW0, 4, GL_FLOAT, GL_FALSE,
                 16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m0)));
@@ -126,35 +126,35 @@ void object_load(struct object *object)
 }
 
 /**
- * @brief Unloads the object from GPU memory.
+ * @brief Unloads the model from GPU memory.
  *
- * @param[inout] object
+ * @param[inout] model
  */
-void object_unload(struct object *object)
+void model_unload(struct model *model)
 {
-    glDeleteVertexArrays(1, &object->gpu_side.vao);
-    object->gpu_side.vao = 0;
+    glDeleteVertexArrays(1, &model->gpu_side.vao);
+    model->gpu_side.vao = 0;
 
-    glDeleteBuffers(1, &object->gpu_side.vbo_instances);
-    object->gpu_side.vbo_instances = 0;
+    glDeleteBuffers(1, &model->gpu_side.vbo_instances);
+    model->gpu_side.vbo_instances = 0;
 }
 
 /**
- * @brief Renders an object to the current OpenGL context. The object should have been loaded.
+ * @brief Renders a model to the current OpenGL context. The model should have been loaded.
  *
- * @param[in] object
+ * @param[in] model
  */
-void object_draw(struct object object)
+void model_draw(struct model model)
 {
-    material_send_uniforms(object.material, &object);
+    material_send_uniforms(model.material, &model);
 
-    glUseProgram(object.shader->program);
+    glUseProgram(model.shader->program);
     {
-        glBindVertexArray(object.gpu_side.vao);
+        glBindVertexArray(model.gpu_side.vao);
         {
 
-            glDrawElementsInstanced(GL_TRIANGLES, object.geometry->faces->length*3,
-                GL_UNSIGNED_INT, 0, object.tr_instances->length);
+            glDrawElementsInstanced(GL_TRIANGLES, model.geometry->faces->length*3,
+                GL_UNSIGNED_INT, 0, model.tr_instances->length);
         }
         glBindVertexArray(0);
     }

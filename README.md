@@ -6,9 +6,11 @@ Lisilisk is a work in progress. It is a collection of functions that streamline 
 
 So much to do, so many other projects calling my name.
 
-### `struct objects` should be renamed to "model" or some less general name
+### ~~`struct objects` should be renamed to "model" or some less general name~~
 
 `object`s aggregate a shader, a geometry and a material to supply intances. "Object" is just too broad of a term to actually represent the intention behind the data layout.
+
+> "object" has been renamed to "model".
 
 ### Dynamic Loading & unloading
 

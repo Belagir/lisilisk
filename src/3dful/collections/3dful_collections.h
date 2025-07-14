@@ -8,7 +8,7 @@
 // -------------------------------------------------------------------------------------------------
 
 struct scene {
-    RANGE(struct object) *objects;
+    RANGE(struct model) *models;
 
     struct camera camera;
 
@@ -23,7 +23,7 @@ struct scene {
 void scene_create(struct scene *scene);
 void scene_delete(struct scene *scene);
 
-void scene_object(struct scene *scene, struct object object);
+void scene_model(struct scene *scene, struct model model);
 void scene_camera(struct scene *scene, struct camera camera);
 void scene_light_point(struct scene *scene, struct light_point light);
 void scene_light_direc(struct scene *scene, struct light_directional light);

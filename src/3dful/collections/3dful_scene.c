@@ -4,8 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
-static void scene_lights_send_uniforms(struct scene *scene, struct object *object);
-static void scene_time_send_uniforms(u32 time, struct object *object);
+static void scene_lights_send_uniforms(struct scene *scene, struct model *model);
+static void scene_time_send_uniforms(u32 time, struct model *model);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ static void scene_time_send_uniforms(u32 time, struct object *object);
 void scene_create(struct scene *scene)
 {
     *scene = (struct scene) {
-            .objects = range_create_dynamic(make_system_allocator(), sizeof(*scene->objects->data), 256),
+            .models = range_create_dynamic(make_system_allocator(), sizeof(*scene->models->data), 256),
             .camera = { .view = matrix4_identity(), .projection = matrix4_identity() },
             .point_lights = range_create_dynamic(make_system_allocator(), sizeof(*scene->point_lights->data), 32),
             .direc_lights = range_create_dynamic(make_system_allocator(), sizeof(*scene->direc_lights->data), 8),
@@ -32,7 +32,7 @@ void scene_create(struct scene *scene)
  */
 void scene_delete(struct scene *scene)
 {
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(scene->objects));
+    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(scene->models));
     range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(scene->point_lights));
     range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(scene->direc_lights));
 }
@@ -41,11 +41,11 @@ void scene_delete(struct scene *scene)
  * @brief
  *
  * @param scene
- * @param object
+ * @param model
  */
-void scene_object(struct scene *scene, struct object object)
+void scene_model(struct scene *scene, struct model model)
 {
-    range_push(RANGE_TO_ANY(scene->objects), &object);
+    range_push(RANGE_TO_ANY(scene->models), &model);
 }
 
 /**
@@ -99,10 +99,10 @@ void scene_light_ambient(struct scene *scene, struct light light)
  */
 void scene_draw(struct scene scene, u32 time)
 {
-    for (size_t i = 0 ; i < scene.objects->length ; i++) {
-        camera_send_uniforms(&scene.camera, scene.objects->data + i);
-        scene_time_send_uniforms(time, scene.objects->data + i);
-        object_draw(scene.objects->data[i]);
+    for (size_t i = 0 ; i < scene.models->length ; i++) {
+        camera_send_uniforms(&scene.camera, scene.models->data + i);
+        scene_time_send_uniforms(time, scene.models->data + i);
+        model_draw(scene.models->data[i]);
     }
 }
 
@@ -129,9 +129,9 @@ void scene_load(struct scene *scene)
             scene->direc_lights->data, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    for (size_t i = 0 ; i < scene->objects->length ; i++) {
-        scene_lights_send_uniforms(scene, scene->objects->data + i);
-        object_load(&scene->objects->data[i]);
+    for (size_t i = 0 ; i < scene->models->length ; i++) {
+        scene_lights_send_uniforms(scene, scene->models->data + i);
+        model_load(&scene->models->data[i]);
     }
 }
 
@@ -145,8 +145,8 @@ void scene_unload(struct scene *scene)
     glDeleteBuffers(1, &scene->ubo_point_lights);
     glDeleteBuffers(1, &scene->ubo_dir_lights);
 
-    for (size_t i = 0 ; i < scene->objects->length ; i++) {
-        object_unload(&scene->objects->data[i]);
+    for (size_t i = 0 ; i < scene->models->length ; i++) {
+        model_unload(&scene->models->data[i]);
     }
 }
 
@@ -158,40 +158,40 @@ void scene_unload(struct scene *scene)
  * @brief
  *
  * @param scene
- * @param object
+ * @param model
  */
-static void scene_lights_send_uniforms(struct scene *scene, struct object *object)
+static void scene_lights_send_uniforms(struct scene *scene, struct model *model)
 {
     (void) scene;
 
     GLint uniform_name = -1;
     GLint block_name = -1;
 
-    glUseProgram(object->shader->program);
+    glUseProgram(model->shader->program);
     {
-        glBindVertexArray(object->gpu_side.vao);
+        glBindVertexArray(model->gpu_side.vao);
         {
-            block_name = glGetUniformBlockIndex(object->shader->program, "BLOCK_LIGHT_POINTS");
-            glUniformBlockBinding(object->shader->program, block_name, SHADER_UBO_LIGHT_POINT);
+            block_name = glGetUniformBlockIndex(model->shader->program, "BLOCK_LIGHT_POINTS");
+            glUniformBlockBinding(model->shader->program, block_name, SHADER_UBO_LIGHT_POINT);
 
             glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_point_lights);
             glBindBufferBase(GL_UNIFORM_BUFFER, block_name, scene->ubo_point_lights);
 
-            block_name = glGetUniformBlockIndex(object->shader->program, "BLOCK_LIGHT_DIRECTIONALS");
-            glUniformBlockBinding(object->shader->program, block_name, SHADER_UBO_LIGHT_DIREC);
+            block_name = glGetUniformBlockIndex(model->shader->program, "BLOCK_LIGHT_DIRECTIONALS");
+            glUniformBlockBinding(model->shader->program, block_name, SHADER_UBO_LIGHT_DIREC);
 
             glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_dir_lights);
             glBindBufferBase(GL_UNIFORM_BUFFER, block_name, scene->ubo_dir_lights);
 
             // -----
 
-            uniform_name = glGetUniformLocation(object->shader->program, "LIGHT_POINTS_NB");
+            uniform_name = glGetUniformLocation(model->shader->program, "LIGHT_POINTS_NB");
             glUniform1ui(uniform_name, scene->point_lights->length);
 
-            uniform_name = glGetUniformLocation(object->shader->program, "LIGHT_DIRECTIONALS_NB");
+            uniform_name = glGetUniformLocation(model->shader->program, "LIGHT_DIRECTIONALS_NB");
             glUniform1ui(uniform_name, scene->direc_lights->length);
 
-            uniform_name = glGetUniformLocation(object->shader->program, "LIGHT_AMBIENT");
+            uniform_name = glGetUniformLocation(model->shader->program, "LIGHT_AMBIENT");
             glUniform4fv(uniform_name, 1, scene->ambient_light.color);
         }
         glBindVertexArray(0);
@@ -203,17 +203,17 @@ static void scene_lights_send_uniforms(struct scene *scene, struct object *objec
  * @brief
  *
  * @param time
- * @param object
+ * @param model
  */
-static void scene_time_send_uniforms(u32 time, struct object *object)
+static void scene_time_send_uniforms(u32 time, struct model *model)
 {
     GLint uniform_name = -1;
 
-    glUseProgram(object->shader->program);
+    glUseProgram(model->shader->program);
     {
-        glBindVertexArray(object->gpu_side.vao);
+        glBindVertexArray(model->gpu_side.vao);
         {
-            uniform_name = glGetUniformLocation(object->shader->program, "TIME");
+            uniform_name = glGetUniformLocation(model->shader->program, "TIME");
             glUniform1ui(uniform_name, time);
         }
         glBindVertexArray(0);

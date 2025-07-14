@@ -94,17 +94,17 @@ struct material {
 // -------------------------------------------------------------------------------------------------
 
 /**
- * @brief Stores data about a world object that can be rendered in the world.
+ * @brief Stores data about a world model that can be rendered in the world.
  *
  */
-struct object {
+struct model {
     struct shader *shader;
     struct geometry *geometry;
     struct material *material;
 
     RANGE(matrix4) *tr_instances;
 
-    // opengl names referencing the object's data on the gpu.
+    // opengl names referencing the model's data on the gpu.
     struct {
         GLuint vao;
         GLuint vbo_instances;
@@ -214,24 +214,24 @@ void material_shininess(struct material *material, float shininess);
 
 void material_load(struct material *material);
 void material_unload(struct material *material);
-void material_send_uniforms(struct material *material, struct object *object);
+void material_send_uniforms(struct material *material, struct model *model);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-// OBJECT ------------------------------------------------------------------------------------------
+// MODEL -------------------------------------------------------------------------------------------
 
-void object_create(struct object *object);
-void object_delete(struct object *object);
+void model_create(struct model *model);
+void model_delete(struct model *model);
 
-void object_geometry(struct object *object, struct geometry *geometry);
-void object_shader(struct object *object, struct shader *shader);
-void object_material(struct object *object, struct material *material);
+void model_geometry(struct model *model, struct geometry *geometry);
+void model_shader(struct model *model, struct shader *shader);
+void model_material(struct model *model, struct material *material);
 
-void object_instantiate(struct object *object, struct matrix4 tr);
+void model_instantiate(struct model *model, struct matrix4 tr);
 
-void object_load(struct object *object);
-void object_unload(struct object *object);
-void object_draw(struct object object);
+void model_load(struct model *model);
+void model_unload(struct model *model);
+void model_draw(struct model model);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -242,7 +242,7 @@ void camera_fov(struct camera *camera, f32 fov);
 void camera_target(struct camera *camera, struct vector3 target);
 void camera_limits(struct camera *camera, f32 near, f32 far);
 void camera_aspect(struct camera *camera, f32 aspect);
-void camera_send_uniforms(struct camera *camera, struct object *object);
+void camera_send_uniforms(struct camera *camera, struct model *model);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------

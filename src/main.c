@@ -57,11 +57,11 @@ int main(int argc, const char *argv[])
     material_shininess(&saucer_material, 32.);
     material_load(&saucer_material);
 
-    struct object grass = { };
-    object_create(&grass);
-    object_geometry(&grass, &grass_geometry);
-    object_shader(&grass, &grass_shader);
-    object_material(&grass, &grass_material);
+    struct model grass = { };
+    model_create(&grass);
+    model_geometry(&grass, &grass_geometry);
+    model_shader(&grass, &grass_shader);
+    model_material(&grass, &grass_material);
 
     f32 x_offset = 0.f;
     f32 y_offset = 0.f;
@@ -71,7 +71,7 @@ int main(int argc, const char *argv[])
             x_offset = 0. + ((f32) (rand() % 128) / 128.f) * .25;
             y_offset = 0. + ((f32) (rand() % 128) / 128.f) * .25;
             scale    = .5 + ((f32) (rand() % 128) / 128.f) * 1.5;
-            object_instantiate(&grass,
+            model_instantiate(&grass,
                 matrix4_translate(
                     matrix4_scale(matrix4_identity(), (vector3) { scale, scale, scale }),
                     (vector3) { x + x_offset, 0, y + y_offset }
@@ -80,19 +80,19 @@ int main(int argc, const char *argv[])
     }
     printf("there are %ld individual blades of grass !\n", grass.tr_instances->length);
 
-    struct object ground = { };
-    object_create(&ground);
-    object_geometry(&ground, &ground_geometry);
-    object_shader(&ground, &standard_shader);
-    object_material(&ground, &ground_material);
-    object_instantiate(&ground, matrix4_scale(matrix4_identity(), (vector3) { 50., 1., 50. }));
+    struct model ground = { };
+    model_create(&ground);
+    model_geometry(&ground, &ground_geometry);
+    model_shader(&ground, &standard_shader);
+    model_material(&ground, &ground_material);
+    model_instantiate(&ground, matrix4_scale(matrix4_identity(), (vector3) { 50., 1., 50. }));
 
-    struct object saucer = { };
-    object_create(&saucer);
-    object_geometry(&saucer, &saucer_geometry);
-    object_shader(&saucer, &standard_shader);
-    object_material(&saucer, &saucer_material);
-    object_instantiate(&saucer, matrix4_translate(matrix4_identity(), (vector3) { 2., 12., 0. }));
+    struct model saucer = { };
+    model_create(&saucer);
+    model_geometry(&saucer, &saucer_geometry);
+    model_shader(&saucer, &standard_shader);
+    model_material(&saucer, &saucer_material);
+    model_instantiate(&saucer, matrix4_translate(matrix4_identity(), (vector3) { 2., 12., 0. }));
 
     struct camera camera = { };
     camera_position(&camera, (vector3) { -30, 12, -20 });
@@ -118,9 +118,9 @@ int main(int argc, const char *argv[])
     scene_light_direc(&scene, lightdir);
     scene_light_point(&scene, lightpoint);
     scene_camera(&scene, camera);
-    scene_object(&scene, ground);
-    scene_object(&scene, saucer);
-    scene_object(&scene, grass);
+    scene_model(&scene, ground);
+    scene_model(&scene, saucer);
+    scene_model(&scene, grass);
     scene_load(&scene);
 
     i32 should_quit = 0;
@@ -158,9 +158,9 @@ int main(int argc, const char *argv[])
     geometry_delete(&grass_geometry);
     geometry_delete(&ground_geometry);
     geometry_delete(&saucer_geometry);
-    object_delete(&grass);
-    object_delete(&ground);
-    object_delete(&saucer);
+    model_delete(&grass);
+    model_delete(&ground);
+    model_delete(&saucer);
     shader_delete(&grass_shader);
     shader_delete(&standard_shader);
 
