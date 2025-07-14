@@ -105,7 +105,6 @@ void geometry_unload(struct geometry *geometry)
     loadable_remove_user((struct loadable *) geometry);
 
     if (loadable_needs_unloading((struct loadable *) geometry)) {
-        printf("unloading geometry...\n");
 
         glDeleteBuffers(1, &geometry->gpu_side.ebo);
         glDeleteBuffers(1, &geometry->gpu_side.vbo);

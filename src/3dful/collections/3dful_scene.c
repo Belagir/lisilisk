@@ -156,7 +156,6 @@ void scene_unload(struct scene *scene)
     loadable_remove_user((struct loadable *) scene);
 
     if (loadable_needs_unloading((struct loadable *) scene)) {
-        printf("unloading scene...\n");
         // destroy buffers
         glDeleteBuffers(1, &scene->ubo_point_lights);
         glDeleteBuffers(1, &scene->ubo_dir_lights);

@@ -159,7 +159,6 @@ void model_unload(struct model *model)
     loadable_remove_user((struct loadable *) model);
 
     if (loadable_needs_unloading((struct loadable *) model)) {
-        printf("unloading model...\n");
 
         glDeleteVertexArrays(1, &model->gpu_side.vao);
         model->gpu_side.vao = 0;

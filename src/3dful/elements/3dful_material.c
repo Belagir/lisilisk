@@ -82,7 +82,6 @@ void material_unload(struct material *material)
     loadable_remove_user((struct loadable *) material);
 
     if (loadable_needs_unloading((struct loadable *) material)) {
-        printf("unloading material...\n");
 
         glDeleteBuffers(1, &material->gpu_side.ubo);
         material->load_state.flags &= ~LOADABLE_FLAG_LOADED;
