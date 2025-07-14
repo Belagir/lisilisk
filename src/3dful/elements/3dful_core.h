@@ -256,7 +256,7 @@ void material_shininess(struct material *material, float shininess);
 
 void material_load(struct material *material);
 void material_unload(struct material *material);
-void material_send_uniforms(struct material *material, struct model *model);
+void material_bind_uniform_blocks(struct material *material, struct model *model);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------

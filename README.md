@@ -34,9 +34,11 @@ Data structures could start with this `opengl_object` that count users and other
 
 > Done ! There is space left intentionally (the flags) for future evolutions. The implementation still uses some boilerplate but it's okay, nothing major.
 
-### Review uniform setting procedures
+### ~~Review uniform setting procedures~~
 
 Not very confident in how I handle uniforms and uniform blocks buffers. Also, there are some limits (array capacities) that are not well reflected in the backend.
+
+> Kinda better now but light sources might need tweaking later. The way lights are sent to objects might will lead modifications to lights to not be passed to models.
 
 ### Textures
 
@@ -49,6 +51,10 @@ There should be a world data object that is responsible for : the ambient light,
 ### UVs & quads
 
 The parser for obj files should be able to load UVs and deal with faces made of more than 3 vertices.
+
+### Better materials
+
+Materials are an inetuitive mess. I should find a new way to express how a model is rendered, using simpler values, and textures maps for reflections.
 
 ### Dynamic updates of GPU data
 

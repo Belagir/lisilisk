@@ -80,18 +80,15 @@ void camera_send_uniforms(struct camera *camera, struct model *model)
 
     glUseProgram(model->shader->program);
     {
-        glBindVertexArray(model->gpu_side.vao);
-        {
-            uniform_name = glGetUniformLocation(model->shader->program, "VIEW_MATRIX");
-            glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->view);
+        uniform_name = glGetUniformLocation(model->shader->program, "VIEW_MATRIX");
+        glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->view);
 
-            uniform_name = glGetUniformLocation(model->shader->program, "PROJECTION_MATRIX");
-            glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->projection);
+        uniform_name = glGetUniformLocation(model->shader->program, "PROJECTION_MATRIX");
+        glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->projection);
 
-            uniform_name = glGetUniformLocation(model->shader->program, "CAMERA_POS");
-            glUniform3f(uniform_name, camera->pos.x, camera->pos.y, camera->pos.z);
-        }
-        glBindVertexArray(0);
+        uniform_name = glGetUniformLocation(model->shader->program, "CAMERA_POS");
+        glUniform3f(uniform_name, camera->pos.x, camera->pos.y, camera->pos.z);
     }
     glUseProgram(0);
+
 }

@@ -114,6 +114,8 @@ void model_load(struct model *model)
         // binding scenario for this VAO
         glBindVertexArray(model->gpu_side.vao);
         {
+            glUseProgram(model->shader->program);
+
             // vertex data from geometry
             glBindBuffer(GL_ARRAY_BUFFER, model->geometry->gpu_side.vbo);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->geometry->gpu_side.ebo);
@@ -180,13 +182,12 @@ void model_unload(struct model *model)
  */
 void model_draw(struct model model)
 {
-    material_send_uniforms(model.material, &model);
+    material_bind_uniform_blocks(model.material, &model);
 
     glUseProgram(model.shader->program);
     {
         glBindVertexArray(model.gpu_side.vao);
         {
-
             glDrawElementsInstanced(GL_TRIANGLES, model.geometry->faces->length*3,
                 GL_UNSIGNED_INT, 0, model.tr_instances->length);
         }
