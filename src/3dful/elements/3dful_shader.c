@@ -1,6 +1,8 @@
 
 #include "3dful_core.h"
 
+#include <ustd/array.h>
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
@@ -12,7 +14,7 @@ static char static_shader_diagnostic_buffer[SHADER_DIAGNOSTIC_MAX_LENGTH] = { 0 
 
 static i32 check_shader_compilation(GLuint name);
 static i32 check_shader_linking(GLuint program);
-static GLuint shader_compile(BUFFER *shader_source, GLenum kind);
+static GLuint shader_compile(byte *shader_source, GLenum kind);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -23,7 +25,7 @@ static GLuint shader_compile(BUFFER *shader_source, GLenum kind);
  * @param[inout] shader
  * @param[in] source
  */
-void shader_vert_mem(struct shader *shader, BUFFER *source)
+void shader_vert_mem(struct shader *shader, byte *source)
 {
     shader->vert_shader = shader_compile(source, GL_VERTEX_SHADER);
 }
@@ -34,7 +36,7 @@ void shader_vert_mem(struct shader *shader, BUFFER *source)
  * @param[inout] shader
  * @param[in] source
  */
-void shader_frag_mem(struct shader *shader, BUFFER *source)
+void shader_frag_mem(struct shader *shader, byte *source)
 {
     shader->frag_shader = shader_compile(source, GL_FRAGMENT_SHADER);
 }
@@ -47,15 +49,15 @@ void shader_frag_mem(struct shader *shader, BUFFER *source)
  */
 void shader_vert(struct shader *shader, const char *path)
 {
-    BUFFER *buffer = range_create_dynamic(make_system_allocator(), sizeof(*buffer->data), file_length(path));
+    byte *buffer = array_create(make_system_allocator(), sizeof(*buffer), file_length(path));
 
-    if (file_read(path, buffer) == 0) {
+    if (file_read_to_array(path, buffer) == 0) {
         shader_vert_mem(shader, buffer);
     } else {
         fprintf(stderr, "failed to read file `%s`\n", path);
     }
 
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer));
+    array_destroy(make_system_allocator(), (void **) &buffer);
 }
 
 /**
@@ -66,15 +68,15 @@ void shader_vert(struct shader *shader, const char *path)
  */
 void shader_frag(struct shader *shader, const char *path)
 {
-    BUFFER *buffer = range_create_dynamic(make_system_allocator(), sizeof(*buffer->data), file_length(path));
+    byte *buffer = array_create(make_system_allocator(), sizeof(*buffer), file_length(path));
 
-    if (file_read(path, buffer) == 0) {
+    if (file_read_to_array(path, buffer) == 0) {
         shader_frag_mem(shader, buffer);
     } else {
         fprintf(stderr, "failed to read file `%s`\n", path);
     }
 
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer));
+    array_destroy(make_system_allocator(), (void **) &buffer);
 }
 
 /**
@@ -166,13 +168,12 @@ static i32 check_shader_compilation(GLuint name)
  * @param kind
  * @return struct shader
  */
-static GLuint shader_compile(BUFFER *shader_source, GLenum kind)
+static GLuint shader_compile(byte *shader_source, GLenum kind)
 {
     GLuint shader = glCreateShader(kind);
-    const GLchar* buffer = (const GLchar*) shader_source->data;
-    GLint length = shader_source->length;
+    GLint length = array_length(shader_source);
 
-    glShaderSource(shader, 1, &buffer, &length);
+    glShaderSource(shader, 1, (const char *const *) &shader_source, &length);
     glCompileShader(shader);
 
     if (!check_shader_compilation(shader)) {

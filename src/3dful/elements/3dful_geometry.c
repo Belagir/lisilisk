@@ -1,5 +1,8 @@
 
 #include "3dful_core.h"
+
+#include <ustd/array.h>
+
 #include "geometry_parsing/3ful_geometry_parsing.h"
 
 /**
@@ -10,8 +13,8 @@
 void geometry_create(struct geometry *geometry)
 {
     *geometry = (struct geometry) {
-        .vertices = range_create_dynamic(make_system_allocator(), sizeof(*geometry->vertices->data), 2),
-        .faces    = range_create_dynamic(make_system_allocator(), sizeof(*geometry->faces->data), 2),
+        .vertices_array = array_create(make_system_allocator(), sizeof(*geometry->vertices_array), 2),
+        .faces_array    = array_create(make_system_allocator(), sizeof(*geometry->faces_array), 2),
     };
 }
 
@@ -24,13 +27,13 @@ void geometry_create(struct geometry *geometry)
  */
 void geometry_wavobj(struct geometry *geometry, const char *path)
 {
-    BUFFER *buffer = range_create_dynamic(make_system_allocator(), sizeof(*buffer->data), file_length(path));
+    byte *buffer = array_create(make_system_allocator(), sizeof(*buffer), file_length(path));
 
-    if (file_read(path, buffer) == 0) {
+    if (file_read_to_array(path, buffer) == 0) {
         geometry_wavobj_mem(geometry, buffer);
     }
 
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(buffer));
+    array_destroy(make_system_allocator(), (void **) &buffer);
 }
 
 /**
@@ -39,7 +42,7 @@ void geometry_wavobj(struct geometry *geometry, const char *path)
  * @param[inout] geometry
  * @param[in] obj
  */
-void geometry_wavobj_mem(struct geometry *geometry, BUFFER *obj_buffer)
+void geometry_wavobj_mem(struct geometry *geometry, byte *obj_buffer)
 {
     struct wavefront_obj obj = { };
 
@@ -58,8 +61,8 @@ void geometry_wavobj_mem(struct geometry *geometry, BUFFER *obj_buffer)
  */
 void geometry_delete(struct geometry *geometry)
 {
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(geometry->vertices));
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(geometry->faces));
+    array_destroy(make_system_allocator(), (void **) &geometry->vertices_array);
+    array_destroy(make_system_allocator(), (void **) &geometry->faces_array);
 
     *geometry = (struct geometry) { 0 };
 }
@@ -79,14 +82,14 @@ void geometry_load(struct geometry *geometry)
         glGenBuffers(1, &geometry->gpu_side.vbo);
         glBindBuffer(GL_ARRAY_BUFFER, geometry->gpu_side.vbo);
         glBufferData(GL_ARRAY_BUFFER,
-                geometry->vertices->length * sizeof(*geometry->vertices->data),
-                geometry->vertices->data, GL_STATIC_DRAW);
+                array_length(geometry->vertices_array) * sizeof(*geometry->vertices_array),
+                geometry->vertices_array, GL_STATIC_DRAW);
 
         glGenBuffers(1, &geometry->gpu_side.ebo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->gpu_side.ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                geometry->faces->length * sizeof(*geometry->faces->data),
-                geometry->faces->data, GL_STATIC_DRAW);
+                array_length(geometry->faces_array) * sizeof(*geometry->faces_array),
+                geometry->faces_array, GL_STATIC_DRAW);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -124,9 +127,10 @@ void geometry_unload(struct geometry *geometry)
  */
 void geometry_push_vertex(struct geometry *geometry, u32 *out_idx)
 {
-    geometry->vertices = range_ensure_capacity(make_system_allocator(), RANGE_TO_ANY(geometry->vertices), 1);
-    range_push(RANGE_TO_ANY(geometry->vertices), &(struct vertex) { 0 });
-    if (out_idx) *out_idx = (u32) geometry->vertices->length - 1;
+    array_ensure_capacity(make_system_allocator(), (void **) &geometry->vertices_array, 1);
+    array_push(geometry->vertices_array, &(struct vertex) { 0 });
+
+    if (out_idx) *out_idx = (u32) array_length(geometry->vertices_array) - 1;
 }
 
 /**
@@ -138,7 +142,7 @@ void geometry_push_vertex(struct geometry *geometry, u32 *out_idx)
  */
 void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos)
 {
-    geometry->vertices->data[idx].pos = pos;
+    geometry->vertices_array[idx].pos = pos;
 }
 
 /**
@@ -150,7 +154,7 @@ void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos)
  */
 void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3 normal)
 {
-    geometry->vertices->data[idx].normal = normal;
+    geometry->vertices_array[idx].normal = normal;
 }
 
 /**
@@ -161,9 +165,10 @@ void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3 norma
  */
 void geometry_push_face(struct geometry *geometry, u32 *out_idx)
 {
-    geometry->faces = range_ensure_capacity(make_system_allocator(), RANGE_TO_ANY(geometry->faces), 1);
-    range_push(RANGE_TO_ANY(geometry->faces), &(struct face) { 0 });
-    if (out_idx) *out_idx = (u32) geometry->faces->length - 1;
+    array_ensure_capacity(make_system_allocator(), (void **) &geometry->faces_array, 1);
+    array_push(geometry->faces_array, &(struct face) { 0 });
+
+    if (out_idx) *out_idx = (u32) array_length(geometry->faces_array) - 1;
 }
 
 /**
@@ -176,7 +181,7 @@ void geometry_push_face(struct geometry *geometry, u32 *out_idx)
  */
 void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u])
 {
-    geometry->faces->data[idx].idx_vert[0] = indices[0];
-    geometry->faces->data[idx].idx_vert[1] = indices[1];
-    geometry->faces->data[idx].idx_vert[2] = indices[2];
+    geometry->faces_array[idx].idx_vert[0] = indices[0];
+    geometry->faces_array[idx].idx_vert[1] = indices[1];
+    geometry->faces_array[idx].idx_vert[2] = indices[2];
 }

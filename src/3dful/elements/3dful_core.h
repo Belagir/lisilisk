@@ -90,8 +90,8 @@ struct face { u32 idx_vert[3u]; };
 struct geometry {
     struct loadable load_state;
 
-    RANGE(struct vertex) *vertices;
-    RANGE(struct face) *faces;
+    struct vertex *vertices_array;
+    struct face *faces_array;
 
     struct {
         GLuint vbo;
@@ -135,7 +135,7 @@ struct model {
     struct geometry *geometry;
     struct material *material;
 
-    RANGE(matrix4) *tr_instances;
+    struct matrix4 *tr_instances_array;
 
     // opengl names referencing the model's data on the gpu.
     struct {
@@ -217,9 +217,9 @@ i32 loadable_needs_unloading(struct loadable *obj);
 // -------------------------------------------------------------------------------------------------
 // SHADERS -----------------------------------------------------------------------------------------
 
-void shader_vert_mem(struct shader *shader, BUFFER *source);
+void shader_vert_mem(struct shader *shader, byte *source);
 void shader_vert(struct shader *shader, const char *path);
-void shader_frag_mem(struct shader *shader, BUFFER *source);
+void shader_frag_mem(struct shader *shader, byte *source);
 void shader_frag(struct shader *shader, const char *path);
 
 void shader_link(struct shader *shader);
@@ -236,7 +236,7 @@ void geometry_load(struct geometry *geometry);
 void geometry_unload(struct geometry *geometry);
 
 void geometry_wavobj(struct geometry *geometry, const char *path);
-void geometry_wavobj_mem(struct geometry *geometry, BUFFER *obj);
+void geometry_wavobj_mem(struct geometry *geometry, byte *obj);
 
 void geometry_push_vertex(struct geometry *geometry, u32 *out_idx);
 void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos);

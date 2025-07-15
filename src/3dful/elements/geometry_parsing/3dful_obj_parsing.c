@@ -6,7 +6,7 @@
 #include <ustd/array.h>
 
 struct parser_state {
-    const BUFFER *buffer;
+    const byte *buffer_array;
     size_t buffer_idx;
     u32 line, column;
 };
@@ -52,9 +52,9 @@ static i32 wavefront_parse_value_uint(struct parser_state *state, i32 *out_value
 void wavefront_obj_create(struct wavefront_obj *obj)
 {
     *obj = (struct wavefront_obj) {
-            .v  = array_create(make_system_allocator(), sizeof(*obj->v), 32),
-            .vn = array_create(make_system_allocator(), sizeof(*obj->vn), 32),
-            .f  = array_create(make_system_allocator(), sizeof(*obj->f), 32),
+            .v_array  = array_create(make_system_allocator(), sizeof(*obj->v_array), 32),
+            .vn_array = array_create(make_system_allocator(), sizeof(*obj->vn_array), 32),
+            .f_array  = array_create(make_system_allocator(), sizeof(*obj->f_array), 32),
     };
 }
 
@@ -65,9 +65,9 @@ void wavefront_obj_create(struct wavefront_obj *obj)
  */
 void wavefront_obj_delete(struct wavefront_obj *obj)
 {
-    array_destroy(make_system_allocator(), (void **) &obj->v);
-    array_destroy(make_system_allocator(), (void **) &obj->vn);
-    array_destroy(make_system_allocator(), (void **) &obj->f);
+    array_destroy(make_system_allocator(), (void **) &obj->v_array);
+    array_destroy(make_system_allocator(), (void **) &obj->vn_array);
+    array_destroy(make_system_allocator(), (void **) &obj->f_array);
 }
 
 /**
@@ -76,13 +76,13 @@ void wavefront_obj_delete(struct wavefront_obj *obj)
  * @param obj
  * @param buffer
  */
-void wavefront_obj_parse(struct wavefront_obj *obj, BUFFER *buffer)
+void wavefront_obj_parse(struct wavefront_obj *obj, byte *buffer)
 {
-    array_clear(obj->f);
-    array_clear(obj->v);
-    array_clear(obj->vn);
+    array_clear(obj->f_array);
+    array_clear(obj->v_array);
+    array_clear(obj->vn_array);
 
-    struct parser_state state = { .buffer = buffer, 0 };
+    struct parser_state state = { .buffer_array = buffer, 0 };
 
     while (!wavefront_parse_end_of_obj(&state, obj)) {
         skip_whitespace(&state);
@@ -120,14 +120,14 @@ void wavefront_obj_to(struct wavefront_obj *obj, struct geometry *geometry)
     struct wavefront_obj_face face = { };
     u32 face_generated_indices[3] = { 0 };
 
-    for (size_t i = 0 ; i < array_length(obj->f) ; i++) {
+    for (size_t i = 0 ; i < array_length(obj->f_array) ; i++) {
 
-        face = obj->f[i];
+        face = obj->f_array[i];
         for (size_t j = 0 ; j < 3 ; j++) {
             geometry_push_vertex(geometry, &face_generated_indices[j]);
 
-            geometry_vertex_pos(geometry, face_generated_indices[j], obj->v[face.v_idx[j]]);
-            geometry_vertex_normal(geometry, face_generated_indices[j], obj->vn[face.vn_idx[j]]);
+            geometry_vertex_pos(geometry, face_generated_indices[j], obj->v_array[face.v_idx[j]]);
+            geometry_vertex_normal(geometry, face_generated_indices[j], obj->vn_array[face.vn_idx[j]]);
         }
 
         geometry_push_face(geometry, &idx_face);
@@ -143,15 +143,15 @@ void wavefront_obj_to(struct wavefront_obj *obj, struct geometry *geometry)
  */
 void wavefront_obj_dump(struct wavefront_obj *obj, FILE *file)
 {
-    for (size_t i = 0 ; i < array_length(obj->v) ; i++) {
-        fprintf(file, "v %.6f %.6f %.6f\n", obj->v[i].x, obj->v[i].y, obj->v[i].z);
+    for (size_t i = 0 ; i < array_length(obj->v_array) ; i++) {
+        fprintf(file, "v %.6f %.6f %.6f\n", obj->v_array[i].x, obj->v_array[i].y, obj->v_array[i].z);
     }
-    for (size_t i = 0 ; i < array_length(obj->vn) ; i++) {
-        fprintf(file, "vn %.4f %.4f %.4f\n", obj->vn[i].x, obj->vn[i].y, obj->vn[i].z);
+    for (size_t i = 0 ; i < array_length(obj->vn_array) ; i++) {
+        fprintf(file, "vn %.4f %.4f %.4f\n", obj->vn_array[i].x, obj->vn_array[i].y, obj->vn_array[i].z);
     }
-    for (size_t i = 0 ; i < array_length(obj->f) ; i++) {
-        fprintf(file, "f %d//%d %d//%d %d//%d\n", obj->f[i].v_idx[0]+1, obj->f[i].vn_idx[0]+1,
-                obj->f[i].v_idx[1]+1, obj->f[i].vn_idx[1]+1, obj->f[i].v_idx[2]+1, obj->f[i].vn_idx[2]+1);
+    for (size_t i = 0 ; i < array_length(obj->f_array) ; i++) {
+        fprintf(file, "f %d//%d %d//%d %d//%d\n", obj->f_array[i].v_idx[0]+1, obj->f_array[i].vn_idx[0]+1,
+                obj->f_array[i].v_idx[1]+1, obj->f_array[i].vn_idx[1]+1, obj->f_array[i].v_idx[2]+1, obj->f_array[i].vn_idx[2]+1);
     }
 }
 
@@ -236,8 +236,8 @@ static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefro
             && wavefront_parse_value(state, &pos.y)
             && wavefront_parse_value(state, &pos.z)) {
 
-        array_ensure_capacity(make_system_allocator(), (void **) &out_obj->v, 1);
-        array_push(out_obj->v, &pos);
+        array_ensure_capacity(make_system_allocator(), (void **) &out_obj->v_array, 1);
+        array_push(out_obj->v_array, &pos);
 
         return 1;
     }
@@ -255,8 +255,8 @@ static i32 wavefront_parse_vertex_normal(struct parser_state *state, struct wave
             && wavefront_parse_value(state, &normal.y)
             && wavefront_parse_value(state, &normal.z)) {
 
-        array_ensure_capacity(make_system_allocator(), (void **) &out_obj->vn, 1);
-        array_push(out_obj->vn, &normal);
+        array_ensure_capacity(make_system_allocator(), (void **) &out_obj->vn_array, 1);
+        array_push(out_obj->vn_array, &normal);
         return 1;
     }
 
@@ -285,8 +285,8 @@ static i32 wavefront_parse_face(struct parser_state *state, struct wavefront_obj
         if (face_data[i][2] > 0) face.vn_idx[i] = face_data[i][2] - 1;
     }
 
-    array_ensure_capacity(make_system_allocator(), (void **) &out_obj->f, 1);
-    array_push(out_obj->f, &face);
+    array_ensure_capacity(make_system_allocator(), (void **) &out_obj->f_array, 1);
+    array_push(out_obj->f_array, &face);
     return 1;
 }
 
@@ -403,7 +403,7 @@ static i32 wavefront_parse_end_of_obj(struct parser_state *state, struct wavefro
 {
     (void) out_obj;
 
-    return ((state->buffer_idx+1) >= state->buffer->length);
+    return ((state->buffer_idx+1) >= array_length(state->buffer_array));
 }
 
 // -----------------------------------------------------------------------------
@@ -455,8 +455,8 @@ static i32 expect(struct parser_state *state, char *alternatives, size_t nb, cha
     }
 
     fprintf(stderr, "\nbut found : ");
-    if (state->buffer_idx >= state->buffer->length) fprintf(stderr, "end of stream.\n");
-    else fprintf(stderr, "%c\n", state->buffer->data[state->buffer_idx]);
+    if (state->buffer_idx >= array_length(state->buffer_array)) fprintf(stderr, "end of stream.\n");
+    else fprintf(stderr, "%c\n", state->buffer_array[state->buffer_idx]);
 
     return 0;
 }
@@ -474,17 +474,17 @@ static i32 lookup(struct parser_state *state, char *alternatives, size_t nb, cha
     i32 found = 0;
     size_t alt_idx = 0;
 
-    if (state->buffer_idx >= state->buffer->length) {
+    if (state->buffer_idx >= array_length(state->buffer_array)) {
         return 0;
     }
 
     while (!found && (alt_idx < nb)) {
-        found = state->buffer->data[state->buffer_idx] == alternatives[alt_idx];
+        found = state->buffer_array[state->buffer_idx] == alternatives[alt_idx];
         alt_idx += 1;
     }
 
     if (c_out) {
-        *c_out = state->buffer->data[state->buffer_idx];
+        *c_out = state->buffer_array[state->buffer_idx];
     }
 
     return found;
@@ -496,11 +496,11 @@ static i32 lookup(struct parser_state *state, char *alternatives, size_t nb, cha
 
 static void parser_state_advance(struct parser_state *state)
 {
-    if (state->buffer_idx >= state->buffer->length) {
+    if (state->buffer_idx >= array_length(state->buffer_array)) {
         return;
     }
 
-    if (state->buffer->data[state->buffer_idx] == '\n') {
+    if (state->buffer_array[state->buffer_idx] == '\n') {
         state->column = 0;
         state->line  += 1;
     } else {

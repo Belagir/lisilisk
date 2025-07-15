@@ -72,7 +72,6 @@ int main(int argc, const char *argv[])
                 ));
         }
     }
-    printf("there are %ld individual blades of grass !\n", grass.tr_instances->length);
 
     struct model ground = { };
     model_create(&ground);

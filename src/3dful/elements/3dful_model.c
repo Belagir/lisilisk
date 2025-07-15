@@ -1,6 +1,8 @@
 
 #include "3dful_core.h"
 
+#include <ustd/array.h>
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
@@ -11,8 +13,7 @@
  */
 void model_create(struct model *model)
 {
-    model->tr_instances = range_create_dynamic(make_system_allocator(),
-            sizeof(*model->tr_instances->data), 64);
+    model->tr_instances_array = array_create(make_system_allocator(), sizeof(*model->tr_instances_array), 64);
 }
 
 /**
@@ -22,7 +23,7 @@ void model_create(struct model *model)
  */
 void model_delete(struct model *model)
 {
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(model->tr_instances));
+    array_destroy(make_system_allocator(), (void **) &model->tr_instances_array);
 }
 
 /**
@@ -80,9 +81,8 @@ void model_material(struct model *model, struct material *material)
  */
 void model_instantiate(struct model *model, struct matrix4 tr)
 {
-    model->tr_instances = range_ensure_capacity(make_system_allocator(),
-            RANGE_TO_ANY(model->tr_instances), 1);
-    range_push(RANGE_TO_ANY(model->tr_instances), &tr);
+    array_ensure_capacity(make_system_allocator(), (void **) &model->tr_instances_array, 1);
+    array_push(model->tr_instances_array, &tr);
 }
 
 /**
@@ -107,8 +107,8 @@ void model_load(struct model *model)
         glGenBuffers(1, &model->gpu_side.vbo_instances);
         glBindBuffer(GL_ARRAY_BUFFER, model->gpu_side.vbo_instances);
         glBufferData(GL_ARRAY_BUFFER,
-                sizeof(*model->tr_instances->data) * model->tr_instances->length,
-                model->tr_instances->data, GL_STATIC_DRAW);
+                array_length(model->tr_instances_array) * sizeof(*model->tr_instances_array),
+                model->tr_instances_array, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         // binding scenario for this VAO
@@ -188,8 +188,8 @@ void model_draw(struct model model)
     {
         glBindVertexArray(model.gpu_side.vao);
         {
-            glDrawElementsInstanced(GL_TRIANGLES, model.geometry->faces->length*3,
-                GL_UNSIGNED_INT, 0, model.tr_instances->length);
+            glDrawElementsInstanced(GL_TRIANGLES, array_length(model.geometry->faces_array) * 3,
+                GL_UNSIGNED_INT, 0, array_length(model.tr_instances_array));
         }
         glBindVertexArray(0);
     }
