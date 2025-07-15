@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#include <ustd/array.h>
+
 struct parser_state {
     const BUFFER *buffer;
     size_t buffer_idx;
@@ -50,9 +52,9 @@ static i32 wavefront_parse_value_uint(struct parser_state *state, i32 *out_value
 void wavefront_obj_create(struct wavefront_obj *obj)
 {
     *obj = (struct wavefront_obj) {
-            .v  = range_create_dynamic(make_system_allocator(), sizeof(*obj->v->data), 2),
-            .vn = range_create_dynamic(make_system_allocator(), sizeof(*obj->vn->data), 2),
-            .f  = range_create_dynamic(make_system_allocator(), sizeof(*obj->f->data), 2),
+            .v  = array_create(make_system_allocator(), sizeof(*obj->v), 32),
+            .vn = array_create(make_system_allocator(), sizeof(*obj->vn), 32),
+            .f  = array_create(make_system_allocator(), sizeof(*obj->f), 32),
     };
 }
 
@@ -63,9 +65,9 @@ void wavefront_obj_create(struct wavefront_obj *obj)
  */
 void wavefront_obj_delete(struct wavefront_obj *obj)
 {
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(obj->v));
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(obj->vn));
-    range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(obj->f));
+    array_destroy(make_system_allocator(), (void **) &obj->v);
+    array_destroy(make_system_allocator(), (void **) &obj->vn);
+    array_destroy(make_system_allocator(), (void **) &obj->f);
 }
 
 /**
@@ -76,9 +78,9 @@ void wavefront_obj_delete(struct wavefront_obj *obj)
  */
 void wavefront_obj_parse(struct wavefront_obj *obj, BUFFER *buffer)
 {
-    range_clear(RANGE_TO_ANY(obj->f));
-    range_clear(RANGE_TO_ANY(obj->v));
-    range_clear(RANGE_TO_ANY(obj->vn));
+    array_clear(obj->f);
+    array_clear(obj->v);
+    array_clear(obj->vn);
 
     struct parser_state state = { .buffer = buffer, 0 };
 
@@ -118,14 +120,14 @@ void wavefront_obj_to(struct wavefront_obj *obj, struct geometry *geometry)
     struct wavefront_obj_face face = { };
     u32 face_generated_indices[3] = { 0 };
 
-    for (size_t i = 0 ; i < obj->f->length ; i++) {
+    for (size_t i = 0 ; i < array_length(obj->f) ; i++) {
 
-        face = obj->f->data[i];
+        face = obj->f[i];
         for (size_t j = 0 ; j < 3 ; j++) {
             geometry_push_vertex(geometry, &face_generated_indices[j]);
 
-            geometry_vertex_pos(geometry, face_generated_indices[j], obj->v->data[face.v_idx[j]]);
-            geometry_vertex_normal(geometry, face_generated_indices[j], obj->vn->data[face.vn_idx[j]]);
+            geometry_vertex_pos(geometry, face_generated_indices[j], obj->v[face.v_idx[j]]);
+            geometry_vertex_normal(geometry, face_generated_indices[j], obj->vn[face.vn_idx[j]]);
         }
 
         geometry_push_face(geometry, &idx_face);
@@ -141,15 +143,15 @@ void wavefront_obj_to(struct wavefront_obj *obj, struct geometry *geometry)
  */
 void wavefront_obj_dump(struct wavefront_obj *obj, FILE *file)
 {
-    for (size_t i = 0 ; i < obj->v->length ; i++) {
-        fprintf(file, "v %.6f %.6f %.6f\n", obj->v->data[i].x, obj->v->data[i].y, obj->v->data[i].z);
+    for (size_t i = 0 ; i < array_length(obj->v) ; i++) {
+        fprintf(file, "v %.6f %.6f %.6f\n", obj->v[i].x, obj->v[i].y, obj->v[i].z);
     }
-    for (size_t i = 0 ; i < obj->vn->length ; i++) {
-        fprintf(file, "vn %.4f %.4f %.4f\n", obj->vn->data[i].x, obj->vn->data[i].y, obj->vn->data[i].z);
+    for (size_t i = 0 ; i < array_length(obj->vn) ; i++) {
+        fprintf(file, "vn %.4f %.4f %.4f\n", obj->vn[i].x, obj->vn[i].y, obj->vn[i].z);
     }
-    for (size_t i = 0 ; i < obj->f->length ; i++) {
-        fprintf(file, "f %d//%d %d//%d %d//%d\n", obj->f->data[i].v_idx[0]+1, obj->f->data[i].vn_idx[0]+1,
-                obj->f->data[i].v_idx[1]+1, obj->f->data[i].vn_idx[1]+1, obj->f->data[i].v_idx[2]+1, obj->f->data[i].vn_idx[2]+1);
+    for (size_t i = 0 ; i < array_length(obj->f) ; i++) {
+        fprintf(file, "f %d//%d %d//%d %d//%d\n", obj->f[i].v_idx[0]+1, obj->f[i].vn_idx[0]+1,
+                obj->f[i].v_idx[1]+1, obj->f[i].vn_idx[1]+1, obj->f[i].v_idx[2]+1, obj->f[i].vn_idx[2]+1);
     }
 }
 
@@ -234,8 +236,9 @@ static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefro
             && wavefront_parse_value(state, &pos.y)
             && wavefront_parse_value(state, &pos.z)) {
 
-        out_obj->v = range_ensure_capacity(make_system_allocator(), RANGE_TO_ANY(out_obj->v), 1);
-        range_push(RANGE_TO_ANY(out_obj->v), &pos);
+        array_ensure_capacity(make_system_allocator(), (void **) &out_obj->v, 1);
+        array_push(out_obj->v, &pos);
+
         return 1;
     }
 
@@ -252,8 +255,8 @@ static i32 wavefront_parse_vertex_normal(struct parser_state *state, struct wave
             && wavefront_parse_value(state, &normal.y)
             && wavefront_parse_value(state, &normal.z)) {
 
-        out_obj->vn = range_ensure_capacity(make_system_allocator(), RANGE_TO_ANY(out_obj->vn), 1);
-        range_push(RANGE_TO_ANY(out_obj->vn), &normal);
+        array_ensure_capacity(make_system_allocator(), (void **) &out_obj->vn, 1);
+        array_push(out_obj->vn, &normal);
         return 1;
     }
 
@@ -282,8 +285,8 @@ static i32 wavefront_parse_face(struct parser_state *state, struct wavefront_obj
         if (face_data[i][2] > 0) face.vn_idx[i] = face_data[i][2] - 1;
     }
 
-    out_obj->f = range_ensure_capacity(make_system_allocator(), RANGE_TO_ANY(out_obj->f), 1);
-    range_push(RANGE_TO_ANY(out_obj->f), &face);
+    array_ensure_capacity(make_system_allocator(), (void **) &out_obj->f, 1);
+    array_push(out_obj->f, &face);
     return 1;
 }
 
