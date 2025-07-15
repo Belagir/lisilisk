@@ -10,13 +10,13 @@
 struct scene {
     struct loadable load_state;
 
-    RANGE(struct model *) *models;
+    struct model * *models_array;
 
     struct camera camera;
 
-    RANGE(struct light_point) *point_lights;
+    struct light_point *point_lights_array;
     GLuint ubo_point_lights;
-    RANGE(struct light_directional) *direc_lights;
+    struct light_directional *direc_lights_array;
     GLuint ubo_dir_lights;
 
     struct light ambient_light;
