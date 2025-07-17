@@ -1,6 +1,8 @@
 
 #include <stdarg.h>
 
+#include <SDL2/SDL_image.h>
+
 #include "3dful.h"
 
 /**
@@ -21,6 +23,10 @@ struct application application_create(const char *name, u32 width, u32 height)
         return (struct application) { };
     }
 
+    if (IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_TIF) != (IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_TIF)) {
+        logger_log(log, LOGGER_SEVERITY_ERRO, "Failed to initialise SDL_image:\n%s", IMG_GetError());
+        return (struct application) { };
+    }
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
@@ -67,5 +73,7 @@ void application_destroy(struct application *target)
 
     SDL_GL_DeleteContext(target->ogl_context);
     SDL_DestroyWindow(target->sdl_window);
+
+    IMG_Quit();
     SDL_Quit();
 }

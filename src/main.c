@@ -1,4 +1,6 @@
 
+#include <time.h>
+
 #include "3dful/3dful.h"
 #include "3dful/elements/3dful_core.h"
 #include "3dful/collections/3dful_collections.h"
@@ -33,23 +35,27 @@ int main(int argc, const char *argv[])
     geometry_create(&saucer_geometry);
     geometry_wavobj(&saucer_geometry, "models/saucer.obj");
 
+    struct texture smile = { };
+    texture_file(&smile, "images/smile.png");
+
     struct material grass_material = { };
     material_ambient(&grass_material,  (f32[4]) { .70, .85, .70, 1 });
     material_specular(&grass_material, (f32[4]) { .10, .16, .10, 1 });
     material_diffuse(&grass_material,  (f32[4]) { .30, .50, .30, 1 });
-    material_shininess(&grass_material, 4.);
+    material_shininess(&grass_material, 32.);
 
     struct material ground_material = { };
     material_ambient(&ground_material,  (f32[4]) { .30, .25, .20, 1 });
     material_specular(&ground_material, (f32[4]) { .30, .25, .20, 1 });
     material_diffuse(&ground_material,  (f32[4]) { .30, .25, .20, 1 });
-    material_shininess(&ground_material, 1.);
+    material_shininess(&ground_material, 64.);
 
     struct material saucer_material = { };
-    material_ambient(&saucer_material,  (f32[4]) { .10, .10, .10, 1 });
+    material_ambient(&saucer_material,  (f32[4]) { .25, .20, .20, 1 });
     material_specular(&saucer_material, (f32[4]) { .95, .95, 1.0, 1 });
-    material_diffuse(&saucer_material,  (f32[4]) { .32, .32, .32, 1 });
-    material_shininess(&saucer_material, 32.);
+    material_diffuse(&saucer_material,  (f32[4]) { .05, .05, .05, 1 });
+    material_shininess(&saucer_material, 4.);
+    material_texture(&saucer_material, 0, &smile);
 
     struct model grass = { };
     model_create(&grass);
@@ -106,11 +112,11 @@ int main(int argc, const char *argv[])
     light_directional_direction(&lightdir, (vector3) { 1, -.2, 1 });
 
     struct light_point lightpoint = { };
-    light_color((struct light *) &lightpoint, (f32[4]) { .9, 1.5, 1.2, 1 });
+    light_color((struct light *) &lightpoint, (f32[4]) { 1., 1., 1., 1 });
     light_position(&lightpoint, (vector3) { 1, 15, 0 });
     light_point_linear(&lightpoint,    1.0);
-    light_point_constant(&lightpoint,  0.09);
-    light_point_quadratic(&lightpoint, 0.032);
+    light_point_constant(&lightpoint,  0.4);
+    light_point_quadratic(&lightpoint, 0.15);
 
     struct scene scene = { };
     scene_create(&scene);
@@ -126,8 +132,10 @@ int main(int argc, const char *argv[])
 
     i32 should_quit = 0;
     SDL_Event event = { };
+
     struct quaternion cam_rotat = quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, .002);
     u32 time = 0;
+
     while (!should_quit) {
         while (SDL_PollEvent(&event)) {
             should_quit = event.type == SDL_QUIT;
@@ -143,8 +151,6 @@ int main(int argc, const char *argv[])
 
         camera_position(&scene.camera,
                 vector3_rotate_by_quaternion(scene.camera.pos, cam_rotat));
-
-        SDL_Delay(10);
     }
 
     scene_unload(&scene);
@@ -157,6 +163,7 @@ int main(int argc, const char *argv[])
     model_delete(&ground);
     model_delete(&saucer);
     model_delete(&saucer2);
+    texture_delete(&smile);
     shader_delete(&grass_shader);
     shader_delete(&standard_shader);
 

@@ -55,20 +55,47 @@ void material_shininess(struct material *material, float shininess)
  * @brief
  *
  * @param material
+ * @param index
+ * @param texture
+ */
+void material_texture(struct material *material, u8 index, struct texture *texture)
+{
+    if (material->samplers[index]) {
+        texture_unload(material->samplers[index]);
+    }
+
+    if ((material->load_state.flags & LOADABLE_FLAG_LOADED) && texture) {
+        texture_load(texture);
+    }
+
+    material->samplers[index] = texture;
+}
+
+/**
+ * @brief
+ *
+ * @param material
  */
 void material_load(struct material *material)
 {
     loadable_add_user((struct loadable *) material);
 
-    if (loadable_needs_loading((struct loadable *) material)) {
+    if (!loadable_needs_loading((struct loadable *) material)) {
+        return;
+    }
 
-        glGenBuffers(1, &material->gpu_side.ubo);
-        glBindBuffer(GL_UNIFORM_BUFFER, material->gpu_side.ubo);
-        glBufferData(GL_UNIFORM_BUFFER, sizeof(material->properties),
-                &(material->properties), GL_STATIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glGenBuffers(1, &material->gpu_side.ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, material->gpu_side.ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(material->properties),
+            &(material->properties), GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-        material->load_state.flags |= LOADABLE_FLAG_LOADED;
+    material->load_state.flags |= LOADABLE_FLAG_LOADED;
+
+    for (size_t i = 0 ; i < COUNT_OF(material->samplers) ; i++) {
+        if (material->samplers[i]) {
+            texture_load(material->samplers[i]);
+        }
     }
 }
 
@@ -86,7 +113,6 @@ void material_unload(struct material *material)
         glDeleteBuffers(1, &material->gpu_side.ubo);
         material->load_state.flags &= ~LOADABLE_FLAG_LOADED;
     }
-
 }
 
 /**

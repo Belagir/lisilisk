@@ -3,6 +3,7 @@
 #define CORE_3DFUL_H__
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <GLES3/gl3.h>
 
 #include <ustd/common.h>
@@ -102,6 +103,22 @@ struct geometry {
 // -------------------------------------------------------------------------------------------------
 
 /**
+ * @brief
+ *
+ */
+struct texture {
+    struct loadable load_state;
+
+    SDL_Surface *image;
+
+    struct {
+        GLuint name;
+    } gpu_side;
+};
+
+// -------------------------------------------------------------------------------------------------
+
+/**
  * @brief Describes how some surface behaves in contact with light.
  * Passed to a material shader.
  */
@@ -116,6 +133,8 @@ struct material {
 
         f32 PADDING[3];
     } properties;
+
+    struct texture * samplers[16u];
 
     struct {
         GLuint ubo;
@@ -254,6 +273,8 @@ void material_diffuse(struct material *material, f32 diffuse[4]);
 void material_specular(struct material *material, f32 specular[4]);
 void material_shininess(struct material *material, float shininess);
 
+void material_texture(struct material *material, u8 index, struct texture *texture);
+
 void material_load(struct material *material);
 void material_unload(struct material *material);
 void material_bind_uniform_blocks(struct material *material, struct model *model);
@@ -298,5 +319,16 @@ void light_point_linear(struct light_point *light, f32 linear);
 void light_point_quadratic(struct light_point *light, f32 quadratic);
 
 void light_directional_direction(struct light_directional *light, struct vector3 direction);
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+// TEXTURE -----------------------------------------------------------------------------------------
+
+void texture_file(struct texture *texture, const char *path);
+void texture_file_mem(struct texture *texture, const byte *image);
+void texture_delete(struct texture *texture);
+
+void texture_load(struct texture *texture);
+void texture_unload(struct texture *texture);
 
 #endif

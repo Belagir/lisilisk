@@ -29,6 +29,7 @@ CFLAGS += -g -std=c2x
 ## linker flags
 LFLAGS += -Lunstandard/bin -lunstandard
 LFLAGS += -lGL `sdl2-config --libs`
+LFLAGS += -lSDL2_image
 LFLAGS += -lm
 
 # additional flags for defines
