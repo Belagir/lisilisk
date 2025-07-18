@@ -7,6 +7,7 @@
 #include <GLES3/gl3.h>
 
 #include <ustd/common.h>
+#include <ustd/math2d.h>
 #include <ustd/math3d.h>
 
 #include "../3dful.h"
@@ -76,7 +77,7 @@ struct shader {
  * @brief Piece of data passed to OpengGL to represent a vertice composing a mesh.
  *
  */
-struct vertex { struct vector3 pos, normal; };
+struct vertex { struct vector3 pos, normal; struct vector2 uv; };
 
 /**
  * @brief Stores indices of a vertices array to describe triangular faces.
@@ -260,6 +261,7 @@ void geometry_wavobj_mem(struct geometry *geometry, byte *obj);
 void geometry_push_vertex(struct geometry *geometry, u32 *out_idx);
 void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos);
 void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3 normal);
+void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv);
 
 void geometry_push_face(struct geometry *geometry, u32 *out_idx);
 void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u]);

@@ -50,9 +50,9 @@ There should be a new data object to deal with textures. Those textures should b
 
 There should be a world data object that is responsible for : the ambient light, fog (?), the skybox (?).
 
-### UVs & quads
+### UVs
 
-The parser for obj files should be able to load UVs and deal with faces made of more than 3 vertices.
+The parser for obj files should be able to load UVs.
 
 ### Better materials
 
@@ -96,3 +96,7 @@ Basically, the interface should initialize a static global instance of the backe
 ### Transforms hierarchy
 
 There should be a way to bind transforms to form a tree, having children transforms offset by their parents'. This would also create a `load()` hierarchy ?
+
+### Quads
+
+The parser for obj files should be able to deal with faces made of more than 3 vertices.

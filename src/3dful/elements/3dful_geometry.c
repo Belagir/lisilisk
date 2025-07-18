@@ -158,6 +158,18 @@ void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3 norma
 }
 
 /**
+ * @brief
+ *
+ * @param geometry
+ * @param idx
+ * @param uv
+ */
+void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv)
+{
+    geometry->vertices_array[idx].uv = uv;
+}
+
+/**
  * @brief Adds an empty face to the geometry, filling an index used to reference it.
  *
  * @param[inout] geometry

@@ -2,6 +2,7 @@
 #ifndef GEOMETRY_PARSING_3DFUL_H__
 #define GEOMETRY_PARSING_3DFUL_H__
 
+#include <ustd/math2d.h>
 #include <ustd/math3d.h>
 
 #include "../../inout/file_operations.h"
@@ -9,11 +10,12 @@
 
 // -------------------------------------------------------------------------------------------------
 
-struct wavefront_obj_face { u32 v_idx[3], vn_idx[3]; };
+struct wavefront_obj_face { u32 v_idx[3], vn_idx[3], vt_idx[3]; };
 
 struct wavefront_obj {
     struct vector3 *v_array;
     struct vector3 *vn_array;
+    struct vector2 *vt_array;
     struct wavefront_obj_face *f_array;
 };
 

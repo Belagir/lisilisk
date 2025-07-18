@@ -33,7 +33,7 @@ int main(int argc, const char *argv[])
 
     struct geometry saucer_geometry = { };
     geometry_create(&saucer_geometry);
-    geometry_wavobj(&saucer_geometry, "models/saucer.obj");
+    geometry_wavobj(&saucer_geometry, "models/cube.obj");
 
     struct texture smile = { };
     texture_file(&smile, "images/redblot.png");

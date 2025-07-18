@@ -33,6 +33,7 @@ static i32 wavefront_parse_obj_smoothing(struct parser_state *state, struct wave
 static i32 wavefront_parse_vertex(struct parser_state *state, struct wavefront_obj *out_obj);
 static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefront_obj *out_obj);
 static i32 wavefront_parse_vertex_normal(struct parser_state *state, struct wavefront_obj *out_obj);
+static i32 wavefront_parse_vertex_texture(struct parser_state *state, struct wavefront_obj *out_obj);
 static i32 wavefront_parse_face(struct parser_state *state, struct wavefront_obj *out_obj);
 static i32 wavefront_parse_face_point(struct parser_state *state, i32 read_idx[3]);
 
@@ -54,6 +55,7 @@ void wavefront_obj_create(struct wavefront_obj *obj)
     *obj = (struct wavefront_obj) {
             .v_array  = array_create(make_system_allocator(), sizeof(*obj->v_array), 32),
             .vn_array = array_create(make_system_allocator(), sizeof(*obj->vn_array), 32),
+            .vt_array = array_create(make_system_allocator(), sizeof(*obj->vt_array), 32),
             .f_array  = array_create(make_system_allocator(), sizeof(*obj->f_array), 32),
     };
 }
@@ -67,6 +69,7 @@ void wavefront_obj_delete(struct wavefront_obj *obj)
 {
     array_destroy(make_system_allocator(), (void **) &obj->v_array);
     array_destroy(make_system_allocator(), (void **) &obj->vn_array);
+    array_destroy(make_system_allocator(), (void **) &obj->vt_array);
     array_destroy(make_system_allocator(), (void **) &obj->f_array);
 }
 
@@ -81,6 +84,7 @@ void wavefront_obj_parse(struct wavefront_obj *obj, byte *buffer)
     array_clear(obj->f_array);
     array_clear(obj->v_array);
     array_clear(obj->vn_array);
+    array_clear(obj->vt_array);
 
     struct parser_state state = { .buffer_array = buffer, 0 };
 
@@ -128,6 +132,7 @@ void wavefront_obj_to(struct wavefront_obj *obj, struct geometry *geometry)
 
             geometry_vertex_pos(geometry, face_generated_indices[j], obj->v_array[face.v_idx[j]]);
             geometry_vertex_normal(geometry, face_generated_indices[j], obj->vn_array[face.vn_idx[j]]);
+            geometry_vertex_uv(geometry, face_generated_indices[j], obj->vt_array[face.vt_idx[j]]);
         }
 
         geometry_push_face(geometry, &idx_face);
@@ -149,6 +154,9 @@ void wavefront_obj_dump(struct wavefront_obj *obj, FILE *file)
     for (size_t i = 0 ; i < array_length(obj->vn_array) ; i++) {
         fprintf(file, "vn %.4f %.4f %.4f\n", obj->vn_array[i].x, obj->vn_array[i].y, obj->vn_array[i].z);
     }
+    for (size_t i = 0 ; i < array_length(obj->vt_array) ; i++) {
+        fprintf(file, "vt %.4f %.4f\n", obj->vt_array[i].x, obj->vt_array[i].y);
+    }
     for (size_t i = 0 ; i < array_length(obj->f_array) ; i++) {
         fprintf(file, "f %d//%d %d//%d %d//%d\n", obj->f_array[i].v_idx[0]+1, obj->f_array[i].vn_idx[0]+1,
                 obj->f_array[i].v_idx[1]+1, obj->f_array[i].vn_idx[1]+1, obj->f_array[i].v_idx[2]+1, obj->f_array[i].vn_idx[2]+1);
@@ -166,6 +174,9 @@ static i32 wavefront_parse_end_line(struct parser_state *state, struct wavefront
     return accept(state, (char []) { '\n' }, 1, NULL);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 static i32 wavefront_parse_comment(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     (void) out_obj;
@@ -180,6 +191,9 @@ static i32 wavefront_parse_comment(struct parser_state *state, struct wavefront_
     }
     return 1;
 }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static i32 wavefront_parse_obj_name(struct parser_state *state, struct wavefront_obj *out_obj)
 {
@@ -196,6 +210,9 @@ static i32 wavefront_parse_obj_name(struct parser_state *state, struct wavefront
     return 1;
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 static i32 wavefront_parse_obj_smoothing(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     (void) out_obj;
@@ -211,6 +228,9 @@ static i32 wavefront_parse_obj_smoothing(struct parser_state *state, struct wave
     return 1;
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 static i32 wavefront_parse_vertex(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     skip_whitespace(state);
@@ -223,8 +243,15 @@ static i32 wavefront_parse_vertex(struct parser_state *state, struct wavefront_o
         return wavefront_parse_vertex_normal(state, out_obj);
     }
 
+    if (accept(state, (char []) { 't' }, 1, NULL)) {
+        return wavefront_parse_vertex_texture(state, out_obj);
+    }
+
     return wavefront_parse_vertex_pos(state, out_obj);
 }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefront_obj *out_obj)
 {
@@ -245,6 +272,9 @@ static i32 wavefront_parse_vertex_pos(struct parser_state *state, struct wavefro
     return 0;
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 static i32 wavefront_parse_vertex_normal(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     vector3 normal = { 0 };
@@ -264,6 +294,29 @@ static i32 wavefront_parse_vertex_normal(struct parser_state *state, struct wave
 
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+static i32 wavefront_parse_vertex_texture(struct parser_state *state, struct wavefront_obj *out_obj)
+{
+    vector3 uv = { 0 };
+
+    skip_whitespace(state);
+
+    if (wavefront_parse_value(state, &uv.x)
+            && wavefront_parse_value(state, &uv.y)) {
+
+        array_ensure_capacity(make_system_allocator(), (void **) &out_obj->vt_array, 1);
+        array_push(out_obj->vt_array, &uv);
+        return 1;
+    }
+
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 static i32 wavefront_parse_face(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     struct wavefront_obj_face face = { 0 };
@@ -281,7 +334,7 @@ static i32 wavefront_parse_face(struct parser_state *state, struct wavefront_obj
 
     for (size_t i = 0 ; i < 3 ; i++) {
         face.v_idx[i] = face_data[i][0] - 1;
-        // if (face_data[i][1] > 0) face.vt_idx[i] = face_data[i][1] - 1;
+        if (face_data[i][1] > 0) face.vt_idx[i] = face_data[i][1] - 1;
         if (face_data[i][2] > 0) face.vn_idx[i] = face_data[i][2] - 1;
     }
 
@@ -289,6 +342,9 @@ static i32 wavefront_parse_face(struct parser_state *state, struct wavefront_obj
     array_push(out_obj->f_array, &face);
     return 1;
 }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static i32 wavefront_parse_face_point(struct parser_state *state, i32 read_idx[3])
 {
@@ -317,6 +373,9 @@ static i32 wavefront_parse_face_point(struct parser_state *state, i32 read_idx[3
 
     return wavefront_parse_value_int(state, &read_idx[2]);
 }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static i32 wavefront_parse_value(struct parser_state *state, f32 *out_value)
 {
@@ -354,6 +413,9 @@ static i32 wavefront_parse_value(struct parser_state *state, f32 *out_value)
     return 1;
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 static i32 wavefront_parse_value_int(struct parser_state *state, i32 *out_value)
 {
     i32 value = 0;
@@ -375,6 +437,9 @@ static i32 wavefront_parse_value_int(struct parser_state *state, i32 *out_value)
 
     return valid;
 }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static i32 wavefront_parse_value_uint(struct parser_state *state, i32 *out_value)
 {
@@ -398,6 +463,9 @@ static i32 wavefront_parse_value_uint(struct parser_state *state, i32 *out_value
 
     return valid;
 }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static i32 wavefront_parse_end_of_obj(struct parser_state *state, struct wavefront_obj *out_obj)
 {
