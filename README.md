@@ -50,7 +50,7 @@ There should be a new data object to deal with textures. Those textures should b
 
 There should be a world data object that is responsible for : the ambient light, fog (?), the skybox (?).
 
-### UVs
+### ~~UVs~~
 
 The parser for obj files should be able to load UVs.
 

@@ -2,7 +2,7 @@
 
 layout (location = 0) in vec3 VertexPos;
 layout (location = 1) in vec3 VertexNormal;
-layout (location = 1) in vec2 VertexUV;
+layout (location = 2) in vec2 VertexUV;
 layout (location = 3) in mat4 InstanceMatrix;
 // + location 4 for prev. mat4
 // + location 5 for prev. mat4

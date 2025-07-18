@@ -7,7 +7,5 @@
 
 void main()
 {
-    FragUV = VertexUV;
-
     vertex();
 }

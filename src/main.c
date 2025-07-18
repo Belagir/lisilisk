@@ -19,7 +19,7 @@ int main(int argc, const char *argv[])
     shader_link(&grass_shader);
 
     struct shader standard_shader = { };
-    shader_frag(&standard_shader, "shaders/user_shaders/material.frag");
+    shader_frag(&standard_shader, "shaders/user_shaders/textured.frag");
     shader_vert(&standard_shader, "shaders/user_shaders/material.vert");
     shader_link(&standard_shader);
 
@@ -35,15 +35,15 @@ int main(int argc, const char *argv[])
     geometry_create(&saucer_geometry);
     geometry_wavobj(&saucer_geometry, "models/cube.obj");
 
-    struct texture smile = { };
-    texture_file(&smile, "images/redblot.png");
+    struct texture circles = { };
+    texture_file(&circles, "images/redblot.png");
 
     struct material grass_material = { };
     material_ambient(&grass_material,  (f32[4]) { .70, .85, .70, 1 });
     material_specular(&grass_material, (f32[4]) { .10, .16, .10, 1 });
     material_diffuse(&grass_material,  (f32[4]) { .30, .50, .30, 1 });
     material_shininess(&grass_material, 32.);
-    material_texture(&grass_material, 0, &smile);
+    material_texture(&grass_material, 0, &circles);
 
     struct material ground_material = { };
     material_ambient(&ground_material,  (f32[4]) { .30, .25, .20, 1 });
@@ -51,11 +51,15 @@ int main(int argc, const char *argv[])
     material_diffuse(&ground_material,  (f32[4]) { .30, .25, .20, 1 });
     material_shininess(&ground_material, 64.);
 
+    struct texture numbers = { };
+    texture_file(&numbers, "images/numbers.png");
+
     struct material saucer_material = { };
     material_ambient(&saucer_material,  (f32[4]) { .25, .20, .20, 1 });
     material_specular(&saucer_material, (f32[4]) { .95, .95, 1.0, 1 });
     material_diffuse(&saucer_material,  (f32[4]) { .05, .05, .05, 1 });
     material_shininess(&saucer_material, 4.);
+    material_texture(&saucer_material, 0, &numbers);
 
     struct model grass = { };
     model_create(&grass);
@@ -163,7 +167,8 @@ int main(int argc, const char *argv[])
     model_delete(&ground);
     model_delete(&saucer);
     model_delete(&saucer2);
-    texture_delete(&smile);
+    texture_delete(&circles);
+    texture_delete(&numbers);
     shader_delete(&grass_shader);
     shader_delete(&standard_shader);
 
