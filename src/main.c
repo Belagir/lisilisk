@@ -14,13 +14,13 @@ int main(int argc, const char *argv[])
     struct application target = application_create(argv[0], 1200, 800);
 
     struct shader grass_shader = { };
-    shader_frag(&grass_shader, "shaders/geometry_material.frag");
-    shader_vert(&grass_shader, "shaders/geometry_grass.vert");
+    shader_frag(&grass_shader, "shaders/user_shaders/material.frag");
+    shader_vert(&grass_shader, "shaders/user_shaders/grass.vert");
     shader_link(&grass_shader);
 
     struct shader standard_shader = { };
-    shader_frag(&standard_shader, "shaders/geometry_material.frag");
-    shader_vert(&standard_shader, "shaders/geometry.vert");
+    shader_frag(&standard_shader, "shaders/user_shaders/material.frag");
+    shader_vert(&standard_shader, "shaders/user_shaders/material.vert");
     shader_link(&standard_shader);
 
     struct geometry grass_geometry = { };

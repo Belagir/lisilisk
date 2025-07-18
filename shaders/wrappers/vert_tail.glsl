@@ -8,6 +8,4 @@
 void main()
 {
     vertex();
-
-    gl_Position = PROJECTION_MATRIX * VIEW_MATRIX * InstanceMatrix * vec4(VertexPos, 1.0);
 }

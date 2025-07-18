@@ -62,7 +62,7 @@ Materials are an inintuitive mess. I should find a new way to express how a mode
 
 Data objects that send data to the GPU do so only on `load()`. When their data change, they should update the data in the buffers.
 
-### Base shaders & shaders slices
+### ~~Base shaders & shaders slices~~
 
 There should be a better way to have the user supply shaders, without having the burden to redefine the uniforms & co.
 

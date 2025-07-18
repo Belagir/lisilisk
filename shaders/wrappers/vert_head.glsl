@@ -12,11 +12,8 @@ uniform mat4 PROJECTION_MATRIX;
 
 uniform uint TIME;
 
-uniform sampler2D height_texture;
-
 out vec3 Normal;
 out vec3 FragPos;
-
 
 // Rest of the shader code is concatenated after this ------
 // ---------------------------------------------------------

@@ -1,5 +1,5 @@
 
-void frag()
+void fragment()
 {
     // nop
 }
