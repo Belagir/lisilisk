@@ -1,4 +1,5 @@
 #version 330 core
+#extension GL_ARB_explicit_uniform_location : enable
 
 // ---------------------------------------------------------
 // ---------------------------------------------------------
@@ -11,11 +12,22 @@ uniform uint TIME;
 // ---------------------------------------------------------
 
 layout(std140) uniform BLOCK_MATERIAL {
-    vec4 ambient;
-    vec4 diffuse;
-    vec4 specular;
+    vec3 ambient;
+    float ambient_strength;
+
+    vec3 diffuse;
+    float diffuse_strength;
+
+    vec3 specular;
+    float specular_strength;
+
     float shininess;
 } MATERIAL;
+
+layout (location = 0) uniform sampler2D ambient_mask;
+layout (location = 1) uniform sampler2D specular_mask;
+layout (location = 2) uniform sampler2D diffuse_mask;
+layout (location = 3) uniform sampler2D base_texture;
 
 // ---------------------------------------------------------
 // ---------------------------------------------------------
@@ -86,7 +98,10 @@ vec4 LightContribution;
 vec4 light_diffuse(vec3 light_dir, Light l_base)
 {
     float diff = max(dot(Normal, light_dir), 0.0);
-    return l_base.color * (diff * MATERIAL.diffuse);
+    return l_base.color
+            * vec4(diff * MATERIAL.diffuse, 1.)
+            * texture(diffuse_mask, FragUV)
+            * MATERIAL.diffuse_strength;
 }
 
 // ---------------------------------------------------------
@@ -97,7 +112,20 @@ vec4 light_specular(vec3 light_dir, Light l_base)
     vec3 reflect_dir = reflect(-light_dir, Normal);
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), MATERIAL.shininess);
 
-    return l_base.color * spec * MATERIAL.specular;
+    return l_base.color
+            * vec4(spec * MATERIAL.specular, 1.)
+            * texture(specular_mask, FragUV)
+            * MATERIAL.specular_strength;
+}
+
+// ---------------------------------------------------------
+
+vec4 light_ambient_contribution(vec4 l)
+{
+    return l
+            * vec4(MATERIAL.ambient, 1.)
+            * texture(ambient_mask, FragUV)
+            * MATERIAL.ambient_strength;
 }
 
 // ---------------------------------------------------------
@@ -126,13 +154,6 @@ vec4 light_directional_contribution(LightDirectional l)
     vec4 specular = light_specular(light_dir, l.base);
 
     return diffuse + specular;
-}
-
-// ---------------------------------------------------------
-
-vec4 light_ambient_contribution(vec4 l)
-{
-    return l * MATERIAL.ambient;
 }
 
 // Rest of the shader code is concatenated after this ------

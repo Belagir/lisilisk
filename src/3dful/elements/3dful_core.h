@@ -48,6 +48,19 @@ enum shader_vertex_binding {
     SHADER_VERT_INSTANCEMATRIX_ROW3,
 };
 
+/**
+ * @brief
+ *
+ */
+enum material_base_sampler {
+    MATERIAL_BASE_SAMPLER_AMBIENT_MASK,
+    MATERIAL_BASE_SAMPLER_SPECULAR_MASK,
+    MATERIAL_BASE_SAMPLER_DIFFUSE_MASK,
+    MATERIAL_BASE_SAMPLER_TEXTURE,
+
+    MATERIAL_BASE_SAMPLERS_NUMBER,
+};
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
@@ -128,9 +141,9 @@ struct material {
     struct loadable load_state;
 
     struct {
-        f32 ambient[4];
-        f32 diffuse[4];
-        f32 specular[4];
+        f32 ambient[3], ambient_strength;
+        f32 diffuse[3], diffuse_strength;
+        f32 specular[3], specular_strength;
         f32 shininess;
 
         f32 PADDING[3];
@@ -271,6 +284,7 @@ void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u
 // -------------------------------------------------------------------------------------------------
 // TEXTURE -----------------------------------------------------------------------------------------
 
+void texture_default(struct texture *texture);
 void texture_file(struct texture *texture, const char *path);
 void texture_file_mem(struct texture *texture, const byte *image);
 void texture_delete(struct texture *texture);
@@ -282,12 +296,17 @@ void texture_unload(struct texture *texture);
 // -------------------------------------------------------------------------------------------------
 // MATERIAL ----------------------------------------------------------------------------------------
 
-void material_ambient(struct material *material, f32 ambient[4]);
-void material_diffuse(struct material *material, f32 diffuse[4]);
-void material_specular(struct material *material, f32 specular[4]);
+void material_texture(struct material *material, struct texture *texture);
+
+void material_ambient(struct material *material, f32 ambient[3], f32 strength);
+void material_ambient_mask(struct material *material, struct texture *mask);
+void material_diffuse(struct material *material, f32 diffuse[3], f32 strength);
+void material_diffuse_mask(struct material *material, struct texture *mask);
+void material_specular(struct material *material, f32 specular[3], f32 strength);
+void material_specular_mask(struct material *material, struct texture *mask);
 void material_shininess(struct material *material, float shininess);
 
-void material_texture(struct material *material, u8 index, struct texture *texture);
+void material_custom_texture(struct material *material, u8 index, struct texture *texture);
 
 void material_load(struct material *material);
 void material_unload(struct material *material);

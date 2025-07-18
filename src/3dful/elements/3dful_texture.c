@@ -7,6 +7,21 @@
  * @brief
  *
  * @param texture
+ */
+void texture_default(struct texture *texture)
+{
+    struct SDL_Surface *def = nullptr;
+
+    def = SDL_CreateRGBSurface(0, 2, 2, 32, 0, 0, 0, 0);
+    SDL_FillRect(def, nullptr, 0xffffffff);
+
+    texture->image = def;
+}
+
+/**
+ * @brief
+ *
+ * @param texture
  * @param path
  */
 void texture_file(struct texture *texture, const char *path)

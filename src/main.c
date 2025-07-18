@@ -13,99 +13,41 @@ int main(int argc, const char *argv[])
 
     struct application target = application_create(argv[0], 1200, 800);
 
-    struct shader grass_shader = { };
-    shader_frag(&grass_shader, "shaders/user_shaders/material.frag");
-    shader_vert(&grass_shader, "shaders/user_shaders/grass.vert");
-    shader_link(&grass_shader);
-
     struct shader standard_shader = { };
-    shader_frag(&standard_shader, "shaders/user_shaders/textured.frag");
+    shader_frag(&standard_shader, "shaders/user_shaders/material.frag");
     shader_vert(&standard_shader, "shaders/user_shaders/material.vert");
     shader_link(&standard_shader);
-
-    struct geometry grass_geometry = { };
-    geometry_create(&grass_geometry);
-    geometry_wavobj(&grass_geometry, "models/grass_blade.obj");
-
-    struct geometry ground_geometry = { };
-    geometry_create(&ground_geometry);
-    geometry_wavobj(&ground_geometry, "models/plane.obj");
 
     struct geometry saucer_geometry = { };
     geometry_create(&saucer_geometry);
     geometry_wavobj(&saucer_geometry, "models/cube.obj");
 
-    struct texture circles = { };
-    texture_file(&circles, "images/redblot.png");
-
-    struct material grass_material = { };
-    material_ambient(&grass_material,  (f32[4]) { .70, .85, .70, 1 });
-    material_specular(&grass_material, (f32[4]) { .10, .16, .10, 1 });
-    material_diffuse(&grass_material,  (f32[4]) { .30, .50, .30, 1 });
-    material_shininess(&grass_material, 32.);
-    material_texture(&grass_material, 0, &circles);
-
-    struct material ground_material = { };
-    material_ambient(&ground_material,  (f32[4]) { .30, .25, .20, 1 });
-    material_specular(&ground_material, (f32[4]) { .30, .25, .20, 1 });
-    material_diffuse(&ground_material,  (f32[4]) { .30, .25, .20, 1 });
-    material_shininess(&ground_material, 64.);
+    struct texture default_texture = { };
+    texture_default(&default_texture);
 
     struct texture numbers = { };
     texture_file(&numbers, "images/numbers.png");
 
     struct material saucer_material = { };
-    material_ambient(&saucer_material,  (f32[4]) { .25, .20, .20, 1 });
-    material_specular(&saucer_material, (f32[4]) { .95, .95, 1.0, 1 });
-    material_diffuse(&saucer_material,  (f32[4]) { .05, .05, .05, 1 });
+    material_texture(&saucer_material, &default_texture);
+    material_ambient(&saucer_material,  (f32[3]) { 1.0, 0.0, 0.0 }, 1.0);
+    material_ambient_mask(&saucer_material, &default_texture);
+    material_specular(&saucer_material, (f32[3]) { 0.0, 1.0, 0.0 }, 1.0);
+    material_specular_mask(&saucer_material, &numbers);
+    material_diffuse(&saucer_material,  (f32[3]) { 0.0, 0.0, 1.0 }, 1.0);
+    material_diffuse_mask(&saucer_material, &default_texture);
     material_shininess(&saucer_material, 4.);
-    material_texture(&saucer_material, 0, &numbers);
-
-    struct model grass = { };
-    model_create(&grass);
-    model_geometry(&grass, &grass_geometry);
-    model_shader(&grass, &grass_shader);
-    model_material(&grass, &grass_material);
-
-    f32 x_offset = 0.f;
-    f32 y_offset = 0.f;
-    f32 scale = 0.f;
-    for (f32 x = -50. ; x < 50. ; x += 0.3) {
-        for (f32 y = -50. ; y < 50. ; y += 0.3) {
-            x_offset = 0. + ((f32) (rand() % 128) / 128.f) * .25;
-            y_offset = 0. + ((f32) (rand() % 128) / 128.f) * .25;
-            scale    = .5 + ((f32) (rand() % 128) / 128.f) * 1.5;
-            model_instantiate(&grass,
-                matrix4_translate(
-                    matrix4_scale(matrix4_identity(), (vector3) { scale, scale, scale }),
-                    (vector3) { x + x_offset, 0, y + y_offset }
-                ));
-        }
-    }
-
-    struct model ground = { };
-    model_create(&ground);
-    model_geometry(&ground, &ground_geometry);
-    model_shader(&ground, &standard_shader);
-    model_material(&ground, &ground_material);
-    model_instantiate(&ground, matrix4_scale(matrix4_identity(), (vector3) { 50., 1., 50. }));
 
     struct model saucer = { };
     model_create(&saucer);
     model_geometry(&saucer, &saucer_geometry);
     model_shader(&saucer, &standard_shader);
     model_material(&saucer, &saucer_material);
-    model_instantiate(&saucer, matrix4_translate(matrix4_identity(), (vector3) { 2., 12., 0. }));
-
-    struct model saucer2 = { };
-    model_create(&saucer2);
-    model_geometry(&saucer2, &saucer_geometry);
-    model_shader(&saucer2, &standard_shader);
-    model_material(&saucer2, &saucer_material);
-    model_instantiate(&saucer2, matrix4_translate(matrix4_identity(), (vector3) { 1.5, 8., .4 }));
+    model_instantiate(&saucer, matrix4_translate(matrix4_identity(), (vector3) { 2., 2., 0. }));
+    model_instantiate(&saucer, matrix4_translate(matrix4_identity(), (vector3) { 1.5, -1., .4 }));
 
     struct camera camera = { };
-    camera_position(&camera, (vector3) { -30, 12, -20 });
+    camera_position(&camera, (vector3) { -10, 4, -7 });
     camera_fov(&camera, 60);
     camera_target(&camera, VECTOR3_ORIGIN);
     camera_limits(&camera, 0.1, 300);
@@ -128,16 +70,13 @@ int main(int argc, const char *argv[])
     scene_light_direc(&scene, lightdir);
     scene_light_point(&scene, lightpoint);
     scene_camera(&scene, camera);
-    scene_model(&scene, &ground);
     scene_model(&scene, &saucer);
-    scene_model(&scene, &saucer2);
-    scene_model(&scene, &grass);
     scene_load(&scene);
 
     i32 should_quit = 0;
     SDL_Event event = { };
 
-    struct quaternion cam_rotat = quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, .002);
+    struct quaternion cam_rotat = quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, .008);
     u32 time = 0;
 
     while (!should_quit) {
@@ -160,16 +99,10 @@ int main(int argc, const char *argv[])
     scene_unload(&scene);
 
     scene_delete(&scene);
-    geometry_delete(&grass_geometry);
-    geometry_delete(&ground_geometry);
     geometry_delete(&saucer_geometry);
-    model_delete(&grass);
-    model_delete(&ground);
     model_delete(&saucer);
-    model_delete(&saucer2);
-    texture_delete(&circles);
+    texture_delete(&default_texture);
     texture_delete(&numbers);
-    shader_delete(&grass_shader);
     shader_delete(&standard_shader);
 
     application_destroy(&target);
