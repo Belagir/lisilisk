@@ -183,6 +183,7 @@ void model_unload(struct model *model)
 void model_draw(struct model model)
 {
     material_bind_uniform_blocks(model.material, &model);
+    material_bind_textures(model.material, &model);
 
     glUseProgram(model.shader->program);
     {

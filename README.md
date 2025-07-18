@@ -40,9 +40,11 @@ Not very confident in how I handle uniforms and uniform blocks buffers. Also, th
 
 > Kinda better now but light sources might need tweaking later. The way lights are sent to objects might will lead modifications to lights to not be passed to models.
 
-### Textures
+### ~~Textures~~
 
 There should be a new data object to deal with textures. Those textures should be passable to shaders as samplers.
+
+> Made a proof of concept but it needs to be expanded when we get to UVs and Better Materials
 
 ### World object
 
@@ -54,7 +56,7 @@ The parser for obj files should be able to load UVs and deal with faces made of 
 
 ### Better materials
 
-Materials are an inetuitive mess. I should find a new way to express how a model is rendered, using simpler values, and textures maps for reflections.
+Materials are an inintuitive mess. I should find a new way to express how a model is rendered, using simpler values, and textures maps for reflections.
 
 ### Dynamic updates of GPU data
 

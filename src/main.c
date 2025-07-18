@@ -36,13 +36,14 @@ int main(int argc, const char *argv[])
     geometry_wavobj(&saucer_geometry, "models/saucer.obj");
 
     struct texture smile = { };
-    texture_file(&smile, "images/smile.png");
+    texture_file(&smile, "images/redblot.png");
 
     struct material grass_material = { };
     material_ambient(&grass_material,  (f32[4]) { .70, .85, .70, 1 });
     material_specular(&grass_material, (f32[4]) { .10, .16, .10, 1 });
     material_diffuse(&grass_material,  (f32[4]) { .30, .50, .30, 1 });
     material_shininess(&grass_material, 32.);
+    material_texture(&grass_material, 0, &smile);
 
     struct material ground_material = { };
     material_ambient(&ground_material,  (f32[4]) { .30, .25, .20, 1 });
@@ -55,7 +56,6 @@ int main(int argc, const char *argv[])
     material_specular(&saucer_material, (f32[4]) { .95, .95, 1.0, 1 });
     material_diffuse(&saucer_material,  (f32[4]) { .05, .05, .05, 1 });
     material_shininess(&saucer_material, 4.);
-    material_texture(&saucer_material, 0, &smile);
 
     struct model grass = { };
     model_create(&grass);

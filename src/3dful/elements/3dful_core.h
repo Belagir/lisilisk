@@ -266,6 +266,17 @@ void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+// TEXTURE -----------------------------------------------------------------------------------------
+
+void texture_file(struct texture *texture, const char *path);
+void texture_file_mem(struct texture *texture, const byte *image);
+void texture_delete(struct texture *texture);
+
+void texture_load(struct texture *texture);
+void texture_unload(struct texture *texture);
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // MATERIAL ----------------------------------------------------------------------------------------
 
 void material_ambient(struct material *material, f32 ambient[4]);
@@ -278,6 +289,7 @@ void material_texture(struct material *material, u8 index, struct texture *textu
 void material_load(struct material *material);
 void material_unload(struct material *material);
 void material_bind_uniform_blocks(struct material *material, struct model *model);
+void material_bind_textures(struct material *material, struct model *model);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -319,16 +331,5 @@ void light_point_linear(struct light_point *light, f32 linear);
 void light_point_quadratic(struct light_point *light, f32 quadratic);
 
 void light_directional_direction(struct light_directional *light, struct vector3 direction);
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// TEXTURE -----------------------------------------------------------------------------------------
-
-void texture_file(struct texture *texture, const char *path);
-void texture_file_mem(struct texture *texture, const byte *image);
-void texture_delete(struct texture *texture);
-
-void texture_load(struct texture *texture);
-void texture_unload(struct texture *texture);
 
 #endif

@@ -135,3 +135,27 @@ void material_bind_uniform_blocks(struct material *material, struct model *model
     }
     glUseProgram(0);
 }
+
+/**
+ * @brief
+ *
+ * @param material
+ * @param shader
+ */
+void material_bind_textures(struct material *material, struct model *model)
+{
+    glUseProgram(model->shader->program);
+    {
+        for (size_t i = 0 ; i < COUNT_OF(material->samplers) ; i++) {
+            glActiveTexture(GL_TEXTURE0 + i);
+            if (material->samplers[i]) {
+                glBindTexture(GL_TEXTURE_2D, material->samplers[i]->gpu_side.name);
+            } else {
+                // TODO: bind some default texture
+            }
+
+            // glUniform1i(glGetUniformLocation(model->shader->program, "texture1"), i);
+        }
+    }
+    glUseProgram(0);
+}
