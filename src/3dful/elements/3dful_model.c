@@ -120,10 +120,12 @@ void model_load(struct model *model)
             glBindBuffer(GL_ARRAY_BUFFER, model->geometry->gpu_side.vbo);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->geometry->gpu_side.ebo);
 
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, normal));
-            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
+            glEnableVertexAttribArray(SHADER_VERT_POS);
+            glVertexAttribPointer(SHADER_VERT_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, normal));
+            glEnableVertexAttribArray(SHADER_VERT_NORMAL);
+            glVertexAttribPointer(SHADER_VERT_UV, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, uv));
+            glEnableVertexAttribArray(SHADER_VERT_UV);
 
             // instances data
             glBindBuffer(GL_ARRAY_BUFFER, model->gpu_side.vbo_instances);

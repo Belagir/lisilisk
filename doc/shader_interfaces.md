@@ -15,7 +15,8 @@ compilation time.
 
 - `vec3 VertexPos` : on layout 0.
 - `vec3 VertexNormal` : on layout 1.
-- `mat4 InstanceMatrix` : on layout 2, 3, 4 and 5.
+- `vec2 VertexUV` : on layout 2.
+- `mat4 InstanceMatrix` : on layout 3, 4, 5, and 6.
 
 **Uniforms:**
 
@@ -27,6 +28,7 @@ compilation time.
 
 - `vec3 Normal`
 - `vec3 FragPos`
+- `vec2 FragUV`
 
 ## Fragment Shader default
 
@@ -43,6 +45,7 @@ compilation time.
 
 - `vec3 Normal`
 - `vec3 FragPos`
+- `vec2 FragUV`
 - `vec4 LightContribution`
 
 **Outputs:**
