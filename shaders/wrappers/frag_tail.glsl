@@ -16,6 +16,6 @@ void main()
         LightContribution += light_directional_contribution(LIGHT_DIRECTIONALS.array[i]);
     }
 
-    FragColor = LightContribution;
+    FragColor = LightContribution * texture(base_texture, FragUV);
     fragment();
 }
