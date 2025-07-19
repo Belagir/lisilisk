@@ -54,9 +54,11 @@ There should be a world data object that is responsible for : the ambient light,
 
 The parser for obj files should be able to load UVs.
 
-### Better materials
+### ~~Better materials~~
 
 Materials are an inintuitive mess. I should find a new way to express how a model is rendered, using simpler values, and textures maps for reflections.
+
+> Added masks, emission, texture etc to the material. It's a bit better now.
 
 ### Dynamic updates of GPU data
 
@@ -100,3 +102,7 @@ There should be a way to bind transforms to form a tree, having children transfo
 ### Quads
 
 The parser for obj files should be able to deal with faces made of more than 3 vertices.
+
+### Textures flags and Geometry flags
+
+The user should be able to choose how textures are filtered / clipped and how faces are culled.

@@ -36,10 +36,25 @@ compilation time.
 
 - `vec3 CAMERA_POS`
 - `uint TIME`
-- `vec4 MATERIAL.ambient`
-- `vec4 MATERIAL.diffuse`
-- `vec4 MATERIAL.specular`
+
+- `vec3 MATERIAL.ambient`
+- `float MATERIAL.ambient_strength`
+
+- `vec3 MATERIAL.diffuse`
+- `float MATERIAL.diffuse_strength`
+
+- `vec3 MATERIAL.specular`
+- `float MATERIAL.specular_strength`
 - `float MATERIAL.shininess`
+
+- `vec3 MATERIAL.emissive`
+- `float MATERIAL.emissive_strength`
+
+- `sampler2D ambient_mask` : on layout 0
+- `sampler2D specular_mask` : on layout 1
+- `sampler2D diffuse_mask` : on layout 2
+- `sampler2D emissive_mask` : on layout 3
+- `sampler2D base_texture` : on layout 4
 
 **Inputs:**
 
