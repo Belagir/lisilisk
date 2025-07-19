@@ -49,13 +49,14 @@ enum shader_vertex_binding {
 };
 
 /**
- * @brief
- *
+ * @brief This enumeration is a direct correspondance with the multiple
+ * uniform sampler2D layout indices found in the `frag_head.glsl`.
  */
 enum material_base_sampler {
     MATERIAL_BASE_SAMPLER_AMBIENT_MASK,
     MATERIAL_BASE_SAMPLER_SPECULAR_MASK,
     MATERIAL_BASE_SAMPLER_DIFFUSE_MASK,
+    MATERIAL_BASE_SAMPLER_EMISSIVE_MASK,
     MATERIAL_BASE_SAMPLER_TEXTURE,
 
     MATERIAL_BASE_SAMPLERS_NUMBER,
@@ -144,6 +145,7 @@ struct material {
         f32 ambient[3], ambient_strength;
         f32 diffuse[3], diffuse_strength;
         f32 specular[3], specular_strength;
+        f32 emissive[3], emissive_strength;
         f32 shininess;
 
         f32 PADDING[3];
@@ -305,6 +307,8 @@ void material_diffuse_mask(struct material *material, struct texture *mask);
 void material_specular(struct material *material, f32 specular[3], f32 strength);
 void material_specular_mask(struct material *material, struct texture *mask);
 void material_shininess(struct material *material, float shininess);
+void material_emissive(struct material *material, f32 emission[3], f32 strength);
+void material_emissive_mask(struct material *material, struct texture *mask);
 
 void material_custom_texture(struct material *material, u8 index, struct texture *texture);
 

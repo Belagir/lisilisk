@@ -13,8 +13,8 @@ static const char * material_sampler_uniforms[MATERIAL_BASE_SAMPLERS_NUMBER] = {
         [MATERIAL_BASE_SAMPLER_AMBIENT_MASK]  = "ambient_mask",
         [MATERIAL_BASE_SAMPLER_SPECULAR_MASK] = "specular_mask",
         [MATERIAL_BASE_SAMPLER_DIFFUSE_MASK]  = "diffuse_mask",
+        [MATERIAL_BASE_SAMPLER_EMISSIVE_MASK] = "emissive_mask",
         [MATERIAL_BASE_SAMPLER_TEXTURE]       = "base_texture",
-
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -115,6 +115,32 @@ void material_specular_mask(struct material *material, struct texture *mask)
 void material_shininess(struct material *material, float shininess)
 {
     material->properties.shininess = shininess;
+}
+
+/**
+ * @brief
+ *
+ * @param material
+ * @param emission
+ * @param strength
+ */
+void material_emissive(struct material *material, f32 emission[3], f32 strength)
+{
+    for (size_t i = 0 ; i < 4 ; i++) {
+        material->properties.emissive[i] = emission[i];
+    }
+    material->properties.emissive_strength = strength;
+}
+
+/**
+ * @brief
+ *
+ * @param material
+ * @param mask
+ */
+void material_emissive_mask(struct material *material, struct texture *mask)
+{
+    material_set_sampler(material, MATERIAL_BASE_SAMPLER_EMISSIVE_MASK, mask);
 }
 
 /**

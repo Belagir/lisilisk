@@ -29,14 +29,16 @@ int main(int argc, const char *argv[])
     texture_file(&numbers, "images/numbers.png");
 
     struct material saucer_material = { };
-    material_texture(&saucer_material, &numbers);
+    material_texture(&saucer_material, &default_texture);
     material_ambient(&saucer_material,  (f32[3]) { 1.0, 1.0, 1.0 }, 0.1);
     material_ambient_mask(&saucer_material, &default_texture);
     material_specular(&saucer_material, (f32[3]) { 0.9, 0.9, 1.0 }, 0.4);
     material_specular_mask(&saucer_material, &default_texture);
+    material_shininess(&saucer_material, 4.);
     material_diffuse(&saucer_material,  (f32[3]) { 1.0, 0.7, 0.7 }, 0.8);
     material_diffuse_mask(&saucer_material, &default_texture);
-    material_shininess(&saucer_material, 4.);
+    material_emissive(&saucer_material,  (f32[3]) { 1.0, 0.0, 0.0 }, 1.0);
+    material_emissive_mask(&saucer_material, &numbers);
 
     struct model saucer = { };
     model_create(&saucer);

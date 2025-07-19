@@ -21,13 +21,17 @@ layout(std140) uniform BLOCK_MATERIAL {
     vec3 specular;
     float specular_strength;
 
+    vec3 emissive;
+    float emissive_strength;
+
     float shininess;
 } MATERIAL;
 
 layout (location = 0) uniform sampler2D ambient_mask;
 layout (location = 1) uniform sampler2D specular_mask;
 layout (location = 2) uniform sampler2D diffuse_mask;
-layout (location = 3) uniform sampler2D base_texture;
+layout (location = 3) uniform sampler2D emissive_mask;
+layout (location = 4) uniform sampler2D base_texture;
 
 // ---------------------------------------------------------
 // ---------------------------------------------------------
