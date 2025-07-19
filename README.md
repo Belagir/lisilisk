@@ -2,6 +2,13 @@
 
 Lisilisk is a work in progress. It is a collection of functions that streamline some OpenGL actions.
 
+There is supposed to be four layers to the project :
+
+1. *OpenGL* + *SDL2* as the basic target-specific layer ;
+2. My own "unstandard" library, a separate project that provides utilities ;
+3. The "3dful" layer, that implements unit operations for the engine ;
+4. The Lisilisk implementation (doesn't exist yet) that imposes its paradigm to the user in exchange for a simpler interface.
+
 ## TODO list
 
 So much to do, so many other projects calling my name.
@@ -64,15 +71,15 @@ Materials are an inintuitive mess. I should find a new way to express how a mode
 
 Data objects that send data to the GPU do so only on `load()`. When their data change, they should update the data in the buffers.
 
+### Link TIME uniform to actual time
+
+Everything in the title.
+
 ### ~~Base shaders & shaders slices~~
 
 There should be a better way to have the user supply shaders, without having the burden to redefine the uniforms & co.
 
 The backend should take shader fragments rather than whole shaders. Those fragments should define a `vertex()` function and a `fragment()` function that will be used in the actual compiled shaders. Thoses fragments are appended to a set of uniform and interfaces declarations and a `main()` function that invokes the user functions. This is this shader that is actually compiled.
-
-### Freestanding instance objects
-
-When instancing a model, creating a light or a camera, the user should be given an instance handle that can act on the corresponding data (transforms, colors etc.) through a dedicated set of functions.
 
 ### Spaghetti interface
 
@@ -94,6 +101,10 @@ lisk_load("some_scene_identifier");
 4. Finally, the scene is loaded : the object is loaded, the geometry is loaded, the material is loaded, and the scene is added to the redendered scenes in the main loop.
 
 Basically, the interface should initialize a static global instance of the backend, and register data objects to string names when the user needs to. Those objects are created when the user needs them and load dynamically depending on what is needed.
+
+### Freestanding instance objects
+
+When instancing a model, creating a light or a camera, the user should be given an instance handle that can act on the corresponding data (transforms, colors etc.) through a dedicated set of functions.
 
 ### Transforms hierarchy
 
