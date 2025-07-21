@@ -69,8 +69,8 @@ void environment_load(struct environment *env)
         glBindTexture(GL_TEXTURE_CUBE_MAP, env->gpu_side.cubemap_texture);
         {
             for (size_t i = 0 ; i < CUBEMAP_FACES_NUMBER ; i++) {
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, env->cubemap[i]->image->w, env->cubemap[i]->image->h,
-                        0, GL_RGBA, GL_UNSIGNED_BYTE, env->cubemap[i]->image->pixels);
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, env->cubemap[i]->image->w, env->cubemap[i]->image->h,
+                        0, GL_RGB, GL_UNSIGNED_BYTE, env->cubemap[i]->image->pixels);
             }
 
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
