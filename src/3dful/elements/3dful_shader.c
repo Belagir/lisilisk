@@ -29,8 +29,8 @@ static char static_shader_diagnostic_buffer[SHADER_DIAGNOSTIC_MAX_LENGTH] = { 0 
 static i32 check_shader_compilation(GLuint name);
 static i32 check_shader_linking(GLuint program);
 static GLuint shader_compile_file(const char *path, GLenum kind, enum shader_wrapping wrapping);
-static GLuint shader_compile(byte *shader_source, GLenum kind);
-static GLuint shader_wrap_compile(byte *shader_source, GLenum kind);
+static GLuint shader_compile(const byte *shader_source, GLenum kind);
+static GLuint shader_wrap_compile(const byte *shader_source, GLenum kind);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ static GLuint shader_wrap_compile(byte *shader_source, GLenum kind);
  * @param[inout] shader
  * @param[in] source
  */
-void shader_material_vert_mem(struct shader *shader, byte *source)
+void shader_material_vert_mem(struct shader *shader, const byte *source)
 {
     shader->vert_shader = shader_wrap_compile(source, GL_VERTEX_SHADER);
 }
@@ -52,7 +52,7 @@ void shader_material_vert_mem(struct shader *shader, byte *source)
  * @param[inout] shader
  * @param[in] source
  */
-void shader_material_frag_mem(struct shader *shader, byte *source)
+void shader_material_frag_mem(struct shader *shader, const byte *source)
 {
     shader->frag_shader = shader_wrap_compile(source, GL_FRAGMENT_SHADER);
 }
@@ -93,7 +93,7 @@ void shader_material_frag(struct shader *shader, const char *path)
  * @param shader
  * @param source
  */
-void shader_vert_mem(struct shader *shader, byte *source)
+void shader_vert_mem(struct shader *shader, const byte *source)
 {
     shader->vert_shader = shader_compile(source, GL_VERTEX_SHADER);
 }
@@ -104,7 +104,7 @@ void shader_vert_mem(struct shader *shader, byte *source)
  * @param shader
  * @param source
  */
-void shader_frag_mem(struct shader *shader, byte *source)
+void shader_frag_mem(struct shader *shader, const byte *source)
 {
     shader->frag_shader = shader_compile(source, GL_FRAGMENT_SHADER);
 }
@@ -268,7 +268,7 @@ static i32 check_shader_compilation(GLuint name)
  * @param kind
  * @return struct shader
  */
-static GLuint shader_compile(byte *shader_source, GLenum kind)
+static GLuint shader_compile(const byte *shader_source, GLenum kind)
 {
     GLuint shader = glCreateShader(kind);
     GLint length = array_length(shader_source);
@@ -291,7 +291,7 @@ static GLuint shader_compile(byte *shader_source, GLenum kind)
  * @param kind
  * @return GLuint
  */
-static GLuint shader_wrap_compile(byte *shader_source, GLenum kind)
+static GLuint shader_wrap_compile(const byte *shader_source, GLenum kind)
 {
     byte *source_head = nullptr;
     byte *source_tail = nullptr;
@@ -319,9 +319,9 @@ static GLuint shader_wrap_compile(byte *shader_source, GLenum kind)
     full_source = array_create(make_system_allocator(), sizeof(*full_source),
             array_capacity(source_head) + array_capacity(shader_source) + array_capacity(source_tail));
 
-    array_append(full_source, source_head);
-    array_append(full_source, shader_source);
-    array_append(full_source, source_tail);
+    array_append(full_source, (void *) source_head);
+    array_append(full_source, (void *) shader_source);
+    array_append(full_source, (void *) source_tail);
 
     out_shader = shader_compile(full_source, kind);
 

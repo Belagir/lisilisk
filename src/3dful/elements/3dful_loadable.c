@@ -31,7 +31,7 @@ void loadable_remove_user(struct loadable *obj)
  * @param obj
  * @return i32
  */
-i32 loadable_needs_loading(struct loadable *obj)
+i32 loadable_needs_loading(const struct loadable *obj)
 {
     return (obj->nb_users > 0) && (!(obj->flags & LOADABLE_FLAG_LOADED));
 }
@@ -42,7 +42,7 @@ i32 loadable_needs_loading(struct loadable *obj)
  * @param obj
  * @return i32
  */
-i32 loadable_needs_unloading(struct loadable *obj)
+i32 loadable_needs_unloading(const struct loadable *obj)
 {
     return (obj->nb_users == 0) && (obj->flags & LOADABLE_FLAG_LOADED);
 }

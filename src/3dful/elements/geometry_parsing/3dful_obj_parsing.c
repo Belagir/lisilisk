@@ -79,7 +79,7 @@ void wavefront_obj_delete(struct wavefront_obj *obj)
  * @param obj
  * @param buffer
  */
-void wavefront_obj_parse(struct wavefront_obj *obj, byte *buffer)
+void wavefront_obj_parse(struct wavefront_obj *obj, const byte *buffer)
 {
     array_clear(obj->f_array);
     array_clear(obj->v_array);
@@ -118,7 +118,7 @@ void wavefront_obj_parse(struct wavefront_obj *obj, byte *buffer)
  * @param obj
  * @param geometry
  */
-void wavefront_obj_to(struct wavefront_obj *obj, struct geometry *geometry)
+void wavefront_obj_to(const struct wavefront_obj *obj, struct geometry *geometry)
 {
     u32 idx_face = 0;
     struct wavefront_obj_face face = { };

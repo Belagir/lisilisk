@@ -83,7 +83,7 @@ int main(int argc, const char *argv[])
 
     struct scene scene = { };
     scene_create(&scene);
-    scene_camera(&scene, cam);
+    scene_camera(&scene, &cam);
     scene_environment(&scene, &env);
     scene_light_direc(&scene, (struct light_directional) { .color = { 1., .9, .8, 1. },
             .direction = (struct vector3) { 0, -1, .3 } });
@@ -102,7 +102,7 @@ int main(int argc, const char *argv[])
             should_quit = event.type == SDL_QUIT;
         }
 
-        scene_draw(scene, time);
+        scene_draw(&scene, time);
         SDL_GL_SwapWindow(target.sdl_window);
     }
 

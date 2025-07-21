@@ -280,21 +280,21 @@ void position_translate(struct vector3 *pos, vector3 offset);
 
 void loadable_add_user(struct loadable *obj);
 void loadable_remove_user(struct loadable *obj);
-i32 loadable_needs_loading(struct loadable *obj);
-i32 loadable_needs_unloading(struct loadable *obj);
+i32 loadable_needs_loading(const struct loadable *obj);
+i32 loadable_needs_unloading(const struct loadable *obj);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 // SHADERS -----------------------------------------------------------------------------------------
 
-void shader_material_vert_mem(struct shader *shader, byte *source);
+void shader_material_vert_mem(struct shader *shader, const byte *source);
 void shader_material_vert(struct shader *shader, const char *path);
-void shader_material_frag_mem(struct shader *shader, byte *source);
+void shader_material_frag_mem(struct shader *shader, const byte *source);
 void shader_material_frag(struct shader *shader, const char *path);
 
-void shader_vert_mem(struct shader *shader, byte *source);
+void shader_vert_mem(struct shader *shader, const byte *source);
 void shader_vert(struct shader *shader, const char *path);
-void shader_frag_mem(struct shader *shader, byte *source);
+void shader_frag_mem(struct shader *shader, const byte *source);
 void shader_frag(struct shader *shader, const char *path);
 
 
@@ -312,7 +312,7 @@ void geometry_load(struct geometry *geometry);
 void geometry_unload(struct geometry *geometry);
 
 void geometry_wavobj(struct geometry *geometry, const char *path);
-void geometry_wavobj_mem(struct geometry *geometry, byte *obj);
+void geometry_wavobj_mem(struct geometry *geometry, const byte *obj);
 
 void geometry_push_vertex(struct geometry *geometry, u32 *out_idx);
 void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos);
@@ -372,7 +372,7 @@ void model_instantiate(struct model *model, struct matrix4 tr);
 
 void model_load(struct model *model);
 void model_unload(struct model *model);
-void model_draw(struct model model);
+void model_draw(struct model *model);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------

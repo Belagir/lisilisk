@@ -42,7 +42,7 @@ void geometry_wavobj(struct geometry *geometry, const char *path)
  * @param[inout] geometry
  * @param[in] obj
  */
-void geometry_wavobj_mem(struct geometry *geometry, byte *obj_buffer)
+void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer)
 {
     struct wavefront_obj obj = { };
 

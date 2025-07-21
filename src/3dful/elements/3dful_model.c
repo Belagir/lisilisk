@@ -184,17 +184,17 @@ void model_unload(struct model *model)
  *
  * @param[in] model
  */
-void model_draw(struct model model)
+void model_draw(struct model *model)
 {
-    material_bind_uniform_blocks(model.material, model.shader);
-    material_bind_textures(model.material, model.shader);
+    material_bind_uniform_blocks(model->material, model->shader);
+    material_bind_textures(model->material, model->shader);
 
-    glUseProgram(model.shader->program);
+    glUseProgram(model->shader->program);
     {
-        glBindVertexArray(model.gpu_side.vao);
+        glBindVertexArray(model->gpu_side.vao);
         {
-            glDrawElementsInstanced(GL_TRIANGLES, array_length(model.geometry->faces_array) * 3,
-                GL_UNSIGNED_INT, 0, array_length(model.tr_instances_array));
+            glDrawElementsInstanced(GL_TRIANGLES, array_length(model->geometry->faces_array) * 3,
+                GL_UNSIGNED_INT, 0, array_length(model->tr_instances_array));
         }
         glBindVertexArray(0);
     }
