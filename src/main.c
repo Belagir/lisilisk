@@ -13,6 +13,28 @@ int main(int argc, const char *argv[])
 
     struct application target = application_create(argv[0], 1200, 800);
 
+    struct shader material_shader = { };
+    shader_material_frag(&material_shader, "shaders/user_shaders/material.frag");
+    shader_material_vert(&material_shader, "shaders/user_shaders/material.vert");
+    shader_link(&material_shader);
+
+    struct material saucer_material = { };
+    material_ambient(&saucer_material,  (f32[4]) { .10, .10, .10, }, 1);
+    material_specular(&saucer_material, (f32[4]) { .95, .95, 1.0, }, 1);
+    material_diffuse(&saucer_material,  (f32[4]) { .32, .32, .32, }, 1);
+    material_shininess(&saucer_material, 32.);
+
+    struct geometry saucer_geometry = { };
+    geometry_create(&saucer_geometry);
+    geometry_wavobj(&saucer_geometry, "models/saucer.obj");
+
+    struct model saucer = { };
+    model_create(&saucer);
+    model_geometry(&saucer, &saucer_geometry);
+    model_shader(&saucer, &material_shader);
+    model_material(&saucer, &saucer_material);
+    model_instantiate(&saucer, matrix4_translate(matrix4_identity(), (vector3) { 0., 0., 0. }));
+
     struct texture sky_right = { };
     texture_file(&sky_right, "images/skybox/right.jpg");
     struct texture sky_left = { };
@@ -36,10 +58,10 @@ int main(int argc, const char *argv[])
 
     struct camera cam = { };
     camera_fov(&cam, 60.);
-    camera_aspect(&cam, (f32) (1200/800));
+    camera_aspect(&cam, 1200. / 800.);
     camera_limits(&cam, .1, 300.);
     camera_target(&cam, VECTOR3_ORIGIN);
-    camera_position(&cam, (struct vector3) { 3, 1, 3 });
+    camera_position(&cam, (struct vector3) { 6, 1, 6 });
 
     struct geometry cube = { };
     geometry_create(&cube);
@@ -55,6 +77,7 @@ int main(int argc, const char *argv[])
     scene_create(&scene);
     scene_camera(&scene, cam);
     scene_environment(&scene, &env);
+    scene_model(&scene, &saucer);
 
     // -----------------------------------------------------------------------
     scene_load(&scene);
@@ -79,6 +102,10 @@ int main(int argc, const char *argv[])
     }
 
     scene_delete(&scene);
+
+    shader_delete(&material_shader);
+    geometry_delete(&saucer_geometry);
+    model_delete(&saucer);
 
     shader_delete(&sky_shader);
     geometry_delete(&cube);

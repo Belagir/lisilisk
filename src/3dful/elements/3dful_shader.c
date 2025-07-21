@@ -66,6 +66,10 @@ void shader_material_frag_mem(struct shader *shader, byte *source)
 void shader_material_vert(struct shader *shader, const char *path)
 {
     shader->vert_shader = shader_compile_file(path, GL_VERTEX_SHADER, SHADER_WRAPPING_MATERIAL);
+
+    if (shader->vert_shader == 0) {
+        printf("compilation of material shader file %s failed.\n", path);
+    }
 }
 
 /**
@@ -77,6 +81,10 @@ void shader_material_vert(struct shader *shader, const char *path)
 void shader_material_frag(struct shader *shader, const char *path)
 {
     shader->frag_shader = shader_compile_file(path, GL_FRAGMENT_SHADER, SHADER_WRAPPING_MATERIAL);
+
+    if (shader->frag_shader == 0) {
+        printf("compilation of material shader file %s failed.\n", path);
+    }
 }
 
 /**
@@ -110,6 +118,10 @@ void shader_frag_mem(struct shader *shader, byte *source)
 void shader_vert(struct shader *shader, const char *path)
 {
     shader->vert_shader = shader_compile_file(path, GL_VERTEX_SHADER, SHADER_WRAPPING_NONE);
+
+    if (shader->vert_shader == 0) {
+        printf("compilation of file shader %s failed.\n", path);
+    }
 }
 
 /**
@@ -121,6 +133,10 @@ void shader_vert(struct shader *shader, const char *path)
 void shader_frag(struct shader *shader, const char *path)
 {
     shader->frag_shader = shader_compile_file(path, GL_FRAGMENT_SHADER, SHADER_WRAPPING_NONE);
+
+    if (shader->frag_shader == 0) {
+        printf("compilation of file shader %s failed.\n", path);
+    }
 }
 
 /**
@@ -285,11 +301,15 @@ static GLuint shader_wrap_compile(byte *shader_source, GLenum kind)
     switch (kind) {
         case GL_VERTEX_SHADER:
             source_head = array_create(make_system_allocator(), sizeof(*source_head), file_length(SHADER_VERTEX_HEAD));
+            file_read_to_array(SHADER_VERTEX_HEAD, source_head);
             source_tail = array_create(make_system_allocator(), sizeof(*source_tail), file_length(SHADER_VERTEX_TAIL));
+            file_read_to_array(SHADER_VERTEX_TAIL, source_tail);
             break;
         case GL_FRAGMENT_SHADER:
             source_head = array_create(make_system_allocator(), sizeof(*source_head), file_length(SHADER_FRAGMENT_HEAD));
+            file_read_to_array(SHADER_FRAGMENT_HEAD, source_head);
             source_tail = array_create(make_system_allocator(), sizeof(*source_tail), file_length(SHADER_FRAGMENT_TAIL));
+            file_read_to_array(SHADER_FRAGMENT_TAIL, source_tail);
             break;
 
         default:
@@ -299,14 +319,11 @@ static GLuint shader_wrap_compile(byte *shader_source, GLenum kind)
     full_source = array_create(make_system_allocator(), sizeof(*full_source),
             array_capacity(source_head) + array_capacity(shader_source) + array_capacity(source_tail));
 
-    file_read_to_array(SHADER_VERTEX_HEAD, source_head);
-    file_read_to_array(SHADER_VERTEX_TAIL, source_tail);
-
     array_append(full_source, source_head);
     array_append(full_source, shader_source);
     array_append(full_source, source_tail);
 
-    out_shader = shader_compile(full_source, GL_VERTEX_SHADER);
+    out_shader = shader_compile(full_source, kind);
 
     array_destroy(make_system_allocator(), (void **) &source_head);
     array_destroy(make_system_allocator(), (void **) &source_tail);
