@@ -10,5 +10,7 @@ uniform mat4 VIEW_MATRIX;
 void main()
 {
     FragUV = VertexPos;
-    gl_Position = PROJECTION_MATRIX * VIEW_MATRIX * vec4(VertexPos, 1.0);
+
+    vec4 normalized_dev_coords = (PROJECTION_MATRIX * mat4(mat3(VIEW_MATRIX)) * vec4(VertexPos, 1.0)).xyww;
+    gl_Position = normalized_dev_coords;
 }

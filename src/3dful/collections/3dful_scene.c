@@ -112,15 +112,22 @@ void scene_light_direc(struct scene *scene, struct light_directional light)
  */
 void scene_draw(struct scene scene, u32 time)
 {
-    camera_send_uniforms(&scene.camera, scene.env->shader);
-    environment_draw(scene.env);
+    glClearColor(scene.env->ambient_light.color[0],
+            scene.env->ambient_light.color[1],
+            scene.env->ambient_light.color[2],
+            scene.env->ambient_light.color[3]);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    {
+        camera_send_uniforms(&scene.camera, scene.env->shader);
+        environment_draw(scene.env);
 
-    for (size_t i = 0 ; i < array_length(scene.models_array) ; i++) {
-        scene_lights_send_uniforms(&scene, scene.models_array[i]);
-        camera_send_uniforms(&scene.camera, scene.models_array[i]->shader);
-        scene_time_send_uniforms(time, scene.models_array[i]);
+        for (size_t i = 0 ; i < array_length(scene.models_array) ; i++) {
+            scene_lights_send_uniforms(&scene, scene.models_array[i]);
+            camera_send_uniforms(&scene.camera, scene.models_array[i]->shader);
+            scene_time_send_uniforms(time, scene.models_array[i]);
 
-        model_draw(*(scene.models_array[i]));
+            model_draw(*(scene.models_array[i]));
+        }
     }
 }
 

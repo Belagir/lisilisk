@@ -55,7 +55,7 @@ struct application application_create(const char *name, u32 width, u32 height)
     /* This makes our buffer swap syncronized with the monitor's vertical refresh */
     SDL_GL_SetSwapInterval(1);
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);
+    glDepthFunc(GL_LEQUAL);
 
     return target;
 }

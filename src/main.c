@@ -57,25 +57,24 @@ int main(int argc, const char *argv[])
     scene_environment(&scene, &env);
 
     // -----------------------------------------------------------------------
+    scene_load(&scene);
+    // -----------------------------------------------------------------------
 
     i32 should_quit = 0;
     SDL_Event event = { };
     u32 time = 0;
 
-    scene_load(&scene);
+    struct quaternion cam_rotat = quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, 0.005);
 
     while (!should_quit) {
         while (SDL_PollEvent(&event)) {
             should_quit = event.type == SDL_QUIT;
         }
 
-        glClearColor(0.4, 0.5, 0.7, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        {
-            scene_draw(scene, time);
-            // ...
-            time += 1;
-        }
+        scene_draw(scene, time);
+
+        camera_position(&scene.camera, vector3_rotate_by_quaternion(scene.camera.pos, cam_rotat));
+        time += 1;
         SDL_GL_SwapWindow(target.sdl_window);
     }
 
