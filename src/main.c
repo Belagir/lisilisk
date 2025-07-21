@@ -84,7 +84,7 @@ int main(int argc, const char *argv[])
     struct scene scene = { };
     scene_create(&scene);
     scene_camera(&scene, &cam);
-    scene_environment(&scene, &env);
+    // scene_environment(&scene, &env);
     scene_light_direc(&scene, (struct light_directional) { .color = { 1., .9, .8, 1. },
             .direction = (struct vector3) { 0, -1, .3 } });
     scene_model(&scene, &saucer);
@@ -111,6 +111,7 @@ int main(int argc, const char *argv[])
     shader_delete(&material_shader);
     geometry_delete(&saucer_geometry);
     model_delete(&saucer);
+    texture_delete(&default_texture);
 
     shader_delete(&sky_shader);
     geometry_delete(&cube);

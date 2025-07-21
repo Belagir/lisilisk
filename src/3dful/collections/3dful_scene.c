@@ -126,18 +126,25 @@ void scene_light_direc(struct scene *scene, struct light_directional light)
  */
 void scene_draw(struct scene *scene, u32 time)
 {
-    glClearColor(scene->env->ambient_light.color[0], scene->env->ambient_light.color[1],
-            scene->env->ambient_light.color[2], scene->env->ambient_light.color[3]);
+    if (scene->env) {
+        glClearColor(scene->env->ambient_light.color[0], scene->env->ambient_light.color[1],
+                scene->env->ambient_light.color[2], scene->env->ambient_light.color[3]);
+    } else {
+        glClearColor(.1, .1, .1, 1.);
+    }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     {
-        camera_send_uniforms(scene->camera, scene->env->shader);
-        environment_draw(scene->env);
+        if (scene->env) {
+            camera_send_uniforms(scene->camera, scene->env->shader);
+            environment_draw(scene->env);
+        }
 
         for (size_t i = 0 ; i < array_length(scene->models_array) ; i++) {
+            if (scene->env) environment_send_uniforms(scene->env, scene->models_array[i]->shader);
+            if (scene->camera) camera_send_uniforms(scene->camera, scene->models_array[i]->shader);
+
             scene_lights_send_uniforms(scene, scene->models_array[i]->shader);
-            environment_send_uniforms(scene->env, scene->models_array[i]->shader);
-            camera_send_uniforms(scene->camera, scene->models_array[i]->shader);
             scene_time_send_uniforms(time, scene->models_array[i]->shader);
 
             model_draw(scene->models_array[i]);
