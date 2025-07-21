@@ -44,6 +44,8 @@ void scene_delete(struct scene *scene)
     array_destroy(make_system_allocator(), (void **) &scene->models_array);
     array_destroy(make_system_allocator(), (void **) &scene->light_sources.point_lights_array);
     array_destroy(make_system_allocator(), (void **) &scene->light_sources.direc_lights_array);
+
+    *scene = (struct scene) { 0 };
 }
 
 /**
@@ -54,9 +56,12 @@ void scene_delete(struct scene *scene)
  */
 void scene_model(struct scene *scene, struct model *model)
 {
+    if (!model) {
+        return;
+    }
+
     if (scene->load_state.flags & LOADABLE_FLAG_LOADED) {
         model_load(model);
-        scene_lights_bind_uniform_blocks(scene, model->shader);
     }
     array_push(scene->models_array, &model);
 }
@@ -80,6 +85,15 @@ void scene_camera(struct scene *scene, struct camera *camera)
  */
 void scene_environment(struct scene *scene, struct environment *env)
 {
+    if (scene->load_state.flags & LOADABLE_FLAG_LOADED) {
+        if (scene->env) {
+            environment_unload(scene->env);
+        }
+        if (env) {
+            environment_load(env);
+        }
+    }
+
     scene->env = env;
 }
 
@@ -149,7 +163,7 @@ void scene_load(struct scene *scene)
                 scene->light_sources.point_lights_array, GL_STATIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-        // Load lights -- point lights
+        // Load lights -- directional lights
         glGenBuffers(1, &scene->light_sources.ubo_dir_lights);
         glBindBuffer(GL_UNIFORM_BUFFER, scene->light_sources.ubo_dir_lights);
         glBufferData(GL_UNIFORM_BUFFER,
@@ -165,7 +179,9 @@ void scene_load(struct scene *scene)
             scene_lights_bind_uniform_blocks(scene, scene->models_array[i]->shader);
         }
 
-        environment_load(scene->env);
+        if (scene->env) {
+            environment_load(scene->env);
+        }
     }
 }
 
@@ -189,7 +205,9 @@ void scene_unload(struct scene *scene)
             model_unload(scene->models_array[i]);
         }
 
-        environment_unload(scene->env);
+        if (scene->env) {
+            environment_unload(scene->env);
+        }
     }
 
 }

@@ -11,6 +11,15 @@
  */
 void environment_cube(struct environment *env, struct geometry *cube)
 {
+    if (env->load_state.flags & LOADABLE_FLAG_LOADED) {
+        if (env->unit_cube) {
+            geometry_unload(env->unit_cube);
+        }
+        if (cube) {
+            geometry_load(cube);
+        }
+    }
+
     env->unit_cube = cube;
 }
 
@@ -84,8 +93,10 @@ void environment_load(struct environment *env)
         glBindTexture(GL_TEXTURE_CUBE_MAP, env->gpu_side.cubemap_texture);
         {
             for (size_t i = 0 ; i < CUBEMAP_FACES_NUMBER ; i++) {
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, env->cubemap[i]->image->w, env->cubemap[i]->image->h,
-                        0, GL_RGB, GL_UNSIGNED_BYTE, env->cubemap[i]->image->pixels);
+                if (env->cubemap[i]) {
+                    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, env->cubemap[i]->image->w, env->cubemap[i]->image->h,
+                            0, GL_RGB, GL_UNSIGNED_BYTE, env->cubemap[i]->image->pixels);
+                }
             }
 
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -127,9 +138,6 @@ void environment_unload(struct environment *env)
     loadable_remove_user((struct loadable *) env);
 
     if (loadable_needs_unloading((struct loadable *) env)) {
-        for (size_t i = 0 ; i < CUBEMAP_FACES_NUMBER ; i++) {
-            texture_unload(env->cubemap[i]);
-        }
 
         geometry_unload(env->unit_cube);
 

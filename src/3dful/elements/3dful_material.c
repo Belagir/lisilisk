@@ -199,15 +199,16 @@ void material_unload(struct material *material)
 {
     loadable_remove_user((struct loadable *) material);
 
-    if (loadable_needs_unloading((struct loadable *) material)) {
+    if (!loadable_needs_unloading((struct loadable *) material)) {
+        return;
+    }
 
-        glDeleteBuffers(1, &material->gpu_side.ubo);
-        material->load_state.flags &= ~LOADABLE_FLAG_LOADED;
+    glDeleteBuffers(1, &material->gpu_side.ubo);
+    material->load_state.flags &= ~LOADABLE_FLAG_LOADED;
 
-        for (size_t i = 0 ; i < COUNT_OF(material->samplers) ; i++) {
-            if (material->samplers[i]) {
-                texture_unload(material->samplers[i]);
-            }
+    for (size_t i = 0 ; i < COUNT_OF(material->samplers) ; i++) {
+        if (material->samplers[i]) {
+            texture_unload(material->samplers[i]);
         }
     }
 }
@@ -265,12 +266,13 @@ void material_bind_textures(struct material *material, struct shader *shader)
 
 static void material_set_sampler(struct material *material, u8 true_index, struct texture *texture)
 {
-    if (material->samplers[true_index]) {
-        texture_unload(material->samplers[true_index]);
-    }
-
-    if ((material->load_state.flags & LOADABLE_FLAG_LOADED) && texture) {
-        texture_load(texture);
+    if (material->load_state.flags & LOADABLE_FLAG_LOADED) {
+        if (material->samplers[true_index]) {
+            texture_unload(material->samplers[true_index]);
+        }
+        if (texture) {
+            texture_load(texture);
+        }
     }
 
     material->samplers[true_index] = texture;

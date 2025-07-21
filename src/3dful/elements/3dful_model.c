@@ -38,7 +38,9 @@ void model_geometry(struct model *model, struct geometry *geometry)
         if (model->geometry) {
             geometry_unload(model->geometry);
         }
-        geometry_load(geometry);
+        if (geometry) {
+            geometry_load(geometry);
+        }
     }
 
     model->geometry = geometry;
@@ -67,7 +69,9 @@ void model_material(struct model *model, struct material *material)
         if (model->material) {
             material_unload(model->material);
         }
-        material_load(material);
+        if (material) {
+            material_load(material);
+        }
     }
 
     model->material = material;
@@ -97,8 +101,8 @@ void model_load(struct model *model)
 
     if (loadable_needs_loading((struct loadable *) model)) {
 
-        geometry_load(model->geometry);
-        material_load(model->material);
+        if (model->geometry) geometry_load(model->geometry);
+        if (model->material) material_load(model->material);
 
         // model's vao
         glGenVertexArrays(1, &model->gpu_side.vao);
@@ -117,8 +121,10 @@ void model_load(struct model *model)
             glBindVertexArray(model->gpu_side.vao);
             {
                 // vertex data from geometry
-                glBindBuffer(GL_ARRAY_BUFFER, model->geometry->gpu_side.vbo);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->geometry->gpu_side.ebo);
+                if (model->geometry) {
+                    glBindBuffer(GL_ARRAY_BUFFER, model->geometry->gpu_side.vbo);
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->geometry->gpu_side.ebo);
+                }
 
                 glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
                 glEnableVertexAttribArray(SHADER_VERT_POS);
@@ -174,8 +180,8 @@ void model_unload(struct model *model)
 
         model->load_state.flags &= ~LOADABLE_FLAG_LOADED;
 
-        geometry_unload(model->geometry);
-        material_unload(model->material);
+        if (model->geometry) geometry_unload(model->geometry);
+        if (model->material) material_unload(model->material);
     }
 }
 
@@ -186,15 +192,19 @@ void model_unload(struct model *model)
  */
 void model_draw(struct model *model)
 {
-    material_bind_uniform_blocks(model->material, model->shader);
-    material_bind_textures(model->material, model->shader);
+    if (model->material) {
+        material_bind_uniform_blocks(model->material, model->shader);
+        material_bind_textures(model->material, model->shader);
+    }
 
     glUseProgram(model->shader->program);
     {
         glBindVertexArray(model->gpu_side.vao);
         {
-            glDrawElementsInstanced(GL_TRIANGLES, array_length(model->geometry->faces_array) * 3,
-                GL_UNSIGNED_INT, 0, array_length(model->tr_instances_array));
+            if (model->geometry) {
+                glDrawElementsInstanced(GL_TRIANGLES, array_length(model->geometry->faces_array) * 3,
+                        GL_UNSIGNED_INT, 0, array_length(model->tr_instances_array));
+            }
         }
         glBindVertexArray(0);
     }
