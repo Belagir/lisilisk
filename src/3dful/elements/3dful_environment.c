@@ -151,3 +151,22 @@ void environment_draw(struct environment *env)
 
     glDepthMask(GL_TRUE);
 }
+
+/**
+ * @brief
+ *
+ * @param env
+ * @param shader
+ */
+void environment_send_uniforms(struct environment *env, struct shader *shader)
+{
+    GLint uniform_name = -1;
+
+    glUseProgram(shader->program);
+    {
+        uniform_name = glGetUniformLocation(shader->program, "LIGHT_AMBIENT");
+        glUniform4fv(uniform_name, 1, env->ambient_light.color);
+    }
+    glUseProgram(0);
+
+}

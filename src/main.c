@@ -18,11 +18,17 @@ int main(int argc, const char *argv[])
     shader_material_vert(&material_shader, "shaders/user_shaders/material.vert");
     shader_link(&material_shader);
 
+    struct texture default_texture = { };
+    texture_default(&default_texture);
+
     struct material saucer_material = { };
     material_ambient(&saucer_material,  (f32[4]) { .10, .10, .10, }, 1);
+    material_ambient_mask(&saucer_material, &default_texture);
     material_specular(&saucer_material, (f32[4]) { .95, .95, 1.0, }, 1);
-    material_diffuse(&saucer_material,  (f32[4]) { .32, .32, .32, }, 1);
-    material_shininess(&saucer_material, 32.);
+    material_specular_mask(&saucer_material, &default_texture);
+    material_diffuse(&saucer_material,  (f32[4]) { .32, .32, .32, }, 0);
+    material_diffuse_mask(&saucer_material, &default_texture);
+    material_shininess(&saucer_material, 4.);
 
     struct geometry saucer_geometry = { };
     geometry_create(&saucer_geometry);
@@ -33,7 +39,7 @@ int main(int argc, const char *argv[])
     model_geometry(&saucer, &saucer_geometry);
     model_shader(&saucer, &material_shader);
     model_material(&saucer, &saucer_material);
-    model_instantiate(&saucer, matrix4_translate(matrix4_identity(), (vector3) { 0., 0., 0. }));
+    model_instantiate(&saucer, MATRIX4_IDENTITY);
 
     struct texture sky_right = { };
     texture_file(&sky_right, "images/skybox/right.jpg");
@@ -77,6 +83,8 @@ int main(int argc, const char *argv[])
     scene_create(&scene);
     scene_camera(&scene, cam);
     scene_environment(&scene, &env);
+    scene_light_direc(&scene, (struct light_directional) { .color = { 1., .9, .8, 1. },
+            .direction = (struct vector3) { 0, -1, .3 } });
     scene_model(&scene, &saucer);
 
     // -----------------------------------------------------------------------

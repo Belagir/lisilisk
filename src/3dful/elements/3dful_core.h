@@ -406,6 +406,7 @@ void environment_shader(struct environment *env, struct shader *shader);
 void environment_skybox(struct environment *env, struct texture *(*cubemap)[CUBEMAP_FACES_NUMBER]);
 
 void environment_draw(struct environment *env);
+void environment_send_uniforms(struct environment *env, struct shader *shader);
 
 void environment_load(struct environment *env);
 void environment_unload(struct environment *env);

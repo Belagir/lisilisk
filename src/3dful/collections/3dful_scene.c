@@ -6,9 +6,9 @@
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
-static void scene_lights_bind_uniform_blocks(struct scene *scene, struct model *model);
-static void scene_lights_send_uniforms(struct scene *scene, struct model *model);
-static void scene_time_send_uniforms(u32 time, struct model *model);
+static void scene_lights_bind_uniform_blocks(struct scene *scene, struct shader *shader);
+static void scene_lights_send_uniforms(struct scene *scene, struct shader *shader);
+static void scene_time_send_uniforms(u32 time, struct shader *shader);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ void scene_model(struct scene *scene, struct model *model)
 {
     if (scene->load_state.flags & LOADABLE_FLAG_LOADED) {
         model_load(model);
-        scene_lights_bind_uniform_blocks(scene, model);
+        scene_lights_bind_uniform_blocks(scene, model->shader);
     }
     array_push(scene->models_array, &model);
 }
@@ -112,19 +112,19 @@ void scene_light_direc(struct scene *scene, struct light_directional light)
  */
 void scene_draw(struct scene scene, u32 time)
 {
-    glClearColor(scene.env->ambient_light.color[0],
-            scene.env->ambient_light.color[1],
-            scene.env->ambient_light.color[2],
-            scene.env->ambient_light.color[3]);
+    glClearColor(scene.env->ambient_light.color[0], scene.env->ambient_light.color[1],
+            scene.env->ambient_light.color[2], scene.env->ambient_light.color[3]);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     {
         camera_send_uniforms(&scene.camera, scene.env->shader);
         environment_draw(scene.env);
 
         for (size_t i = 0 ; i < array_length(scene.models_array) ; i++) {
-            scene_lights_send_uniforms(&scene, scene.models_array[i]);
+            scene_lights_send_uniforms(&scene, scene.models_array[i]->shader);
+            environment_send_uniforms(scene.env, scene.models_array[i]->shader);
             camera_send_uniforms(&scene.camera, scene.models_array[i]->shader);
-            scene_time_send_uniforms(time, scene.models_array[i]);
+            scene_time_send_uniforms(time, scene.models_array[i]->shader);
 
             model_draw(*(scene.models_array[i]));
         }
@@ -162,7 +162,7 @@ void scene_load(struct scene *scene)
         // load models assigned to the scene
         for (size_t i = 0 ; i < array_length(scene->models_array) ; i++) {
             model_load(scene->models_array[i]);
-            scene_lights_bind_uniform_blocks(scene, scene->models_array[i]);
+            scene_lights_bind_uniform_blocks(scene, scene->models_array[i]->shader);
         }
 
         environment_load(scene->env);
@@ -204,20 +204,20 @@ void scene_unload(struct scene *scene)
  * @param scene
  * @param model
  */
-static void scene_lights_bind_uniform_blocks(struct scene *scene, struct model *model)
+static void scene_lights_bind_uniform_blocks(struct scene *scene, struct shader *shader)
 {
     GLint block_name = -1;
 
-    glUseProgram(model->shader->program);
+    glUseProgram(shader->program);
     {
-        block_name = glGetUniformBlockIndex(model->shader->program, "BLOCK_LIGHT_POINTS");
-        glUniformBlockBinding(model->shader->program, block_name, SHADER_UBO_LIGHT_POINT);
+        block_name = glGetUniformBlockIndex(shader->program, "BLOCK_LIGHT_POINTS");
+        glUniformBlockBinding(shader->program, block_name, SHADER_UBO_LIGHT_POINT);
 
         glBindBuffer(GL_UNIFORM_BUFFER, scene->light_sources.ubo_point_lights);
         glBindBufferBase(GL_UNIFORM_BUFFER, block_name, scene->light_sources.ubo_point_lights);
 
-        block_name = glGetUniformBlockIndex(model->shader->program, "BLOCK_LIGHT_DIRECTIONALS");
-        glUniformBlockBinding(model->shader->program, block_name, SHADER_UBO_LIGHT_DIREC);
+        block_name = glGetUniformBlockIndex(shader->program, "BLOCK_LIGHT_DIRECTIONALS");
+        glUniformBlockBinding(shader->program, block_name, SHADER_UBO_LIGHT_DIREC);
 
         glBindBuffer(GL_UNIFORM_BUFFER, scene->light_sources.ubo_dir_lights);
         glBindBufferBase(GL_UNIFORM_BUFFER, block_name, scene->light_sources.ubo_dir_lights);
@@ -231,20 +231,17 @@ static void scene_lights_bind_uniform_blocks(struct scene *scene, struct model *
  * @param scene
  * @param model
  */
-static void scene_lights_send_uniforms(struct scene *scene, struct model *model)
+static void scene_lights_send_uniforms(struct scene *scene, struct shader *shader)
 {
     GLint uniform_name = -1;
 
-    glUseProgram(model->shader->program);
+    glUseProgram(shader->program);
     {
-        uniform_name = glGetUniformLocation(model->shader->program, "LIGHT_POINTS_NB");
+        uniform_name = glGetUniformLocation(shader->program, "LIGHT_POINTS_NB");
         glUniform1ui(uniform_name, array_length(scene->light_sources.point_lights_array));
 
-        uniform_name = glGetUniformLocation(model->shader->program, "LIGHT_DIRECTIONALS_NB");
+        uniform_name = glGetUniformLocation(shader->program, "LIGHT_DIRECTIONALS_NB");
         glUniform1ui(uniform_name, array_length(scene->light_sources.direc_lights_array));
-
-        // uniform_name = glGetUniformLocation(model->shader->program, "LIGHT_AMBIENT");
-        // glUniform4fv(uniform_name, 1, scene->environment.ambient_light.color);
     }
     glUseProgram(0);
 }
@@ -256,13 +253,13 @@ static void scene_lights_send_uniforms(struct scene *scene, struct model *model)
  * @param time
  * @param model
  */
-static void scene_time_send_uniforms(u32 time, struct model *model)
+static void scene_time_send_uniforms(u32 time, struct shader *shader)
 {
     GLint uniform_name = -1;
 
-    glUseProgram(model->shader->program);
+    glUseProgram(shader->program);
     {
-        uniform_name = glGetUniformLocation(model->shader->program, "TIME");
+        uniform_name = glGetUniformLocation(shader->program, "TIME");
             glUniform1ui(uniform_name, time);
     }
     glUseProgram(0);
