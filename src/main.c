@@ -40,6 +40,7 @@ int main(int argc, const char *argv[])
     model_shader(&saucer, &material_shader);
     model_material(&saucer, &saucer_material);
     model_instantiate(&saucer, MATRIX4_IDENTITY);
+    model_instantiate(&saucer, matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0, 2, -180. }));
 
     struct texture sky_right = { };
     texture_file(&sky_right, "images/skybox/right.jpg");
@@ -63,11 +64,11 @@ int main(int argc, const char *argv[])
     shader_link(&sky_shader);
 
     struct camera cam = { };
-    camera_fov(&cam, 60.);
+    camera_fov(&cam, 40.);
     camera_aspect(&cam, 1200. / 800.);
     camera_limits(&cam, .1, 300.);
     camera_target(&cam, VECTOR3_ORIGIN);
-    camera_position(&cam, (struct vector3) { 6, 1, 6 });
+    camera_position(&cam, (struct vector3) { 1, 1.75, 15 });
 
     struct geometry cube = { };
     geometry_create(&cube);
@@ -78,6 +79,7 @@ int main(int argc, const char *argv[])
     environment_ambient(&env, (struct light) { {1, 1, 1, 1} });
     environment_shader(&env, &sky_shader);
     environment_skybox(&env, &skybox);
+    environment_fog(&env, (f32[3]) { .4, .6, .8 }, 200.);
 
     struct scene scene = { };
     scene_create(&scene);
@@ -95,17 +97,12 @@ int main(int argc, const char *argv[])
     SDL_Event event = { };
     u32 time = 0;
 
-    struct quaternion cam_rotat = quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, 0.005);
-
     while (!should_quit) {
         while (SDL_PollEvent(&event)) {
             should_quit = event.type == SDL_QUIT;
         }
 
         scene_draw(scene, time);
-
-        camera_position(&scene.camera, vector3_rotate_by_quaternion(scene.camera.pos, cam_rotat));
-        time += 1;
         SDL_GL_SwapWindow(target.sdl_window);
     }
 

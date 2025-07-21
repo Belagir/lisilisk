@@ -16,7 +16,7 @@ void main()
         LightContribution += light_directional_contribution(LIGHT_DIRECTIONALS.array[i]);
     }
 
-    FragColor = LightContribution;
+    FragColor = mix(LightContribution, fog_contribution(), .5);
 
     fragment();
 }

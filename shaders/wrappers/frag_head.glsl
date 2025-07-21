@@ -80,6 +80,11 @@ layout(std140) uniform BLOCK_LIGHT_DIRECTIONALS {
 uniform vec4 LIGHT_AMBIENT;
 
 // ---------------------------------------------------------
+
+uniform vec3 FOG_COLOR;
+uniform float FOG_DISTANCE;
+
+// ---------------------------------------------------------
 // ---------------------------------------------------------
 
 in vec3 Normal;
@@ -158,6 +163,16 @@ vec4 light_directional_contribution(LightDirectional l)
     vec4 specular = light_specular(light_dir, l.base);
 
     return diffuse + specular;
+}
+
+// ---------------------------------------------------------
+
+vec4 fog_contribution()
+{
+    float dist = length(CAMERA_POS - FragPos);
+    float tmp = dist/FOG_DISTANCE;
+
+    return vec4(FOG_COLOR, 1.) * (tmp*tmp);
 }
 
 // Rest of the shader code is concatenated after this ------

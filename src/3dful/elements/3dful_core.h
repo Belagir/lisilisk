@@ -259,6 +259,8 @@ struct environment {
     struct texture *cubemap[CUBEMAP_FACES_NUMBER];
     struct light ambient_light;
 
+    f32 fog_color[3], fog_distance;
+
     struct {
         GLuint vao;
         GLuint cubemap_texture;
@@ -404,6 +406,7 @@ void environment_cube(struct environment *env, struct geometry *cube);
 void environment_ambient(struct environment *env, struct light light);
 void environment_shader(struct environment *env, struct shader *shader);
 void environment_skybox(struct environment *env, struct texture *(*cubemap)[CUBEMAP_FACES_NUMBER]);
+void environment_fog(struct environment *env, f32 color[3], f32 distance);
 
 void environment_draw(struct environment *env);
 void environment_send_uniforms(struct environment *env, struct shader *shader);

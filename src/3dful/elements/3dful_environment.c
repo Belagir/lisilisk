@@ -52,6 +52,21 @@ void environment_skybox(struct environment *env, struct texture *(*cubemap)[CUBE
  * @brief
  *
  * @param env
+ * @param color
+ * @param distance
+ */
+void environment_fog(struct environment *env, f32 color[3], f32 distance)
+{
+    for (size_t i = 0 ; i < 3 ; i++) {
+        env->fog_color[i] = color[i];
+    }
+    env->fog_distance = distance;
+}
+
+/**
+ * @brief
+ *
+ * @param env
  */
 void environment_load(struct environment *env)
 {
@@ -166,6 +181,11 @@ void environment_send_uniforms(struct environment *env, struct shader *shader)
     {
         uniform_name = glGetUniformLocation(shader->program, "LIGHT_AMBIENT");
         glUniform4fv(uniform_name, 1, env->ambient_light.color);
+
+        uniform_name = glGetUniformLocation(shader->program, "FOG_COLOR");
+        glUniform3fv(uniform_name, 1, env->fog_color);
+        uniform_name = glGetUniformLocation(shader->program, "FOG_DISTANCE");
+        glUniform1f(uniform_name, env->fog_distance);
     }
     glUseProgram(0);
 
