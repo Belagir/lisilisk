@@ -63,6 +63,8 @@ There should be a world data object that is responsible for : the ambient light,
 
 The parser for obj files should be able to load UVs.
 
+> Done !
+
 ### ~~Better materials~~
 
 Materials are an inintuitive mess. I should find a new way to express how a model is rendered, using simpler values, and textures maps for reflections.
@@ -82,6 +84,8 @@ Everything in the title.
 There should be a better way to have the user supply shaders, without having the burden to redefine the uniforms & co.
 
 The backend should take shader fragments rather than whole shaders. Those fragments should define a `vertex()` function and a `fragment()` function that will be used in the actual compiled shaders. Thoses fragments are appended to a set of uniform and interfaces declarations and a `main()` function that invokes the user functions. This is this shader that is actually compiled.
+
+> We now have simplifed shaders for materials applied to models.
 
 ### Spaghetti interface
 
@@ -107,6 +111,10 @@ Basically, the interface should initialize a static global instance of the backe
 ### Freestanding instance objects
 
 When instancing a model, creating a light or a camera, the user should be given an instance handle that can act on the corresponding data (transforms, colors etc.) through a dedicated set of functions.
+
+### Tweens
+
+Give the engine tweening capabilities. There is still questions about tweening uniforms ?
 
 ### Transforms hierarchy
 
