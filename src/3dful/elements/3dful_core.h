@@ -66,15 +66,15 @@ enum material_base_sampler {
  * @brief
  * Matches OpenGL's GL_TEXTURE_CUBE_MAP_[POSITIVE,NEGATIVE]_[X,Y,Z] order of defines.
  */
-enum skybox_face {
-    SKYBOX_FACE_RIGHT,
-    SKYBOX_FACE_LEFT,
-    SKYBOX_FACE_TOP,
-    SKYBOX_FACE_BOTTOM,
-    SKYBOX_FACE_BACK,
-    SKYBOX_FACE_FRONT,
+enum cubemap_face {
+    CUBEMAP_FACE_RIGHT,
+    CUBEMAP_FACE_LEFT,
+    CUBEMAP_FACE_TOP,
+    CUBEMAP_FACE_BOTTOM,
+    CUBEMAP_FACE_BACK,
+    CUBEMAP_FACE_FRONT,
 
-    SKYBOX_FACES_NUMBER,
+    CUBEMAP_FACES_NUMBER,
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -251,14 +251,17 @@ struct light_directional {
 // -------------------------------------------------------------------------------------------------
 
 struct environment {
-    struct shader *shader;
-    struct camera *camera;
+    struct loadable load_state;
 
-    struct texture *cubemap[SKYBOX_FACES_NUMBER];
+    struct geometry *unit_cube;
+    struct shader *shader;
+
+    struct texture *cubemap[CUBEMAP_FACES_NUMBER];
     struct light ambient_light;
 
     struct {
         GLuint vao;
+        GLuint cubemap_texture;
     } gpu_side;
 };
 
@@ -349,8 +352,8 @@ void material_custom_texture(struct material *material, u8 index, struct texture
 
 void material_load(struct material *material);
 void material_unload(struct material *material);
-void material_bind_uniform_blocks(struct material *material, struct model *model);
-void material_bind_textures(struct material *material, struct model *model);
+void material_bind_uniform_blocks(struct material *material, struct shader *shader);
+void material_bind_textures(struct material *material, struct shader *shader);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -378,7 +381,7 @@ void camera_fov(struct camera *camera, f32 fov);
 void camera_target(struct camera *camera, struct vector3 target);
 void camera_limits(struct camera *camera, f32 near, f32 far);
 void camera_aspect(struct camera *camera, f32 aspect);
-void camera_send_uniforms(struct camera *camera, struct model *model);
+void camera_send_uniforms(struct camera *camera, struct shader *shader);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -397,10 +400,10 @@ void light_directional_direction(struct light_directional *light, struct vector3
 // -------------------------------------------------------------------------------------------------
 // ENVIRONMENT -------------------------------------------------------------------------------------
 
-void environment_skybox(struct environment *env, struct light light);
-void environment_camera(struct environment *env, struct camera *camera);
+void environment_cube(struct environment *env, struct geometry *cube);
+void environment_ambient(struct environment *env, struct light light);
 void environment_shader(struct environment *env, struct shader *shader);
-void environment_ambient(struct environment *env, struct texture *(*cubemap)[6u]);
+void environment_skybox(struct environment *env, struct texture *(*cubemap)[CUBEMAP_FACES_NUMBER]);
 
 void environment_draw(struct environment *env);
 

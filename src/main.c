@@ -26,16 +26,35 @@ int main(int argc, const char *argv[])
     struct texture sky_back = { };
     texture_file(&sky_back, "images/skybox/back.jpg");
 
-    // struct texture *skybox[SKYBOX_FACES_NUMBER] = { &sky_right, &sky_left, &sky_top,
-            // &sky_bottom, &sky_front, &sky_back, };
+    struct texture *skybox[CUBEMAP_FACES_NUMBER] = { &sky_right, &sky_left, &sky_top,
+            &sky_bottom, &sky_front, &sky_back, };
 
     struct shader sky_shader = { };
     shader_frag(&sky_shader, "shaders/3dful_shaders/skybox_frag.glsl");
     shader_vert(&sky_shader, "shaders/3dful_shaders/skybox_vert.glsl");
     shader_link(&sky_shader);
 
+    struct camera cam = { };
+    camera_fov(&cam, 60.);
+    camera_aspect(&cam, (f32) (1200/800));
+    camera_limits(&cam, .1, 300.);
+    camera_target(&cam, VECTOR3_ORIGIN);
+    camera_position(&cam, (struct vector3) { 3, 1, 3 });
+
+    struct geometry cube = { };
+    geometry_create(&cube);
+    geometry_wavobj(&cube, "models/cube.obj");
+
+    struct environment env = { };
+    environment_cube(&env, &cube);
+    environment_ambient(&env, (struct light) { {1, 1, 1, 1} });
+    environment_shader(&env, &sky_shader);
+    environment_skybox(&env, &skybox);
+
     struct scene scene = { };
     scene_create(&scene);
+    scene_camera(&scene, cam);
+    scene_environment(&scene, &env);
 
     // -----------------------------------------------------------------------
 
@@ -63,6 +82,7 @@ int main(int argc, const char *argv[])
     scene_delete(&scene);
 
     shader_delete(&sky_shader);
+    geometry_delete(&cube);
 
     texture_delete(&sky_top);
     texture_delete(&sky_left);

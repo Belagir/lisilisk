@@ -218,14 +218,14 @@ void material_unload(struct material *material)
  * @param material
  * @param shader
  */
-void material_bind_uniform_blocks(struct material *material, struct model *model)
+void material_bind_uniform_blocks(struct material *material, struct shader *shader)
 {
-    glUseProgram(model->shader->program);
+    glUseProgram(shader->program);
     {
         GLint block_name = -1;
 
-        block_name = glGetUniformBlockIndex(model->shader->program, "BLOCK_MATERIAL");
-        glUniformBlockBinding(model->shader->program, block_name, SHADER_UBO_MATERIAL);
+        block_name = glGetUniformBlockIndex(shader->program, "BLOCK_MATERIAL");
+        glUniformBlockBinding(shader->program, block_name, SHADER_UBO_MATERIAL);
 
         glBindBuffer(GL_UNIFORM_BUFFER, material->gpu_side.ubo);
         glBindBufferBase(GL_UNIFORM_BUFFER, block_name, material->gpu_side.ubo);
@@ -239,9 +239,9 @@ void material_bind_uniform_blocks(struct material *material, struct model *model
  * @param material
  * @param shader
  */
-void material_bind_textures(struct material *material, struct model *model)
+void material_bind_textures(struct material *material, struct shader *shader)
 {
-    glUseProgram(model->shader->program);
+    glUseProgram(shader->program);
     {
         for (size_t i = 0 ; i < COUNT_OF(material->samplers) ; i++) {
             glActiveTexture(GL_TEXTURE0 + i);
@@ -249,7 +249,7 @@ void material_bind_textures(struct material *material, struct model *model)
                 glBindTexture(GL_TEXTURE_2D, material->samplers[i]->gpu_side.name);
 
                 if (i < MATERIAL_BASE_SAMPLERS_NUMBER) {
-                    glUniform1i(glGetUniformLocation(model->shader->program,
+                    glUniform1i(glGetUniformLocation(shader->program,
                             material_sampler_uniforms[i]), i);
                 } else {
                     // custom texture name here

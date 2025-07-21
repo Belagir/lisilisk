@@ -76,6 +76,17 @@ void scene_camera(struct scene *scene, struct camera camera)
  * @brief
  *
  * @param scene
+ * @param env
+ */
+void scene_environment(struct scene *scene, struct environment *env)
+{
+    scene->env = env;
+}
+
+/**
+ * @brief
+ *
+ * @param scene
  * @param light
  */
 void scene_light_point(struct scene *scene, struct light_point light)
@@ -101,9 +112,12 @@ void scene_light_direc(struct scene *scene, struct light_directional light)
  */
 void scene_draw(struct scene scene, u32 time)
 {
+    camera_send_uniforms(&scene.camera, scene.env->shader);
+    environment_draw(scene.env);
+
     for (size_t i = 0 ; i < array_length(scene.models_array) ; i++) {
         scene_lights_send_uniforms(&scene, scene.models_array[i]);
-        camera_send_uniforms(&scene.camera, scene.models_array[i]);
+        camera_send_uniforms(&scene.camera, scene.models_array[i]->shader);
         scene_time_send_uniforms(time, scene.models_array[i]);
 
         model_draw(*(scene.models_array[i]));
@@ -143,6 +157,8 @@ void scene_load(struct scene *scene)
             model_load(scene->models_array[i]);
             scene_lights_bind_uniform_blocks(scene, scene->models_array[i]);
         }
+
+        environment_load(scene->env);
     }
 }
 
@@ -165,6 +181,8 @@ void scene_unload(struct scene *scene)
         for (size_t i = 0 ; i < array_length(scene->models_array) ; i++) {
             model_unload(scene->models_array[i]);
         }
+
+        environment_unload(scene->env);
     }
 
 }

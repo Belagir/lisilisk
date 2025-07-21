@@ -74,19 +74,19 @@ void camera_aspect(struct camera *camera, f32 aspect)
  * @param camera
  * @param shader
  */
-void camera_send_uniforms(struct camera *camera, struct model *model)
+void camera_send_uniforms(struct camera *camera, struct shader *shader)
 {
     GLint uniform_name = -1;
 
-    glUseProgram(model->shader->program);
+    glUseProgram(shader->program);
     {
-        uniform_name = glGetUniformLocation(model->shader->program, "VIEW_MATRIX");
+        uniform_name = glGetUniformLocation(shader->program, "VIEW_MATRIX");
         glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->view);
 
-        uniform_name = glGetUniformLocation(model->shader->program, "PROJECTION_MATRIX");
+        uniform_name = glGetUniformLocation(shader->program, "PROJECTION_MATRIX");
         glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->projection);
 
-        uniform_name = glGetUniformLocation(model->shader->program, "CAMERA_POS");
+        uniform_name = glGetUniformLocation(shader->program, "CAMERA_POS");
         glUniform3f(uniform_name, camera->pos.x, camera->pos.y, camera->pos.z);
     }
     glUseProgram(0);

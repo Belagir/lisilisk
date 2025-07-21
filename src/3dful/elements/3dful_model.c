@@ -111,43 +111,45 @@ void model_load(struct model *model)
                 model->tr_instances_array, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        // binding scenario for this VAO
-        glBindVertexArray(model->gpu_side.vao);
+        glUseProgram(model->shader->program);
         {
-            glUseProgram(model->shader->program);
+            // binding scenario for this VAO
+            glBindVertexArray(model->gpu_side.vao);
+            {
+                // vertex data from geometry
+                glBindBuffer(GL_ARRAY_BUFFER, model->geometry->gpu_side.vbo);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->geometry->gpu_side.ebo);
 
-            // vertex data from geometry
-            glBindBuffer(GL_ARRAY_BUFFER, model->geometry->gpu_side.vbo);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->geometry->gpu_side.ebo);
+                glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
+                glEnableVertexAttribArray(SHADER_VERT_POS);
+                glVertexAttribPointer(SHADER_VERT_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, normal));
+                glEnableVertexAttribArray(SHADER_VERT_NORMAL);
+                glVertexAttribPointer(SHADER_VERT_UV, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, uv));
+                glEnableVertexAttribArray(SHADER_VERT_UV);
 
-            glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
-            glEnableVertexAttribArray(SHADER_VERT_POS);
-            glVertexAttribPointer(SHADER_VERT_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, normal));
-            glEnableVertexAttribArray(SHADER_VERT_NORMAL);
-            glVertexAttribPointer(SHADER_VERT_UV, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, uv));
-            glEnableVertexAttribArray(SHADER_VERT_UV);
+                // instances data
+                glBindBuffer(GL_ARRAY_BUFFER, model->gpu_side.vbo_instances);
+                glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW0);
+                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW0, 4, GL_FLOAT, GL_FALSE,
+                        16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m0)));
+                glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW1);
+                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW1, 4, GL_FLOAT, GL_FALSE,
+                        16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m4)));
+                glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW2);
+                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW2, 4, GL_FLOAT, GL_FALSE,
+                        16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m8)));
+                glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW3);
+                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW3, 4, GL_FLOAT, GL_FALSE,
+                        16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m12)));
 
-            // instances data
-            glBindBuffer(GL_ARRAY_BUFFER, model->gpu_side.vbo_instances);
-            glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW0);
-            glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW0, 4, GL_FLOAT, GL_FALSE,
-                    16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m0)));
-            glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW1);
-            glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW1, 4, GL_FLOAT, GL_FALSE,
-                    16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m4)));
-            glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW2);
-            glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW2, 4, GL_FLOAT, GL_FALSE,
-                    16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m8)));
-            glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW3);
-            glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW3, 4, GL_FLOAT, GL_FALSE,
-                    16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m12)));
-
-            glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW0, 1);
-            glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW1, 1);
-            glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW2, 1);
-            glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW3, 1);
+                glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW0, 1);
+                glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW1, 1);
+                glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW2, 1);
+                glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW3, 1);
+            }
+            glBindVertexArray(0);
         }
-        glBindVertexArray(0);
+        glUseProgram(0);
 
         model->load_state.flags |= LOADABLE_FLAG_LOADED;
     }
@@ -184,8 +186,8 @@ void model_unload(struct model *model)
  */
 void model_draw(struct model model)
 {
-    material_bind_uniform_blocks(model.material, &model);
-    material_bind_textures(model.material, &model);
+    material_bind_uniform_blocks(model.material, model.shader);
+    material_bind_textures(model.material, model.shader);
 
     glUseProgram(model.shader->program);
     {
