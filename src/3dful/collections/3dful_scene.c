@@ -127,8 +127,7 @@ void scene_light_direc(struct scene *scene, struct light_directional light)
 void scene_draw(struct scene *scene, u32 time)
 {
     if (scene->env) {
-        glClearColor(scene->env->ambient_light.color[0], scene->env->ambient_light.color[1],
-                scene->env->ambient_light.color[2], scene->env->ambient_light.color[3]);
+        glClearColor(scene->env->bg_color[0], scene->env->bg_color[1], scene->env->bg_color[2], 1.);
     } else {
         glClearColor(.1, .1, .1, 1.);
     }

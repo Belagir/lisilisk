@@ -80,11 +80,12 @@ int main(int argc, const char *argv[])
     environment_shader(&env, &sky_shader);
     environment_skybox(&env, &skybox);
     environment_fog(&env, (f32[3]) { .4, .6, .8 }, 200.);
+    environment_bg(&env, (f32[3]) { .3, .1, .1 });
 
     struct scene scene = { };
     scene_create(&scene);
     scene_camera(&scene, &cam);
-    // scene_environment(&scene, &env);
+    scene_environment(&scene, &env);
     scene_light_direc(&scene, (struct light_directional) { .color = { 1., .9, .8, 1. },
             .direction = (struct vector3) { 0, -1, .3 } });
     scene_model(&scene, &saucer);

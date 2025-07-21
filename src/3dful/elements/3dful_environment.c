@@ -76,13 +76,26 @@ void environment_fog(struct environment *env, f32 color[3], f32 distance)
  * @brief
  *
  * @param env
+ * @param color
+ */
+void environment_bg(struct environment *env, f32 color[3])
+{
+    for (size_t i = 0 ; i < 3 ; i++) {
+        env->bg_color[i] = color[i];
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param env
  */
 void environment_load(struct environment *env)
 {
     loadable_add_user((struct loadable *) env);
 
     if (loadable_needs_loading((struct loadable *) env)) {
-        geometry_load(env->unit_cube);
+        if (env->unit_cube) geometry_load(env->unit_cube);
 
         // create cubemap vao
         glGenVertexArrays(1, &env->gpu_side.vao);
@@ -112,13 +125,17 @@ void environment_load(struct environment *env)
         {
             glBindVertexArray(env->gpu_side.vao);
             {
-                glBindBuffer(GL_ARRAY_BUFFER, env->unit_cube->gpu_side.vbo);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, env->unit_cube->gpu_side.ebo);
+                if (env->unit_cube) {
+                    glBindBuffer(GL_ARRAY_BUFFER, env->unit_cube->gpu_side.vbo);
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, env->unit_cube->gpu_side.ebo);
 
-                glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
-                glEnableVertexAttribArray(SHADER_VERT_POS);
+                    glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
+                    glEnableVertexAttribArray(SHADER_VERT_POS);
+                }
 
-                glBindTexture(GL_TEXTURE_CUBE_MAP, env->gpu_side.cubemap_texture);
+                if (env->gpu_side.cubemap_texture) {
+                    glBindTexture(GL_TEXTURE_CUBE_MAP, env->gpu_side.cubemap_texture);
+                }
             }
             glBindVertexArray(0);
         }
@@ -166,7 +183,7 @@ void environment_draw(struct environment *env)
         {
             glBindTexture(GL_TEXTURE_CUBE_MAP, env->gpu_side.cubemap_texture);
 
-            glDrawElements(GL_TRIANGLES, array_length(env->unit_cube->faces_array)*3, GL_UNSIGNED_INT, nullptr);
+            if (env->unit_cube) glDrawElements(GL_TRIANGLES, array_length(env->unit_cube->faces_array)*3, GL_UNSIGNED_INT, nullptr);
         }
         glBindVertexArray(0);
     }
