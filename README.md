@@ -53,9 +53,11 @@ There should be a new data object to deal with textures. Those textures should b
 
 > Made a proof of concept but it needs to be expanded when we get to UVs and Better Materials
 
-### World object
+### ~~World object~~
 
 There should be a world data object that is responsible for : the ambient light, fog (?), the skybox (?).
+
+> No need for a new abstraction layer on top of the scene. Complicates everything. The scenes receives an environment that describes all of those.
 
 ### ~~UVs~~
 

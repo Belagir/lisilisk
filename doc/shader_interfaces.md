@@ -56,6 +56,9 @@ compilation time.
 - `sampler2D emissive_mask` : on layout 3
 - `sampler2D base_texture` : on layout 4
 
+- `vec3 FOG_COLOR`
+- `float FOG_DISTANCE`
+
 **Inputs:**
 
 - `vec3 Normal`
