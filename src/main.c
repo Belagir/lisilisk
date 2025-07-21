@@ -26,8 +26,8 @@ int main(int argc, const char *argv[])
     struct texture sky_back = { };
     texture_file(&sky_back, "images/skybox/back.jpg");
 
-    struct texture *skybox[SKYBOX_FACES_NUMBER] = { &sky_right, &sky_left, &sky_top,
-            &sky_bottom, &sky_front, &sky_back, };
+    // struct texture *skybox[SKYBOX_FACES_NUMBER] = { &sky_right, &sky_left, &sky_top,
+            // &sky_bottom, &sky_front, &sky_back, };
 
     struct shader sky_shader = { };
     shader_frag(&sky_shader, "shaders/3dful_shaders/skybox_frag.glsl");
@@ -36,7 +36,6 @@ int main(int argc, const char *argv[])
 
     struct scene scene = { };
     scene_create(&scene);
-    scene_cubemap(&scene, &skybox);
 
     // -----------------------------------------------------------------------
 

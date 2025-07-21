@@ -62,6 +62,21 @@ enum material_base_sampler {
     MATERIAL_BASE_SAMPLERS_NUMBER,
 };
 
+/**
+ * @brief
+ * Matches OpenGL's GL_TEXTURE_CUBE_MAP_[POSITIVE,NEGATIVE]_[X,Y,Z] order of defines.
+ */
+enum skybox_face {
+    SKYBOX_FACE_RIGHT,
+    SKYBOX_FACE_LEFT,
+    SKYBOX_FACE_TOP,
+    SKYBOX_FACE_BOTTOM,
+    SKYBOX_FACE_BACK,
+    SKYBOX_FACE_FRONT,
+
+    SKYBOX_FACES_NUMBER,
+};
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
@@ -234,6 +249,20 @@ struct light_directional {
 };
 
 // -------------------------------------------------------------------------------------------------
+
+struct environment {
+    struct shader *shader;
+    struct camera *camera;
+
+    struct texture *cubemap[SKYBOX_FACES_NUMBER];
+    struct light ambient_light;
+
+    struct {
+        GLuint vao;
+    } gpu_side;
+};
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 // TRANSFORMS --------------------------------------------------------------------------------------
 
@@ -242,7 +271,7 @@ void position_translate(struct vector3 *pos, vector3 offset);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-// GENRAL LOADABLES --------------------------------------------------------------------------------
+// GENERAL LOADABLES -------------------------------------------------------------------------------
 
 void loadable_add_user(struct loadable *obj);
 void loadable_remove_user(struct loadable *obj);
@@ -363,5 +392,19 @@ void light_point_linear(struct light_point *light, f32 linear);
 void light_point_quadratic(struct light_point *light, f32 quadratic);
 
 void light_directional_direction(struct light_directional *light, struct vector3 direction);
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+// ENVIRONMENT -------------------------------------------------------------------------------------
+
+void environment_skybox(struct environment *env, struct light light);
+void environment_camera(struct environment *env, struct camera *camera);
+void environment_shader(struct environment *env, struct shader *shader);
+void environment_ambient(struct environment *env, struct texture *(*cubemap)[6u]);
+
+void environment_draw(struct environment *env);
+
+void environment_load(struct environment *env);
+void environment_unload(struct environment *env);
 
 #endif

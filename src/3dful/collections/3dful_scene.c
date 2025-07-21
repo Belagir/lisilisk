@@ -98,29 +98,6 @@ void scene_light_direc(struct scene *scene, struct light_directional light)
  * @brief
  *
  * @param scene
- * @param light
- */
-void scene_light_ambient(struct scene *scene, struct light light)
-{
-    scene->environment.ambient_light = light;
-}
-
-/**
- * @brief
- *
- * @param scene
- */
-void scene_cubemap(struct scene *scene, struct texture *(*cubemap)[SKYBOX_FACES_NUMBER])
-{
-    for (size_t i = 0 ; i < SKYBOX_FACES_NUMBER ; i++) {
-        scene->environment.cubemap[i] = (*cubemap)[i];
-    }
-}
-
-/**
- * @brief
- *
- * @param scene
  */
 void scene_draw(struct scene scene, u32 time)
 {
@@ -241,8 +218,8 @@ static void scene_lights_send_uniforms(struct scene *scene, struct model *model)
         uniform_name = glGetUniformLocation(model->shader->program, "LIGHT_DIRECTIONALS_NB");
         glUniform1ui(uniform_name, array_length(scene->light_sources.direc_lights_array));
 
-        uniform_name = glGetUniformLocation(model->shader->program, "LIGHT_AMBIENT");
-        glUniform4fv(uniform_name, 1, scene->environment.ambient_light.color);
+        // uniform_name = glGetUniformLocation(model->shader->program, "LIGHT_AMBIENT");
+        // glUniform4fv(uniform_name, 1, scene->environment.ambient_light.color);
     }
     glUseProgram(0);
 }
