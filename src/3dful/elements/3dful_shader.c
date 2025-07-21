@@ -12,6 +12,11 @@
 #define SHADER_FRAGMENT_HEAD "shaders/wrappers/frag_head.glsl"
 #define SHADER_FRAGMENT_TAIL "shaders/wrappers/frag_tail.glsl"
 
+enum shader_wrapping {
+    SHADER_WRAPPING_NONE,
+    SHADER_WRAPPING_MATERIAL,
+};
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
@@ -23,7 +28,9 @@ static char static_shader_diagnostic_buffer[SHADER_DIAGNOSTIC_MAX_LENGTH] = { 0 
 
 static i32 check_shader_compilation(GLuint name);
 static i32 check_shader_linking(GLuint program);
+static GLuint shader_compile_file(const char *path, GLenum kind, enum shader_wrapping wrapping);
 static GLuint shader_compile(byte *shader_source, GLenum kind);
+static GLuint shader_wrap_compile(byte *shader_source, GLenum kind);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -34,26 +41,9 @@ static GLuint shader_compile(byte *shader_source, GLenum kind);
  * @param[inout] shader
  * @param[in] source
  */
-void shader_vert_mem(struct shader *shader, byte *source)
+void shader_material_vert_mem(struct shader *shader, byte *source)
 {
-    byte *source_head = array_create(make_system_allocator(), sizeof(*source_head), file_length(SHADER_VERTEX_HEAD));
-    byte *source_tail = array_create(make_system_allocator(), sizeof(*source_tail), file_length(SHADER_VERTEX_TAIL));
-
-    byte *full_source = array_create(make_system_allocator(), sizeof(*full_source),
-            array_capacity(source_head) + array_capacity(source) + array_capacity(source_tail));
-
-    file_read_to_array(SHADER_VERTEX_HEAD, source_head);
-    file_read_to_array(SHADER_VERTEX_TAIL, source_tail);
-
-    array_append(full_source, source_head);
-    array_append(full_source, source);
-    array_append(full_source, source_tail);
-
-    shader->vert_shader = shader_compile(full_source, GL_VERTEX_SHADER);
-
-    array_destroy(make_system_allocator(), (void **) &source_head);
-    array_destroy(make_system_allocator(), (void **) &source_tail);
-    array_destroy(make_system_allocator(), (void **) &full_source);
+    shader->vert_shader = shader_wrap_compile(source, GL_VERTEX_SHADER);
 }
 
 /**
@@ -62,27 +52,9 @@ void shader_vert_mem(struct shader *shader, byte *source)
  * @param[inout] shader
  * @param[in] source
  */
-void shader_frag_mem(struct shader *shader, byte *source)
+void shader_material_frag_mem(struct shader *shader, byte *source)
 {
-    byte *source_head = array_create(make_system_allocator(), sizeof(*source_head), file_length(SHADER_FRAGMENT_HEAD));
-    byte *source_tail = array_create(make_system_allocator(), sizeof(*source_tail), file_length(SHADER_FRAGMENT_TAIL));
-
-    byte *full_source = array_create(make_system_allocator(), sizeof(*full_source),
-            array_capacity(source_head) + array_capacity(source) + array_capacity(source_tail));
-
-    file_read_to_array(SHADER_FRAGMENT_HEAD, source_head);
-    file_read_to_array(SHADER_FRAGMENT_TAIL, source_tail);
-
-    array_append(full_source, source_head);
-    array_append(full_source, source);
-    array_append(full_source, source_tail);
-
-    shader->frag_shader = shader_compile(full_source, GL_FRAGMENT_SHADER);
-
-    array_destroy(make_system_allocator(), (void **) &source_head);
-    array_destroy(make_system_allocator(), (void **) &source_tail);
-    array_destroy(make_system_allocator(), (void **) &full_source);
-
+    shader->frag_shader = shader_wrap_compile(source, GL_FRAGMENT_SHADER);
 }
 
 /**
@@ -91,25 +63,9 @@ void shader_frag_mem(struct shader *shader, byte *source)
  * @param[inout] shader
  * @param[in] path
  */
-void shader_vert(struct shader *shader, const char *path)
+void shader_material_vert(struct shader *shader, const char *path)
 {
-    size_t nb_bytes = file_length(path);
-    byte *buffer = nullptr;
-
-    if (nb_bytes == 0) {
-        fprintf(stderr, "failed to read file `%s`\n", path);
-        return;
-    }
-
-    buffer = array_create(make_system_allocator(), sizeof(*buffer), nb_bytes);
-
-    if (file_read_to_array(path, buffer) == 0) {
-        shader_vert_mem(shader, buffer);
-    } else {
-        fprintf(stderr, "failed to read file `%s`\n", path);
-    }
-
-    array_destroy(make_system_allocator(), (void **) &buffer);
+    shader->vert_shader = shader_compile_file(path, GL_VERTEX_SHADER, SHADER_WRAPPING_MATERIAL);
 }
 
 /**
@@ -118,17 +74,53 @@ void shader_vert(struct shader *shader, const char *path)
  * @param[inout] shader
  * @param[in] path
  */
+void shader_material_frag(struct shader *shader, const char *path)
+{
+    shader->frag_shader = shader_compile_file(path, GL_FRAGMENT_SHADER, SHADER_WRAPPING_MATERIAL);
+}
+
+/**
+ * @brief
+ *
+ * @param shader
+ * @param source
+ */
+void shader_vert_mem(struct shader *shader, byte *source)
+{
+    shader->vert_shader = shader_compile(source, GL_VERTEX_SHADER);
+}
+
+/**
+ * @brief
+ *
+ * @param shader
+ * @param source
+ */
+void shader_frag_mem(struct shader *shader, byte *source)
+{
+    shader->frag_shader = shader_compile(source, GL_FRAGMENT_SHADER);
+}
+
+/**
+ * @brief
+ *
+ * @param shader
+ * @param path
+ */
+void shader_vert(struct shader *shader, const char *path)
+{
+    shader->vert_shader = shader_compile_file(path, GL_VERTEX_SHADER, SHADER_WRAPPING_NONE);
+}
+
+/**
+ * @brief
+ *
+ * @param shader
+ * @param path
+ */
 void shader_frag(struct shader *shader, const char *path)
 {
-    byte *buffer = array_create(make_system_allocator(), sizeof(*buffer), file_length(path));
-
-    if (file_read_to_array(path, buffer) == 0) {
-        shader_frag_mem(shader, buffer);
-    } else {
-        fprintf(stderr, "failed to read file `%s`\n", path);
-    }
-
-    array_destroy(make_system_allocator(), (void **) &buffer);
+    shader->frag_shader = shader_compile_file(path, GL_FRAGMENT_SHADER, SHADER_WRAPPING_NONE);
 }
 
 /**
@@ -190,6 +182,46 @@ static i32 check_shader_linking(GLuint program)
     return is_linked;
 }
 
+/**
+ * @brief
+ *
+ * @param path
+ * @param kind
+ * @param wrapping
+ * @return GLuint
+ */
+static GLuint shader_compile_file(const char *path, GLenum kind, enum shader_wrapping wrapping)
+{
+    size_t nb_bytes = file_length(path);
+    byte *buffer = nullptr;
+    GLuint shader_out = 0;
+
+    if (nb_bytes == 0) {
+        fprintf(stderr, "failed to read file `%s`\n", path);
+        return 0;
+    }
+
+    buffer = array_create(make_system_allocator(), sizeof(*buffer), nb_bytes);
+
+    if (file_read_to_array(path, buffer) != 0) {
+        fprintf(stderr, "failed to read file `%s`\n", path);
+        array_destroy(make_system_allocator(), (void **) &buffer);
+        return 0;
+    }
+
+    switch (wrapping) {
+        case SHADER_WRAPPING_NONE:
+            shader_out = shader_compile(buffer, kind);
+            break;
+        case SHADER_WRAPPING_MATERIAL:
+            shader_out = shader_wrap_compile(buffer, kind);
+            break;
+    }
+
+    array_destroy(make_system_allocator(), (void **) &buffer);
+
+    return shader_out;
+}
 
 /**
  * @brief
@@ -234,4 +266,51 @@ static GLuint shader_compile(byte *shader_source, GLenum kind)
     }
 
     return shader;
+}
+
+/**
+ * @brief
+ *
+ * @param shader_source
+ * @param kind
+ * @return GLuint
+ */
+static GLuint shader_wrap_compile(byte *shader_source, GLenum kind)
+{
+    byte *source_head = nullptr;
+    byte *source_tail = nullptr;
+    byte *full_source = nullptr;
+    GLuint out_shader = 0;
+
+    switch (kind) {
+        case GL_VERTEX_SHADER:
+            source_head = array_create(make_system_allocator(), sizeof(*source_head), file_length(SHADER_VERTEX_HEAD));
+            source_tail = array_create(make_system_allocator(), sizeof(*source_tail), file_length(SHADER_VERTEX_TAIL));
+            break;
+        case GL_FRAGMENT_SHADER:
+            source_head = array_create(make_system_allocator(), sizeof(*source_head), file_length(SHADER_FRAGMENT_HEAD));
+            source_tail = array_create(make_system_allocator(), sizeof(*source_tail), file_length(SHADER_FRAGMENT_TAIL));
+            break;
+
+        default:
+            return 0;
+    }
+
+    full_source = array_create(make_system_allocator(), sizeof(*full_source),
+            array_capacity(source_head) + array_capacity(shader_source) + array_capacity(source_tail));
+
+    file_read_to_array(SHADER_VERTEX_HEAD, source_head);
+    file_read_to_array(SHADER_VERTEX_TAIL, source_tail);
+
+    array_append(full_source, source_head);
+    array_append(full_source, shader_source);
+    array_append(full_source, source_tail);
+
+    out_shader = shader_compile(full_source, GL_VERTEX_SHADER);
+
+    array_destroy(make_system_allocator(), (void **) &source_head);
+    array_destroy(make_system_allocator(), (void **) &source_tail);
+    array_destroy(make_system_allocator(), (void **) &full_source);
+
+    return out_shader;
 }

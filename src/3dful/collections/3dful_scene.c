@@ -27,8 +27,10 @@ void scene_create(struct scene *scene)
 
             .camera = { .view = matrix4_identity(), .projection = matrix4_identity() },
 
-            .point_lights_array = array_create(make_system_allocator(), sizeof(*scene->point_lights_array), 32),
-            .direc_lights_array = array_create(make_system_allocator(), sizeof(*scene->direc_lights_array), 8),
+            .light_sources = {
+                .point_lights_array = array_create(make_system_allocator(), sizeof(*scene->light_sources.point_lights_array), 32),
+                .direc_lights_array = array_create(make_system_allocator(), sizeof(*scene->light_sources.direc_lights_array), 8),
+            }
     };
 }
 
@@ -40,8 +42,8 @@ void scene_create(struct scene *scene)
 void scene_delete(struct scene *scene)
 {
     array_destroy(make_system_allocator(), (void **) &scene->models_array);
-    array_destroy(make_system_allocator(), (void **) &scene->point_lights_array);
-    array_destroy(make_system_allocator(), (void **) &scene->direc_lights_array);
+    array_destroy(make_system_allocator(), (void **) &scene->light_sources.point_lights_array);
+    array_destroy(make_system_allocator(), (void **) &scene->light_sources.direc_lights_array);
 }
 
 /**
@@ -78,7 +80,7 @@ void scene_camera(struct scene *scene, struct camera camera)
  */
 void scene_light_point(struct scene *scene, struct light_point light)
 {
-    array_push(scene->point_lights_array, &light);
+    array_push(scene->light_sources.point_lights_array, &light);
 }
 
 /**
@@ -89,7 +91,7 @@ void scene_light_point(struct scene *scene, struct light_point light)
  */
 void scene_light_direc(struct scene *scene, struct light_directional light)
 {
-    array_push(scene->direc_lights_array, &light);
+    array_push(scene->light_sources.direc_lights_array, &light);
 }
 
 /**
@@ -100,7 +102,19 @@ void scene_light_direc(struct scene *scene, struct light_directional light)
  */
 void scene_light_ambient(struct scene *scene, struct light light)
 {
-    scene->ambient_light = light;
+    scene->environment.ambient_light = light;
+}
+
+/**
+ * @brief
+ *
+ * @param scene
+ */
+void scene_cubemap(struct scene *scene, struct texture *(*cubemap)[SKYBOX_FACES_NUMBER])
+{
+    for (size_t i = 0 ; i < SKYBOX_FACES_NUMBER ; i++) {
+        scene->environment.cubemap[i] = (*cubemap)[i];
+    }
 }
 
 /**
@@ -130,19 +144,19 @@ void scene_load(struct scene *scene)
 
     if (loadable_needs_loading((struct loadable *) scene)) {
         // Load lights -- point lights
-        glGenBuffers(1, &scene->ubo_point_lights);
-        glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_point_lights);
+        glGenBuffers(1, &scene->light_sources.ubo_point_lights);
+        glBindBuffer(GL_UNIFORM_BUFFER, scene->light_sources.ubo_point_lights);
         glBufferData(GL_UNIFORM_BUFFER,
-                array_length(scene->point_lights_array) * sizeof(*scene->point_lights_array),
-                scene->point_lights_array, GL_STATIC_DRAW);
+                array_length(scene->light_sources.point_lights_array) * sizeof(*scene->light_sources.point_lights_array),
+                scene->light_sources.point_lights_array, GL_STATIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         // Load lights -- point lights
-        glGenBuffers(1, &scene->ubo_dir_lights);
-        glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_dir_lights);
+        glGenBuffers(1, &scene->light_sources.ubo_dir_lights);
+        glBindBuffer(GL_UNIFORM_BUFFER, scene->light_sources.ubo_dir_lights);
         glBufferData(GL_UNIFORM_BUFFER,
-                array_length(scene->direc_lights_array) * sizeof(*scene->direc_lights_array),
-                scene->direc_lights_array, GL_STATIC_DRAW);
+                array_length(scene->light_sources.direc_lights_array) * sizeof(*scene->light_sources.direc_lights_array),
+                scene->light_sources.direc_lights_array, GL_STATIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         scene->load_state.flags |= LOADABLE_FLAG_LOADED;
@@ -166,8 +180,8 @@ void scene_unload(struct scene *scene)
 
     if (loadable_needs_unloading((struct loadable *) scene)) {
         // destroy buffers
-        glDeleteBuffers(1, &scene->ubo_point_lights);
-        glDeleteBuffers(1, &scene->ubo_dir_lights);
+        glDeleteBuffers(1, &scene->light_sources.ubo_point_lights);
+        glDeleteBuffers(1, &scene->light_sources.ubo_dir_lights);
 
         scene->load_state.flags &= ~LOADABLE_FLAG_LOADED;
 
@@ -197,14 +211,14 @@ static void scene_lights_bind_uniform_blocks(struct scene *scene, struct model *
         block_name = glGetUniformBlockIndex(model->shader->program, "BLOCK_LIGHT_POINTS");
         glUniformBlockBinding(model->shader->program, block_name, SHADER_UBO_LIGHT_POINT);
 
-        glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_point_lights);
-        glBindBufferBase(GL_UNIFORM_BUFFER, block_name, scene->ubo_point_lights);
+        glBindBuffer(GL_UNIFORM_BUFFER, scene->light_sources.ubo_point_lights);
+        glBindBufferBase(GL_UNIFORM_BUFFER, block_name, scene->light_sources.ubo_point_lights);
 
         block_name = glGetUniformBlockIndex(model->shader->program, "BLOCK_LIGHT_DIRECTIONALS");
         glUniformBlockBinding(model->shader->program, block_name, SHADER_UBO_LIGHT_DIREC);
 
-        glBindBuffer(GL_UNIFORM_BUFFER, scene->ubo_dir_lights);
-        glBindBufferBase(GL_UNIFORM_BUFFER, block_name, scene->ubo_dir_lights);
+        glBindBuffer(GL_UNIFORM_BUFFER, scene->light_sources.ubo_dir_lights);
+        glBindBufferBase(GL_UNIFORM_BUFFER, block_name, scene->light_sources.ubo_dir_lights);
     }
     glUseProgram(0);
 }
@@ -222,13 +236,13 @@ static void scene_lights_send_uniforms(struct scene *scene, struct model *model)
     glUseProgram(model->shader->program);
     {
         uniform_name = glGetUniformLocation(model->shader->program, "LIGHT_POINTS_NB");
-        glUniform1ui(uniform_name, array_length(scene->point_lights_array));
+        glUniform1ui(uniform_name, array_length(scene->light_sources.point_lights_array));
 
         uniform_name = glGetUniformLocation(model->shader->program, "LIGHT_DIRECTIONALS_NB");
-        glUniform1ui(uniform_name, array_length(scene->direc_lights_array));
+        glUniform1ui(uniform_name, array_length(scene->light_sources.direc_lights_array));
 
         uniform_name = glGetUniformLocation(model->shader->program, "LIGHT_AMBIENT");
-        glUniform4fv(uniform_name, 1, scene->ambient_light.color);
+        glUniform4fv(uniform_name, 1, scene->environment.ambient_light.color);
     }
     glUseProgram(0);
 }

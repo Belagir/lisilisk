@@ -253,10 +253,16 @@ i32 loadable_needs_unloading(struct loadable *obj);
 // -------------------------------------------------------------------------------------------------
 // SHADERS -----------------------------------------------------------------------------------------
 
+void shader_material_vert_mem(struct shader *shader, byte *source);
+void shader_material_vert(struct shader *shader, const char *path);
+void shader_material_frag_mem(struct shader *shader, byte *source);
+void shader_material_frag(struct shader *shader, const char *path);
+
 void shader_vert_mem(struct shader *shader, byte *source);
 void shader_vert(struct shader *shader, const char *path);
 void shader_frag_mem(struct shader *shader, byte *source);
 void shader_frag(struct shader *shader, const char *path);
+
 
 void shader_link(struct shader *shader);
 void shader_delete(struct shader *shader);
