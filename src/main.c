@@ -61,10 +61,10 @@ int main(int argc, const char *argv[])
     struct texture cubemap = { };
     texture_cubemap_file(&cubemap, CUBEMAP_FACE_RIGHT,  "images/skybox/right.jpg");
     texture_cubemap_file(&cubemap, CUBEMAP_FACE_LEFT,   "images/skybox/left.jpg");
-    texture_cubemap_file(&cubemap, CUBEMAP_FACE_FRONT,  "images/skybox/front.jpg");
-    texture_cubemap_file(&cubemap, CUBEMAP_FACE_BACK,   "images/skybox/back.jpg");
     texture_cubemap_file(&cubemap, CUBEMAP_FACE_TOP,    "images/skybox/top.jpg");
     texture_cubemap_file(&cubemap, CUBEMAP_FACE_BOTTOM, "images/skybox/bottom.jpg");
+    texture_cubemap_file(&cubemap, CUBEMAP_FACE_BACK,   "images/skybox/back.jpg");
+    texture_cubemap_file(&cubemap, CUBEMAP_FACE_FRONT,  "images/skybox/front.jpg");
 
     struct environment env = { };
     environment_cube(&env, &cube);
@@ -96,7 +96,7 @@ int main(int argc, const char *argv[])
             should_quit = event.type == SDL_QUIT;
         }
 
-        cam.pos = vector3_rotate_by_quaternion(cam.pos, r);
+        camera_position(&cam, vector3_rotate_by_quaternion(cam.pos, r));
         scene_draw(&scene, time);
 
         SDL_GL_SwapWindow(target.sdl_window);
