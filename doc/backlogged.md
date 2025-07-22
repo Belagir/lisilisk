@@ -6,3 +6,4 @@
 - [ ] The shader_material_*() interface is as coupled to the material struct as the model struct. Find a way to express it
 - [ ] Implement custom textures passing to material shader
 - [ ] documentation
+- [ ] change skybox shape from cube to icosphere

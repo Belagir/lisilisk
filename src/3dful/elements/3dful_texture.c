@@ -8,6 +8,7 @@
 
 static void texture_load_as_2D(struct texture *texture);
 static void texture_load_as_cubemap(struct texture *texture);
+static void texture_reload(struct texture *texture);
 static GLenum format_from_surface(struct SDL_Surface *s);
 
 // -------------------------------------------------------------------------------------------------
@@ -39,6 +40,8 @@ void texture_2D_file(struct texture *texture, const char *path)
 {
     texture->flavor = TEXTURE_FLAVOR_2D;
     texture->specific.image_for_2D = IMG_Load(path);
+
+    texture_reload(texture);
 }
 
 /**
@@ -52,6 +55,8 @@ void texture_2D_file_mem(struct texture *texture, const byte *image_array)
     texture->flavor = TEXTURE_FLAVOR_2D;
     texture->specific.image_for_2D = IMG_Load_RW(SDL_RWFromMem((void *) image_array,
             array_length(image_array)), 0);
+
+    texture_reload(texture);
 }
 
 /**
@@ -65,6 +70,8 @@ void texture_cubemap_file(struct texture *texture, enum cubemap_face face, const
 {
     texture->flavor = TEXTURE_FLAVOR_CUBEMAP;
     texture->specific.images_for_cubemap[face] = IMG_Load(path);
+
+    texture_reload(texture);
 }
 
 /**
@@ -79,6 +86,8 @@ void texture_cubemap_file_mem(struct texture *texture, enum cubemap_face face, c
     texture->flavor = TEXTURE_FLAVOR_CUBEMAP;
     texture->specific.images_for_cubemap[face] = IMG_Load_RW(SDL_RWFromMem((void *) image_array,
             array_length(image_array)), 0);
+
+    texture_reload(texture);
 }
 
 /**
@@ -212,4 +221,19 @@ static GLenum format_from_surface(struct SDL_Surface *s)
             break;
     }
     return GL_NONE;
+}
+
+/**
+ * @brief
+ *
+ * @param texture
+ */
+static void texture_reload(struct texture *texture)
+{
+    if (!(texture->load_state.flags & LOADABLE_FLAG_LOADED)) {
+        return;
+    }
+
+    texture_unload(texture);
+    texture_load(texture);
 }

@@ -21,26 +21,32 @@ int main(int argc, const char *argv[])
     struct texture default_texture = { };
     texture_2D_default(&default_texture);
 
-    struct material saucer_material = { };
-    material_ambient(&saucer_material,  (f32[4]) { .10, .10, .10, }, 1);
-    material_ambient_mask(&saucer_material, &default_texture);
-    material_specular(&saucer_material, (f32[4]) { .95, .95, 1.0, }, 1);
-    material_specular_mask(&saucer_material, &default_texture);
-    material_diffuse(&saucer_material,  (f32[4]) { .32, .32, .32, }, 0);
-    material_diffuse_mask(&saucer_material, &default_texture);
-    material_shininess(&saucer_material, 4.);
+    struct texture shroom_base_texture = { };
+    texture_2D_file(&shroom_base_texture, "models/mushroom/ShroomBase.png");
+    struct texture shroom_spec_texture = { };
+    texture_2D_file(&shroom_spec_texture, "models/mushroom/SpecularMap.png");
 
-    struct geometry saucer_geometry = { };
-    geometry_create(&saucer_geometry);
-    geometry_wavobj(&saucer_geometry, "models/saucer.obj");
+    struct material shroom_material = { };
+    material_texture(&shroom_material, &shroom_base_texture);
+    material_ambient(&shroom_material,  (f32[4]) { .10, .10, .10, }, 1);
+    material_ambient_mask(&shroom_material, &default_texture);
+    material_specular(&shroom_material, (f32[4]) { 1.0, 1.0, 1.0, }, 1);
+    material_specular_mask(&shroom_material, &shroom_spec_texture);
+    material_diffuse(&shroom_material,  (f32[4]) { .32, .32, .32, }, 1);
+    material_diffuse_mask(&shroom_material, &default_texture);
+    material_shininess(&shroom_material, 4.);
 
-    struct model saucer = { };
-    model_create(&saucer);
-    model_geometry(&saucer, &saucer_geometry);
-    model_shader(&saucer, &material_shader);
-    model_material(&saucer, &saucer_material);
-    model_instantiate(&saucer, MATRIX4_IDENTITY);
-    model_instantiate(&saucer, matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0, 2, -180. }));
+    struct geometry shroom_geometry = { };
+    geometry_create(&shroom_geometry);
+    geometry_wavobj(&shroom_geometry, "models/mushroom/mushroom.obj");
+
+    struct model shroom = { };
+    model_create(&shroom);
+    model_geometry(&shroom, &shroom_geometry);
+    model_shader(&shroom, &material_shader);
+    model_material(&shroom, &shroom_material);
+    model_instantiate(&shroom, MATRIX4_IDENTITY);
+    model_instantiate(&shroom, matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0, 2, -180. }));
 
     struct shader sky_shader = { };
     shader_frag(&sky_shader, "shaders/3dful_shaders/skybox_frag.glsl");
@@ -52,7 +58,7 @@ int main(int argc, const char *argv[])
     camera_aspect(&cam, 1200. / 800.);
     camera_limits(&cam, .1, 300.);
     camera_target(&cam, VECTOR3_ORIGIN);
-    camera_position(&cam, (struct vector3) { 1, 1.75, 15 });
+    camera_position(&cam, (struct vector3) { 1, 3.75, 15 });
 
     struct geometry cube = { };
     geometry_create(&cube);
@@ -80,7 +86,7 @@ int main(int argc, const char *argv[])
     scene_environment(&scene, &env);
     scene_light_direc(&scene, (struct light_directional) { .color = { 1., .9, .8, 1. },
             .direction = (struct vector3) { 0, -1, .3 } });
-    scene_model(&scene, &saucer);
+    scene_model(&scene, &shroom);
 
     // -----------------------------------------------------------------------
     scene_load(&scene);
@@ -107,9 +113,12 @@ int main(int argc, const char *argv[])
     scene_delete(&scene);
 
     shader_delete(&material_shader);
-    geometry_delete(&saucer_geometry);
-    model_delete(&saucer);
+    geometry_delete(&shroom_geometry);
+    model_delete(&shroom);
+
     texture_delete(&default_texture);
+    texture_delete(&shroom_base_texture);
+    texture_delete(&shroom_spec_texture);
 
     shader_delete(&sky_shader);
     geometry_delete(&cube);

@@ -159,7 +159,6 @@ struct texture {
     } specific;
 
     struct {
-        // TODO: reload the texture behind the name when the image changes
         GLuint name;
     } gpu_side;
 };
