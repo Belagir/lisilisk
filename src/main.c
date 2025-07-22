@@ -90,7 +90,7 @@ int main(int argc, const char *argv[])
     SDL_Event event = { };
     u32 time = 0;
 
-    struct quaternion r = quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, 0.02);
+    struct quaternion r = quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, 0.004);
     while (!should_quit) {
         while (SDL_PollEvent(&event)) {
             should_quit = event.type == SDL_QUIT;
@@ -98,6 +98,8 @@ int main(int argc, const char *argv[])
 
         camera_position(&cam, vector3_rotate_by_quaternion(cam.pos, r));
         scene_draw(&scene, time);
+
+        time += 1;
 
         SDL_GL_SwapWindow(target.sdl_window);
     }

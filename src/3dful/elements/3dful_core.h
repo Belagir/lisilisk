@@ -126,7 +126,9 @@ struct geometry {
     struct face *faces_array;
 
     struct {
+        // TODO: update data behind this vbo when the vertices_array changes (?)
         GLuint vbo;
+        // TODO: update data behind this ebo when the face changes (?)
         GLuint ebo;
     } gpu_side;
 };
@@ -157,11 +159,26 @@ struct texture {
     } specific;
 
     struct {
+        // TODO: reload the texture behind the name when the image changes
         GLuint name;
     } gpu_side;
 };
 
 // -------------------------------------------------------------------------------------------------
+
+/**
+ * @brief
+ *
+ */
+struct material_properties {
+        f32 ambient[3], ambient_strength;
+        f32 diffuse[3], diffuse_strength;
+        f32 specular[3], specular_strength;
+        f32 emissive[3], emissive_strength;
+        f32 shininess;
+
+        f32 PADDING[3];
+};
 
 /**
  * @brief Describes how some surface behaves in contact with light.
@@ -170,16 +187,7 @@ struct texture {
 struct material {
     struct loadable load_state;
 
-    struct {
-        f32 ambient[3], ambient_strength;
-        f32 diffuse[3], diffuse_strength;
-        f32 specular[3], specular_strength;
-        f32 emissive[3], emissive_strength;
-        f32 shininess;
-
-        f32 PADDING[3];
-    } properties;
-
+    struct material_properties properties;
     struct texture * samplers[16u];
 
     struct {
@@ -205,6 +213,7 @@ struct model {
     // opengl names referencing the model's data on the gpu.
     struct {
         GLuint vao;
+        // TODO: update instances when the tr_instances_array changes
         GLuint vbo_instances;
     } gpu_side;
 };
