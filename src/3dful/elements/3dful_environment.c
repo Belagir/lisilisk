@@ -12,15 +12,15 @@
 void environment_cube(struct environment *env, struct geometry *cube)
 {
     if (env->load_state.flags & LOADABLE_FLAG_LOADED) {
-        if (env->unit_cube) {
-            geometry_unload(env->unit_cube);
+        if (env->cube) {
+            geometry_unload(env->cube);
         }
         if (cube) {
             geometry_load(cube);
         }
     }
 
-    env->unit_cube = cube;
+    env->cube = cube;
 }
 
 /**
@@ -50,11 +50,21 @@ void environment_shader(struct environment *env, struct shader *shader)
  *
  * @param env
  */
-void environment_skybox(struct environment *env, struct texture *(*cubemap)[CUBEMAP_FACES_NUMBER])
+void environment_skybox(struct environment *env, struct texture *cubemap)
 {
-    for (size_t i = 0 ; i < CUBEMAP_FACES_NUMBER ; i++) {
-        env->cubemap[i] = (*cubemap)[i];
+    if (cubemap && (cubemap->flavor != TEXTURE_FLAVOR_CUBEMAP)) {
+        return;
     }
+
+    if (env->load_state.flags & LOADABLE_FLAG_LOADED) {
+        if (env->cube_texture) {
+            texture_unload(env->cube_texture);
+        }
+        if (cubemap) {
+            texture_load(cubemap);
+        }
+    }
+    env->cube_texture = cubemap;
 }
 
 /**
@@ -95,46 +105,27 @@ void environment_load(struct environment *env)
     loadable_add_user((struct loadable *) env);
 
     if (loadable_needs_loading((struct loadable *) env)) {
-        if (env->unit_cube) geometry_load(env->unit_cube);
+        if (env->cube) geometry_load(env->cube);
+        if (env->cube_texture) texture_load(env->cube_texture);
 
         // create cubemap vao
         glGenVertexArrays(1, &env->gpu_side.vao);
-
-        // cube map texturing
-        glGenTextures(1, &env->gpu_side.cubemap_texture);
-
-        glBindTexture(GL_TEXTURE_CUBE_MAP, env->gpu_side.cubemap_texture);
-        {
-            for (size_t i = 0 ; i < CUBEMAP_FACES_NUMBER ; i++) {
-                if (env->cubemap[i]) {
-                    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, env->cubemap[i]->image->w, env->cubemap[i]->image->h,
-                            0, GL_RGB, GL_UNSIGNED_BYTE, env->cubemap[i]->image->pixels);
-                }
-            }
-
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        }
-        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
         // actual laoding scenario
         glUseProgram(env->shader->program);
         {
             glBindVertexArray(env->gpu_side.vao);
             {
-                if (env->unit_cube) {
-                    glBindBuffer(GL_ARRAY_BUFFER, env->unit_cube->gpu_side.vbo);
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, env->unit_cube->gpu_side.ebo);
+                if (env->cube) {
+                    glBindBuffer(GL_ARRAY_BUFFER, env->cube->gpu_side.vbo);
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, env->cube->gpu_side.ebo);
 
                     glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
                     glEnableVertexAttribArray(SHADER_VERT_POS);
                 }
 
-                if (env->gpu_side.cubemap_texture) {
-                    glBindTexture(GL_TEXTURE_CUBE_MAP, env->gpu_side.cubemap_texture);
+                if (env->cube_texture) {
+                    glBindTexture(GL_TEXTURE_CUBE_MAP, env->cube_texture->gpu_side.name);
                 }
             }
             glBindVertexArray(0);
@@ -156,9 +147,8 @@ void environment_unload(struct environment *env)
 
     if (loadable_needs_unloading((struct loadable *) env)) {
 
-        geometry_unload(env->unit_cube);
-
-        glDeleteTextures(1, &env->gpu_side.cubemap_texture);
+        if (env->cube) geometry_unload(env->cube);
+        if (env->cube_texture) texture_unload(env->cube_texture);
 
         glDeleteVertexArrays(1, &env->gpu_side.vao);
         env->gpu_side.vao = 0;
@@ -181,9 +171,8 @@ void environment_draw(struct environment *env)
     {
         glBindVertexArray(env->gpu_side.vao);
         {
-            glBindTexture(GL_TEXTURE_CUBE_MAP, env->gpu_side.cubemap_texture);
-
-            if (env->unit_cube) glDrawElements(GL_TRIANGLES, array_length(env->unit_cube->faces_array)*3, GL_UNSIGNED_INT, nullptr);
+            // TODO : make it clear the cube + texture is requiered to draw a cubemap background !
+            if (env->cube && env->cube_texture) glDrawElements(GL_TRIANGLES, array_length(env->cube->faces_array)*3, GL_UNSIGNED_INT, nullptr);
         }
         glBindVertexArray(0);
     }

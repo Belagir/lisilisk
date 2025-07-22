@@ -137,10 +137,24 @@ struct geometry {
  * @brief
  *
  */
+enum texture_flavor {
+    TEXTURE_FLAVOR_2D,
+    TEXTURE_FLAVOR_CUBEMAP,
+};
+
+/**
+ * @brief
+ *
+ */
 struct texture {
     struct loadable load_state;
 
-    SDL_Surface *image;
+    enum texture_flavor flavor;
+
+    union {
+        SDL_Surface *image_for_2D;
+        SDL_Surface *images_for_cubemap[CUBEMAP_FACES_NUMBER];
+    } specific;
 
     struct {
         GLuint name;
@@ -253,10 +267,10 @@ struct light_directional {
 struct environment {
     struct loadable load_state;
 
-    struct geometry *unit_cube;
+    struct geometry *cube;
     struct shader *shader;
 
-    struct texture *cubemap[CUBEMAP_FACES_NUMBER];
+    struct texture *cube_texture;
     struct light ambient_light;
 
     f32 fog_color[3], fog_distance;
@@ -264,7 +278,6 @@ struct environment {
 
     struct {
         GLuint vao;
-        GLuint cubemap_texture;
     } gpu_side;
 };
 
@@ -298,7 +311,6 @@ void shader_vert(struct shader *shader, const char *path);
 void shader_frag_mem(struct shader *shader, const byte *source);
 void shader_frag(struct shader *shader, const char *path);
 
-
 void shader_link(struct shader *shader);
 void shader_delete(struct shader *shader);
 
@@ -327,9 +339,11 @@ void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u
 // -------------------------------------------------------------------------------------------------
 // TEXTURE -----------------------------------------------------------------------------------------
 
-void texture_default(struct texture *texture);
-void texture_file(struct texture *texture, const char *path);
-void texture_file_mem(struct texture *texture, const byte *image);
+void texture_2D_default(struct texture *texture);
+void texture_2D_file(struct texture *texture, const char *path);
+void texture_2D_file_mem(struct texture *texture, const byte *image_array);
+void texture_cubemap_file(struct texture *texture, enum cubemap_face face, const char *path);
+void texture_cubemap_file_mem(struct texture *texture, enum cubemap_face face, const byte *image_array);
 void texture_delete(struct texture *texture);
 
 void texture_load(struct texture *texture);
@@ -406,7 +420,7 @@ void light_directional_direction(struct light_directional *light, struct vector3
 void environment_cube(struct environment *env, struct geometry *cube);
 void environment_ambient(struct environment *env, struct light light);
 void environment_shader(struct environment *env, struct shader *shader);
-void environment_skybox(struct environment *env, struct texture *(*cubemap)[CUBEMAP_FACES_NUMBER]);
+void environment_skybox(struct environment *env, struct texture *cubemap);
 void environment_fog(struct environment *env, f32 color[3], f32 distance);
 void environment_bg(struct environment *env, f32 color[3]);
 
