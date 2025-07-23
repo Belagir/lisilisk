@@ -23,7 +23,18 @@ union instance_handle {
  */
 void model_create(struct model *model)
 {
-    model->tr_instances_array = array_create(make_system_allocator(), sizeof(*model->tr_instances_array), 64);
+    *model = (struct model) {
+            .load_state = { 0 },
+
+            .shader = nullptr,
+            .geometry = nullptr,
+            .material = nullptr,
+
+            .tr_instances_array = array_create(make_system_allocator(), sizeof(*model->tr_instances_array), 32),
+            .handles_array = array_create(make_system_allocator(), sizeof(*model->handles_array), 32),
+
+            .gpu_side = { 0 },
+    };
 }
 
 /**
@@ -34,6 +45,9 @@ void model_create(struct model *model)
 void model_delete(struct model *model)
 {
     array_destroy(make_system_allocator(), (void **) &model->tr_instances_array);
+    array_destroy(make_system_allocator(), (void **) &model->handles_array);
+
+    *model = (struct model) { 0 };
 }
 
 /**

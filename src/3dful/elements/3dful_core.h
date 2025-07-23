@@ -213,6 +213,7 @@ struct model {
     struct material *material;
 
     struct matrix4 *tr_instances_array;
+    handle_t *handles_array;
 
     // opengl names referencing the model's data on the gpu.
     struct {
