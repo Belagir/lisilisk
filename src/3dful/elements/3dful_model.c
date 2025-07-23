@@ -6,12 +6,8 @@
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
-#define INSTANCE_HANDLE_NONE (union instance_handle) { .challenge = 0 }
-
-union instance_handle {
-    handle_t full;
-    struct { u16 challenge; u32 idx; u16 reserved; };
-};
+static size_t model_instance_index_of(struct model *model, handle_t handle);
+static i32 handle_compare(const void *lhs, const void *rhs);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -109,23 +105,21 @@ void model_material(struct model *model, struct material *material)
  */
 void model_instantiate(struct model *model, handle_t *out_handle)
 {
-    static u16 static_challenge_counter = 1;
+    static u16 static_id_counter = 1;
 
-    union instance_handle handle = { };
 
-    array_ensure_capacity(make_system_allocator(), (void **) &model->tr_instances_array, 1);
-
-    handle.idx = (u32) array_length(model->tr_instances_array);
-    handle.challenge = static_challenge_counter;
-
-    if (static_challenge_counter == UINT16_MAX) {
-        static_challenge_counter = 1;
-    } else {
-        static_challenge_counter += 1;
+    if (static_id_counter == UINT16_MAX) {
+        *out_handle = 0;
+        return;
     }
 
-    *out_handle = handle.full;
+    static_id_counter += 1;
+    *out_handle = static_id_counter;
 
+    array_ensure_capacity(make_system_allocator(), (void **) &model->handles_array, 1);
+    array_push(model->handles_array, out_handle);
+
+    array_ensure_capacity(make_system_allocator(), (void **) &model->tr_instances_array, 1);
     array_push(model->tr_instances_array, &MATRIX4_IDENTITY);
 }
 
@@ -138,13 +132,13 @@ void model_instantiate(struct model *model, handle_t *out_handle)
  */
 void model_instance_transform(struct model *model, handle_t handle, struct matrix4 tr)
 {
-    union instance_handle true_handle = { .full = handle };
+    size_t idx = model_instance_index_of(model, handle);
 
-    if (true_handle.challenge == 0) {
+    if (idx == array_length(model->tr_instances_array)) {
         return;
     }
 
-    model->tr_instances_array[true_handle.idx] = tr;
+    model->tr_instances_array[idx] = tr;
 }
 
 /**
@@ -267,4 +261,40 @@ void model_draw(struct model *model)
         glBindVertexArray(0);
     }
     glUseProgram(0);
+}
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * @brief
+ *
+ * @param model
+ * @param handle
+ * @return size_t
+ */
+static size_t model_instance_index_of(struct model *model, handle_t handle)
+{
+    size_t pos = 0;
+
+    if (array_find(model->handles_array, &handle_compare, &handle, &pos)) {
+        return pos;
+    }
+
+    return array_length(model->handles_array);
+}
+
+/**
+ * @brief
+ *
+ * @param lhs
+ * @param rhs
+ * @return i32
+ */
+static i32 handle_compare(const void *lhs, const void *rhs)
+{
+    handle_t handle_lhs = *(handle_t *) lhs;
+    handle_t handle_rhs = *(handle_t *) rhs;
+
+    return (handle_lhs > handle_rhs) - (handle_lhs < handle_rhs);
 }
