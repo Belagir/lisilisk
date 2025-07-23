@@ -142,6 +142,24 @@ void model_instance_transform(struct model *model, handle_t handle, struct matri
 }
 
 /**
+ * @brief
+ *
+ * @param model
+ * @param handle
+ */
+void model_instance_remove(struct model *model, handle_t handle)
+{
+    size_t idx = model_instance_index_of(model, handle);
+
+    if (idx == array_length(model->handles_array)) {
+        return;
+    }
+
+    array_remove_swapback(model->handles_array, idx);
+    array_remove_swapback(model->tr_instances_array, idx);
+}
+
+/**
  * @brief Loads a model to the GPU with OpenGL.
  * Most of the trafic will be to tell which data is linked and sent to the shader.
  *

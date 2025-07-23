@@ -47,9 +47,9 @@ int main(int argc, const char *argv[])
     model_material(&shroom, &shroom_material);
     handle_t h = 0;
     model_instantiate(&shroom, &h);
-    model_instance_transform(&shroom, h, MATRIX4_IDENTITY);
-    model_instantiate(&shroom, &h);
     model_instance_transform(&shroom, h, matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0, 2, -180. }));
+    model_instantiate(&shroom, &h);
+    model_instance_transform(&shroom, h, MATRIX4_IDENTITY);
 
     struct shader sky_shader = { };
     shader_frag(&sky_shader, "shaders/3dful_shaders/skybox_frag.glsl");
