@@ -22,6 +22,11 @@
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+
+typedef u64 handle_t;
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
 /**
@@ -391,7 +396,9 @@ void model_geometry(struct model *model, struct geometry *geometry);
 void model_shader(struct model *model, struct shader *shader);
 void model_material(struct model *model, struct material *material);
 
-void model_instantiate(struct model *model, struct matrix4 tr);
+void model_instantiate(struct model *model, handle_t *out_handle);
+void model_instance_transform(struct model *model, handle_t handle, struct matrix4 tr);
+void model_instance_remove(struct model *model, handle_t handle);
 
 void model_load(struct model *model);
 void model_unload(struct model *model);

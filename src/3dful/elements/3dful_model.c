@@ -6,6 +6,16 @@
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
+#define INSTANCE_HANDLE_NONE (union instance_handle) { .challenge = 0 }
+
+union instance_handle {
+    handle_t full;
+    struct { u16 challenge; u32 idx; u16 reserved; };
+};
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
 /**
  * @brief
  *
@@ -81,12 +91,46 @@ void model_material(struct model *model, struct material *material)
  * @brief
  *
  * @param model
+ * @param out_handle
+ */
+void model_instantiate(struct model *model, handle_t *out_handle)
+{
+    static u16 static_challenge_counter = 1;
+
+    union instance_handle handle = { };
+
+    array_ensure_capacity(make_system_allocator(), (void **) &model->tr_instances_array, 1);
+
+    handle.idx = (u32) array_length(model->tr_instances_array);
+    handle.challenge = static_challenge_counter;
+
+    if (static_challenge_counter == UINT16_MAX) {
+        static_challenge_counter = 1;
+    } else {
+        static_challenge_counter += 1;
+    }
+
+    *out_handle = handle.full;
+
+    array_push(model->tr_instances_array, &MATRIX4_IDENTITY);
+}
+
+/**
+ * @brief
+ *
+ * @param model
+ * @param handle
  * @param tr
  */
-void model_instantiate(struct model *model, struct matrix4 tr)
+void model_instance_transform(struct model *model, handle_t handle, struct matrix4 tr)
 {
-    array_ensure_capacity(make_system_allocator(), (void **) &model->tr_instances_array, 1);
-    array_push(model->tr_instances_array, &tr);
+    union instance_handle true_handle = { .full = handle };
+
+    if (true_handle.challenge == 0) {
+        return;
+    }
+
+    model->tr_instances_array[true_handle.idx] = tr;
 }
 
 /**
