@@ -31,12 +31,12 @@ typedef u64 handle_t;
 
 /**
  * @brief Assigns integer values to semantic names for Uniform Buffer Objects binding indices.
- *
+ * @warning ubo locations are messed up my other computer !!! what ?
  */
 enum shader_ubo_binding {
+    SHADER_UBO_MATERIAL,
     SHADER_UBO_LIGHT_DIREC,
     SHADER_UBO_LIGHT_POINT,
-    SHADER_UBO_MATERIAL,
 };
 
 /**

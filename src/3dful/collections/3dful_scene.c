@@ -143,7 +143,9 @@ void scene_draw(struct scene *scene, u32 time)
             if (scene->env) environment_send_uniforms(scene->env, scene->models_array[i]->shader);
             if (scene->camera) camera_send_uniforms(scene->camera, scene->models_array[i]->shader);
 
+            scene_lights_bind_uniform_blocks(scene, scene->models_array[i]->shader);
             scene_lights_send_uniforms(scene, scene->models_array[i]->shader);
+
             scene_time_send_uniforms(time, scene->models_array[i]->shader);
 
             model_draw(scene->models_array[i]);
@@ -182,7 +184,6 @@ void scene_load(struct scene *scene)
         // load models assigned to the scene
         for (size_t i = 0 ; i < array_length(scene->models_array) ; i++) {
             model_load(scene->models_array[i]);
-            scene_lights_bind_uniform_blocks(scene, scene->models_array[i]->shader);
         }
 
         if (scene->env) {
