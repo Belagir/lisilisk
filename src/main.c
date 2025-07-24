@@ -48,8 +48,6 @@ int main(int argc, const char *argv[])
     handle_t h = 0;
     model_instantiate(&shroom, &h);
     model_instance_transform(&shroom, h, matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0, 2, -180. }));
-    model_instantiate(&shroom, &h);
-    model_instance_transform(&shroom, h, MATRIX4_IDENTITY);
 
     struct shader sky_shader = { };
     shader_frag(&sky_shader, "shaders/3dful_shaders/skybox_frag.glsl");
@@ -94,6 +92,15 @@ int main(int argc, const char *argv[])
     // -----------------------------------------------------------------------
     scene_load(&scene);
     // -----------------------------------------------------------------------
+
+    handle_t h_rm = 0;
+    model_instantiate(&shroom, &h_rm);
+    model_instance_transform(&shroom, h_rm, MATRIX4_IDENTITY);
+
+    model_instantiate(&shroom, &h);
+    model_instance_transform(&shroom, h, matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0, 2, -5. }));
+
+    model_instance_remove(&shroom, h_rm);
 
     i32 should_quit = 0;
     SDL_Event event = { };

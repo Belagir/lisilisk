@@ -218,7 +218,6 @@ struct model {
     // opengl names referencing the model's data on the gpu.
     struct {
         GLuint vao;
-        // TODO: update instances when the tr_instances_array changes
         GLuint vbo_instances;
     } gpu_side;
 };

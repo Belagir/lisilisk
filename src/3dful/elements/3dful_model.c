@@ -8,6 +8,9 @@
 
 static size_t model_instance_index_of(struct model *model, handle_t handle);
 static i32 handle_compare(const void *lhs, const void *rhs);
+static void model_vbo_instances_sync_capacity(struct model *model);
+static void model_vbo_instances_load(struct model *model, size_t vbo_size);
+static void model_vbo_instances_sync_element(struct model *model, size_t index);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -115,12 +118,15 @@ void model_instantiate(struct model *model, handle_t *out_handle)
 
     static_id_counter += 1;
     *out_handle = static_id_counter;
-
+    
     array_ensure_capacity(make_system_allocator(), (void **) &model->handles_array, 1);
     array_push(model->handles_array, out_handle);
-
+    
     array_ensure_capacity(make_system_allocator(), (void **) &model->tr_instances_array, 1);
     array_push(model->tr_instances_array, &MATRIX4_IDENTITY);
+
+    model_vbo_instances_sync_capacity(model);
+    model_vbo_instances_sync_element(model, array_length(model->tr_instances_array)-1);
 }
 
 /**
@@ -139,6 +145,8 @@ void model_instance_transform(struct model *model, handle_t handle, struct matri
     }
 
     model->tr_instances_array[idx] = tr;
+    
+    model_vbo_instances_sync_element(model, idx);
 }
 
 /**
@@ -157,6 +165,8 @@ void model_instance_remove(struct model *model, handle_t handle)
 
     array_remove_swapback(model->handles_array, idx);
     array_remove_swapback(model->tr_instances_array, idx);
+
+    model_vbo_instances_sync_element(model, idx);
 }
 
 /**
@@ -179,11 +189,7 @@ void model_load(struct model *model)
 
         // instances data
         glGenBuffers(1, &model->gpu_side.vbo_instances);
-        glBindBuffer(GL_ARRAY_BUFFER, model->gpu_side.vbo_instances);
-        glBufferData(GL_ARRAY_BUFFER,
-                array_length(model->tr_instances_array) * sizeof(*model->tr_instances_array),
-                model->tr_instances_array, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        model_vbo_instances_load(model, array_capacity(model->tr_instances_array));
 
         glUseProgram(model->shader->program);
         {
@@ -315,4 +321,64 @@ static i32 handle_compare(const void *lhs, const void *rhs)
     handle_t handle_rhs = *(handle_t *) rhs;
 
     return (handle_lhs > handle_rhs) - (handle_lhs < handle_rhs);
+}
+
+/**
+ * @brief 
+ * 
+ * @param model 
+ */
+static void model_vbo_instances_sync_capacity(struct model *model)
+{
+    GLint buffer_size = 0;
+
+    if (!(model->load_state.flags & LOADABLE_FLAG_LOADED)) {
+        return;
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, model->gpu_side.vbo_instances);
+    {
+        glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &buffer_size);
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    
+    if (buffer_size != (GLint) array_capacity(model->tr_instances_array)) {
+        model_vbo_instances_load(model, array_capacity(model->tr_instances_array));
+    }
+}
+
+/**
+ * @brief 
+ * 
+ * @param model 
+ */
+static void model_vbo_instances_load(struct model *model, size_t vbo_size)
+{
+    glBindBuffer(GL_ARRAY_BUFFER, model->gpu_side.vbo_instances);
+    {
+        glBufferData(GL_ARRAY_BUFFER,
+                vbo_size * sizeof(*model->tr_instances_array),
+                model->tr_instances_array, GL_DYNAMIC_DRAW);
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+/**
+ * @brief 
+ * 
+ * @param model 
+ * @param tr 
+ */
+static void model_vbo_instances_sync_element(struct model *model, size_t index)
+{
+    if (!(model->load_state.flags & LOADABLE_FLAG_LOADED)) {
+        return;
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, model->gpu_side.vbo_instances);
+    {
+        glBufferSubData(GL_ARRAY_BUFFER, index * sizeof(*model->tr_instances_array), 
+                sizeof(*model->tr_instances_array), model->tr_instances_array + index);
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
