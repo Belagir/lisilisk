@@ -1,5 +1,5 @@
 
-#include "3dful_collections.h"
+#include "3dful_loading.h"
 
 #include <ustd_impl/array_impl.h>
 
@@ -12,7 +12,6 @@ static void handle_buffer_array_sync_element(struct handle_buffer_array *hb_arra
 
 static size_t handle_buffer_array_index_of(struct handle_buffer_array *hb_array, handle_t handle);
 static i32 handle_compare(const void *lhs, const void *rhs);
-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -43,7 +42,7 @@ void handle_buffer_array_create(struct handle_buffer_array *hb_array)
  */
 void handle_buffer_array_delete(struct handle_buffer_array *hb_array)
 {
-    array_destroy(make_system_allocator(), (void **) hb_array->handles_array);
+    array_destroy(make_system_allocator(), (void **) &hb_array->handles_array);
     *hb_array = (struct handle_buffer_array) { 0 };
 }
 
@@ -75,8 +74,8 @@ void handle_buffer_array_push(struct handle_buffer_array *hb_array, handle_t *ou
         return;
     }
 
-    static_id_counter += 1;
     *out_handle = static_id_counter;
+    static_id_counter += 1;
 
     array_ensure_capacity(make_system_allocator(), (void **) &hb_array->handles_array, 1);
     array_push(hb_array->handles_array, out_handle);
@@ -121,7 +120,35 @@ void handle_buffer_array_remove(struct handle_buffer_array *hb_array, handle_t h
 void handle_buffer_array_sync(struct handle_buffer_array *hb_array, handle_t handle, size_t offset, size_t size)
 {
     size_t idx = handle_buffer_array_index_of(hb_array, handle);
+    if (idx == array_length(hb_array->data_array)) {
+        return;
+    }
+
     handle_buffer_array_sync_element(hb_array, idx, offset, size);
+}
+
+/**
+ * @brief 
+ * 
+ * @param hb_array 
+ * @param handle 
+ * @param value 
+ * @param offset 
+ * @param size 
+ */
+void handle_buffer_array_set(struct handle_buffer_array *hb_array, handle_t handle, void *value, size_t offset, size_t size)
+{
+    size_t idx = handle_buffer_array_index_of(hb_array, handle);
+    if (idx == array_length(hb_array->data_array)) {
+        return;
+    }
+
+    struct array_impl *target = array_impl_of(hb_array->data_array);
+
+    bytewise_copy((byte *) hb_array->data_array 
+            + (idx * target->stride) + offset, value, size);
+    handle_buffer_array_sync_element(hb_array, idx, offset, size);
+
 }
 
 /**
@@ -206,9 +233,10 @@ static void handle_buffer_array_sync_element(struct handle_buffer_array *hb_arra
 
     glBindBuffer(hb_array->buffer_usage, hb_array->buffer_name);
     {
-        glBufferSubData(hb_array->buffer_usage, 
+        glBufferSubData(hb_array->buffer_usage,
                 (index * target->stride) + offset, size,
-                (byte *) hb_array->data_array + index);
+                (byte *) hb_array->data_array + (index * target->stride)
+                + offset);
     }
     glBindBuffer(hb_array->buffer_usage, 0);
 }

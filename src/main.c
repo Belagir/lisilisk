@@ -45,13 +45,6 @@ int main(int argc, const char *argv[])
     model_geometry(&shroom, &shroom_geometry);
     model_shader(&shroom, &material_shader);
     model_material(&shroom, &shroom_material);
-    handle_t h = 0;
-    model_instantiate(&shroom, &h);
-    model_instance_transform(&shroom, h, matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0, 2, -180. }));
-    model_instantiate(&shroom, &h);
-    model_instance_transform(&shroom, h, MATRIX4_IDENTITY);
-    model_instantiate(&shroom, &h);
-    model_instance_transform(&shroom, h, matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0, 2, -5. }));
 
     struct shader sky_shader = { };
     shader_frag(&sky_shader, "shaders/3dful_shaders/skybox_frag.glsl");
@@ -95,10 +88,26 @@ int main(int argc, const char *argv[])
             .position = { 0, 3, 0 }, .constant = 1.0, .linear = .1, .quadratic = .1 });
     scene_model(&scene, &shroom);
 
+    handle_t h = 0;
     // -----------------------------------------------------------------------
     scene_load(&scene);
     // -----------------------------------------------------------------------
-
+    
+    model_instantiate(&shroom, &h);
+    model_instance_transform(&shroom, h, MATRIX4_IDENTITY);
+    model_instantiate(&shroom, &h);
+    model_instance_transform(&shroom, h, 
+            matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0., -2, 0. }));
+    model_instantiate(&shroom, &h);
+    model_instance_transform(&shroom, h, 
+            matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0.,  4, 0. }));
+    model_instantiate(&shroom, &h);
+    model_instance_transform(&shroom, h, 
+            matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0.,  2, 0. }));
+    model_instantiate(&shroom, &h);
+    model_instance_transform(&shroom, h, 
+            matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0., -4, 0. }));
+    
     i32 should_quit = 0;
     SDL_Event event = { };
     u32 time = 0;
