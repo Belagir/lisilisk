@@ -192,13 +192,11 @@ struct model {
     struct material *material;
 
     struct matrix4 *instances_array;
-    // handle_t *handles_array;
     struct handle_buffer_array instances;
 
     // opengl names referencing the model's data on the gpu.
     struct {
         GLuint vao;
-        // GLuint vbo_instances;
     } gpu_side;
 };
 
@@ -238,9 +236,11 @@ struct light_point {
     f32 color[4];
     vector3 position;
 
+    f32 PADDING_1[1];
+
     f32 constant, linear, quadratic;
 
-    f32 PADDING[1];
+    f32 PADDING_2[1];
 };
 
 /**
