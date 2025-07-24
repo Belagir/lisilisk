@@ -4,9 +4,29 @@
 
 #include "../elements/3dful_core.h"
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
+/**
+ * @brief 
+ * 
+ */
+struct handle_buffer_array {
+    struct loadable load_state;
+
+    void *data_array;
+    handle_t *handles_array;
+    
+    GLuint buffer_name;
+    GLenum buffer_usage;
+};
+
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief 
+ * 
+ */
 struct scene {
     struct loadable load_state;
 
@@ -23,6 +43,23 @@ struct scene {
 
     struct environment *env;
 };
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+void handle_buffer_array_create(struct handle_buffer_array *hb_array);
+void handle_buffer_array_delete(struct handle_buffer_array *hb_array);
+
+void handle_buffer_array_bind(struct handle_buffer_array *hb_array, void *array);
+
+void handle_buffer_array_push(struct handle_buffer_array *hb_array, handle_t *out_handle);
+void handle_buffer_array_remove(struct handle_buffer_array *hb_array, handle_t handle);
+void handle_buffer_array_sync(struct handle_buffer_array *hb_array, handle_t handle, size_t offset, size_t size);
+
+void handle_buffer_array_load(struct handle_buffer_array *hb_array);
+void handle_buffer_array_unload(struct handle_buffer_array *hb_array);
+
+// -----------------------------------------------------------------------------
 
 void scene_create(struct scene *scene);
 void scene_delete(struct scene *scene);

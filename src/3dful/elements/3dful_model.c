@@ -3,8 +3,8 @@
 
 #include <ustd/array.h>
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static size_t model_instance_index_of(struct model *model, handle_t handle);
 static i32 handle_compare(const void *lhs, const void *rhs);
@@ -12,9 +12,8 @@ static void model_vbo_instances_sync_capacity(struct model *model);
 static void model_vbo_instances_load(struct model *model, size_t vbo_size);
 static void model_vbo_instances_sync_element(struct model *model, size_t index);
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 /**
  * @brief
  *
@@ -109,7 +108,6 @@ void model_material(struct model *model, struct material *material)
 void model_instantiate(struct model *model, handle_t *out_handle)
 {
     static u16 static_id_counter = 1;
-
 
     if (static_id_counter == UINT16_MAX) {
         *out_handle = 0;

@@ -32,7 +32,7 @@ int main(int argc, const char *argv[])
     material_ambient_mask(&shroom_material, &default_texture);
     material_specular(&shroom_material, (f32[4]) { 1.0, 1.0, 1.0, }, 1);
     material_specular_mask(&shroom_material, &shroom_spec_texture);
-    material_diffuse(&shroom_material,  (f32[4]) { .32, .32, .32, }, 1);
+    material_diffuse(&shroom_material,  (f32[4]) { .52, .52, .52, }, 1);
     material_diffuse_mask(&shroom_material, &default_texture);
     material_shininess(&shroom_material, 4.);
 
@@ -48,6 +48,10 @@ int main(int argc, const char *argv[])
     handle_t h = 0;
     model_instantiate(&shroom, &h);
     model_instance_transform(&shroom, h, matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0, 2, -180. }));
+    model_instantiate(&shroom, &h);
+    model_instance_transform(&shroom, h, MATRIX4_IDENTITY);
+    model_instantiate(&shroom, &h);
+    model_instance_transform(&shroom, h, matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0, 2, -5. }));
 
     struct shader sky_shader = { };
     shader_frag(&sky_shader, "shaders/3dful_shaders/skybox_frag.glsl");
@@ -86,21 +90,14 @@ int main(int argc, const char *argv[])
     scene_camera(&scene, &cam);
     scene_environment(&scene, &env);
     scene_light_direc(&scene, (struct light_directional) { .color = { 1., .9, .8, 1. },
-            .direction = (struct vector3) { 0, -1, .3 } });
+            .direction = { 0, -1, .3 } });
+    scene_light_point(&scene, (struct light_point) { .color = { .2, .8, .4, 1. }, 
+            .position = { 0, 3, 0 }, .constant = 1.0, .linear = .1, .quadratic = .1 });
     scene_model(&scene, &shroom);
 
     // -----------------------------------------------------------------------
     scene_load(&scene);
     // -----------------------------------------------------------------------
-
-    handle_t h_rm = 0;
-    model_instantiate(&shroom, &h_rm);
-    model_instance_transform(&shroom, h_rm, MATRIX4_IDENTITY);
-
-    model_instantiate(&shroom, &h);
-    model_instance_transform(&shroom, h, matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0, 2, -5. }));
-
-    model_instance_remove(&shroom, h_rm);
 
     i32 should_quit = 0;
     SDL_Event event = { };
