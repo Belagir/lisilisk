@@ -2,8 +2,6 @@
 #include <time.h>
 
 #include "3dful/3dful.h"
-#include "3dful/elements/3dful_core.h"
-#include "3dful/collections/3dful_collections.h"
 
 int main(int argc, const char *argv[])
 {

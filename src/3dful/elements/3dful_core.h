@@ -12,7 +12,6 @@
 
 #include "../3dful.h"
 #include "../inout/file_operations.h"
-#include "../collections/3dful_collections.h"
 #include "../loading/3dful_loading.h"
 
 // -----------------------------------------------------------------------------
