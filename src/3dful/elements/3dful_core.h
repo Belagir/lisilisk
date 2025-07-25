@@ -267,7 +267,7 @@ struct light_directional {
 struct environment {
     struct loadable load_state;
 
-    struct geometry *cube;
+    struct geometry *shape;
     struct shader *shader;
 
     struct texture *cube_texture;
@@ -412,7 +412,7 @@ void light_directional_direction(struct light_directional *light, struct vector3
 // -----------------------------------------------------------------------------
 // ENVIRONMENT -----------------------------------------------------------------
 
-void environment_cube(struct environment *env, struct geometry *cube);
+void environment_geometry(struct environment *env, struct geometry *shape);
 void environment_ambient(struct environment *env, struct light light);
 void environment_shader(struct environment *env, struct shader *shader);
 void environment_skybox(struct environment *env, struct texture *cubemap);

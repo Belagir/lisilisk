@@ -1,33 +1,44 @@
+/**
+ * @file 3dful_environment.c
+ * @author Gabriel Bédat
+ * @brief Implementation of environment-related procedures.
+ * @version 0.1
+ * @date 2025-07-25
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
 
 #include "3dful_core.h"
 
 #include <ustd/array.h>
 
 /**
- * @brief
+ * @brief Sets the geometry of the surrounding environment. This will decide
+ * how the interpolation of the cubemap will be made.
  *
- * @param env
- * @param cube
+ * @param[inout] env Modified environment.
+ * @param[in] shape New shape used to render the cubemap.
  */
-void environment_cube(struct environment *env, struct geometry *cube)
+void environment_geometry(struct environment *env, struct geometry *shape)
 {
     if (env->load_state.flags & LOADABLE_FLAG_LOADED) {
-        if (env->cube) {
-            geometry_unload(env->cube);
+        if (env->shape) {
+            geometry_unload(env->shape);
         }
-        if (cube) {
-            geometry_load(cube);
+        if (shape) {
+            geometry_load(shape);
         }
     }
 
-    env->cube = cube;
+    env->shape = shape;
 }
 
 /**
- * @brief
+ * @brief Changes the ambient light provided by this environment.
  *
- * @param env
- * @param light
+ * @param[inout] env Target environment.
+ * @param[in] light New light information.
  */
 void environment_ambient(struct environment *env, struct light light)
 {
@@ -35,10 +46,10 @@ void environment_ambient(struct environment *env, struct light light)
 }
 
 /**
- * @brief
+ * @brief Sets the shader used to render the skybox.
  *
- * @param env
- * @param shader
+ * @param[inout] env Target environment.
+ * @param[in] shader New shader.
  */
 void environment_shader(struct environment *env, struct shader *shader)
 {
@@ -46,9 +57,10 @@ void environment_shader(struct environment *env, struct shader *shader)
 }
 
 /**
- * @brief
+ * @brief Sets the cubemap used for the skybox of an environment.
  *
- * @param env
+ * @param[inout] env Target environment.
+ * @param[in] cubemap Texture holding a cubemap.
  */
 void environment_skybox(struct environment *env, struct texture *cubemap)
 {
@@ -68,11 +80,11 @@ void environment_skybox(struct environment *env, struct texture *cubemap)
 }
 
 /**
- * @brief
+ * @brief Sets the ambient fog information of an environment.
  *
- * @param env
- * @param color
- * @param distance
+ * @param[inout] env Target environment.
+ * @param[in] color Color of the fog.
+ * @param[in] distance Distance to the opaque fog.
  */
 void environment_fog(struct environment *env, f32 color[3], f32 distance)
 {
@@ -83,10 +95,10 @@ void environment_fog(struct environment *env, f32 color[3], f32 distance)
 }
 
 /**
- * @brief
+ * @brief Sets the background color, used in absence of a cubemap texture.
  *
- * @param env
- * @param color
+ * @param[inout] env Target environment.
+ * @param[in] color New background color.
  */
 void environment_bg(struct environment *env, f32 color[3])
 {
@@ -96,16 +108,17 @@ void environment_bg(struct environment *env, f32 color[3])
 }
 
 /**
- * @brief
+ * @brief Sends the environment data to the GPU the first time this procedure
+ * is called.
  *
- * @param env
+ * @param[inout] env Loaded environment.
  */
 void environment_load(struct environment *env)
 {
     loadable_add_user((struct loadable *) env);
 
     if (loadable_needs_loading((struct loadable *) env)) {
-        if (env->cube) geometry_load(env->cube);
+        if (env->shape) geometry_load(env->shape);
         if (env->cube_texture) texture_load(env->cube_texture);
 
         // create cubemap vao
@@ -116,16 +129,20 @@ void environment_load(struct environment *env)
         {
             glBindVertexArray(env->gpu_side.vao);
             {
-                if (env->cube) {
-                    glBindBuffer(GL_ARRAY_BUFFER, env->cube->gpu_side.vbo);
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, env->cube->gpu_side.ebo);
+                if (env->shape) {
+                    glBindBuffer(GL_ARRAY_BUFFER, env->shape->gpu_side.vbo);
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                            env->shape->gpu_side.ebo);
 
-                    glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
+                    glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT,
+                            GL_FALSE, sizeof(struct vertex),
+                            (void *) OFFSET_OF(struct vertex, pos));
                     glEnableVertexAttribArray(SHADER_VERT_POS);
                 }
 
                 if (env->cube_texture) {
-                    glBindTexture(GL_TEXTURE_CUBE_MAP, env->cube_texture->gpu_side.name);
+                    glBindTexture(GL_TEXTURE_CUBE_MAP,
+                            env->cube_texture->gpu_side.name);
                 }
             }
             glBindVertexArray(0);
@@ -137,9 +154,9 @@ void environment_load(struct environment *env)
 }
 
 /**
- * @brief
+ * @brief Removes the environment data from the GPU memory if needed.
  *
- * @param env
+ * @param[inout] env Unloaded environment.
  */
 void environment_unload(struct environment *env)
 {
@@ -147,7 +164,7 @@ void environment_unload(struct environment *env)
 
     if (loadable_needs_unloading((struct loadable *) env)) {
 
-        if (env->cube) geometry_unload(env->cube);
+        if (env->shape) geometry_unload(env->shape);
         if (env->cube_texture) texture_unload(env->cube_texture);
 
         glDeleteVertexArrays(1, &env->gpu_side.vao);
@@ -159,9 +176,9 @@ void environment_unload(struct environment *env)
 }
 
 /**
- * @brief
+ * @brief Draws the cubemap skybox to the global OpenGL context.
  *
- * @param env
+ * @param[in] env Drawn environment.
  */
 void environment_draw(struct environment *env)
 {
@@ -171,8 +188,13 @@ void environment_draw(struct environment *env)
     {
         glBindVertexArray(env->gpu_side.vao);
         {
-            // TODO : make it clear the cube + texture is requiered to draw a cubemap background !
-            if (env->cube && env->cube_texture) glDrawElements(GL_TRIANGLES, array_length(env->cube->faces_array)*3, GL_UNSIGNED_INT, nullptr);
+            // TODO : make it clear the cube + texture is requiered to draw a
+            // cubemap background !
+            if (env->shape && env->cube_texture) {
+                glDrawElements(GL_TRIANGLES,
+                        array_length(env->shape->faces_array)*3,
+                        GL_UNSIGNED_INT, nullptr);
+            }
         }
         glBindVertexArray(0);
     }
@@ -182,10 +204,14 @@ void environment_draw(struct environment *env)
 }
 
 /**
- * @brief
+ * @brief Sends an environment's variables to a shader.
+ * The expected uniforms are :
+ * - vec4 LIGHT_AMBIENT ;
+ * - vec3 FOG_COLOR ;
+ * - float FOG_DISTANCE.
  *
- * @param env
- * @param shader
+ * @param[in] env Source environment.
+ * @param[in] shader Shader supporting the uniforms.
  */
 void environment_send_uniforms(struct environment *env, struct shader *shader)
 {
@@ -202,5 +228,4 @@ void environment_send_uniforms(struct environment *env, struct shader *shader)
         glUniform1f(uniform_name, env->fog_distance);
     }
     glUseProgram(0);
-
 }

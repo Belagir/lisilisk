@@ -172,10 +172,10 @@ void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv)
 }
 
 /**
- * @brief 
- * 
- * @param geometry 
- * @param smooth 
+ * @brief
+ *
+ * @param geometry
+ * @param smooth
  */
 void geometry_set_smoothing(struct geometry *geometry, bool smooth)
 {
