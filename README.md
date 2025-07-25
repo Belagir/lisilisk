@@ -71,9 +71,11 @@ Materials are an inintuitive mess. I should find a new way to express how a mode
 
 > Added masks, emission, texture etc to the material. It's a bit better now.
 
-### Dynamic updates of GPU data
+### ~~Dynamic updates of GPU data~~
 
 Data objects that send data to the GPU do so only on `load()`. When their data change, they should update the data in the buffers.
+
+> Done with the `struct handle_buffer array` which manages stuff that are both on cpu memory and gpu memory.
 
 ### Link TIME uniform to actual time
 
