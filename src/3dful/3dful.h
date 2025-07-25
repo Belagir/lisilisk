@@ -1,6 +1,6 @@
 
-#ifndef SCRYING_ORB_H__
-#define SCRYING_ORB_H__
+#ifndef APPLICATION_3DFUL_H__
+#define APPLICATION_3DFUL_H__
 
 #include <SDL2/SDL.h>
 #include <GLES3/gl3.h>
@@ -24,8 +24,8 @@ struct application {
 // -----------------------------------------------------------------------------
 
 /**
- * @brief 
- * 
+ * @brief
+ *
  */
 struct scene {
     struct loadable load_state;
@@ -37,7 +37,7 @@ struct scene {
     struct {
         struct light_point *point_lights_array;
         struct handle_buffer_array point_lights;
-        
+
         struct light_directional *direc_lights_array;
         struct handle_buffer_array direc_lights;
     } light_sources;
