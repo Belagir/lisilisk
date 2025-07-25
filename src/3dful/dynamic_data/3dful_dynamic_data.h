@@ -1,6 +1,6 @@
 
-#ifndef LOADING_3DFUL_H__
-#define LOADING_3DFUL_H__
+#ifndef DYNAMIC_DATA_3DFUL_H__
+#define DYNAMIC_DATA_3DFUL_H__
 
 #include <SDL2/SDL.h>
 #include <GLES3/gl3.h>

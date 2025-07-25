@@ -9,7 +9,7 @@
 #include <ustd/logging.h>
 
 #include "elements/3dful_core.h"
-#include "loading/3dful_loading.h"
+#include "dynamic_data/3dful_dynamic_data.h"
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
