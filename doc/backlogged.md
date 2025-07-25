@@ -2,7 +2,7 @@
 - [x] Add more coherence for when we pass pointers vs. when we pass values
 - [x] Detect channels (rgb / rgba) set in surfaces to set the correct value when we load the texture on GPU
 - [x] Add null-detection when the state of the data passed is acceptable (e.g. a scene without environment)
-- [ ] MEMORY LEAKS !!!!
+- [x] MEMORY LEAKS !!!!
 - [ ] change skybox shape from cube to icosphere
 - [ ] Implement custom textures passing to material shader
 - [ ] documentation

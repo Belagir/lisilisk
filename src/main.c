@@ -14,7 +14,7 @@ int main(int argc, const char *argv[])
 
     struct scene scene = { };
     scene_create(&scene);
-    
+
     // -----------------------------------------------------------------------
     scene_load(&scene);
     // -----------------------------------------------------------------------
@@ -88,7 +88,7 @@ int main(int argc, const char *argv[])
 
     scene_camera(&scene, &cam);
     scene_environment(&scene, &env);
-    
+
     handle_t h = 0;
     scene_light_direc(&scene, &h);
     scene_light_direc_color(&scene, h, (f32[4]) { 1, 0, 0., 1 });
@@ -98,11 +98,11 @@ int main(int argc, const char *argv[])
     scene_light_direc_color(&scene, h, (f32[4]) { 0, 1, 0, 1 });
     scene_light_direc_orientation(&scene, h, (vector3) { 0, 1, 0 });
 
-    
+
     model_instantiate(&shroom, &h);
     model_instance_transform(&shroom, h, MATRIX4_IDENTITY);
-    
-    
+
+
     i32 should_quit = 0;
     SDL_Event event = { };
     u32 time = 0;
@@ -127,6 +127,7 @@ int main(int argc, const char *argv[])
     geometry_delete(&shroom_geometry);
     model_delete(&shroom);
 
+    texture_delete(&cubemap);
     texture_delete(&default_texture);
     texture_delete(&shroom_base_texture);
     texture_delete(&shroom_spec_texture);
