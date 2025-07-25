@@ -13,6 +13,14 @@ int main(int argc, const char *argv[])
 
     struct application target = application_create(argv[0], 1200, 800);
 
+
+    struct scene scene = { };
+    scene_create(&scene);
+    
+    // -----------------------------------------------------------------------
+    scene_load(&scene);
+    // -----------------------------------------------------------------------
+
     struct shader material_shader = { };
     shader_material_frag(&material_shader, "shaders/user_shaders/material.frag");
     shader_material_vert(&material_shader, "shaders/user_shaders/material.vert");
@@ -28,11 +36,11 @@ int main(int argc, const char *argv[])
 
     struct material shroom_material = { };
     material_texture(&shroom_material, &shroom_base_texture);
-    material_ambient(&shroom_material,  (f32[4]) { .30, .30, .30, }, 1);
+    material_ambient(&shroom_material,  (f32[4]) { .30, .30, .30, }, 0);
     material_ambient_mask(&shroom_material, &default_texture);
-    material_specular(&shroom_material, (f32[4]) { 1.0, 1.0, .6, }, .8);
+    material_specular(&shroom_material, (f32[4]) { 1.0, 1.0, .6, }, 1.);
     material_specular_mask(&shroom_material, &shroom_spec_texture);
-    material_diffuse(&shroom_material,  (f32[4]) { 1.0, 0.6, 1.0, }, .8);
+    material_diffuse(&shroom_material,  (f32[4]) { 1.0, 0.6, 1.0, }, 1.);
     material_diffuse_mask(&shroom_material, &default_texture);
     material_shininess(&shroom_material, 4.);
 
@@ -78,29 +86,24 @@ int main(int argc, const char *argv[])
     environment_fog(&env, (f32[3]) { .4, .6, .8 }, 200.);
     environment_bg(&env, (f32[3]) { .3, .1, .1 });
 
-    struct scene scene = { };
-    scene_create(&scene);
-    scene_camera(&scene, &cam);
-    scene_environment(&scene, &env);
     scene_model(&scene, &shroom);
 
-    // -----------------------------------------------------------------------
-    scene_load(&scene);
-    // -----------------------------------------------------------------------
+    scene_camera(&scene, &cam);
+    scene_environment(&scene, &env);
     
     handle_t h = 0;
+    scene_light_direc(&scene, &h);
+    scene_light_direc_color(&scene, h, (f32[4]) { 1, 0, 0., 1 });
+    scene_light_direc_orientation(&scene, h, (vector3) { 0, -1, 0 });
+
+    scene_light_direc(&scene, &h);
+    scene_light_direc_color(&scene, h, (f32[4]) { 0, 1, 0, 1 });
+    scene_light_direc_orientation(&scene, h, (vector3) { 0, 1, 0 });
+
+    
     model_instantiate(&shroom, &h);
     model_instance_transform(&shroom, h, MATRIX4_IDENTITY);
     
-    scene_light_point(&scene, &h);
-    scene_light_point_position(&scene, h, (vector3) { 1, 4., 1 });
-    scene_light_point_color(&scene, h, (f32[4]) { 1., 1., 1., 1 });
-    scene_light_point_attenuation(&scene, h, 1, .05, .00);
-
-    scene_light_point(&scene, &h);
-    scene_light_point_position(&scene, h, (vector3) { 3, -1, -1 });
-    scene_light_point_color(&scene, h, (f32[4]) { .2, .5, 1., 1 });
-    scene_light_point_attenuation(&scene, h, 1, .01, .00);
     
     i32 should_quit = 0;
     SDL_Event event = { };

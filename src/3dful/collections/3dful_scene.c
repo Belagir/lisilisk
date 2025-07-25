@@ -34,6 +34,7 @@ void scene_create(struct scene *scene)
 
                 .direc_lights_array = array_create(make_system_allocator(),     
                         sizeof(*scene->light_sources.direc_lights_array), 8),
+                .direc_lights = { { 0 }, 0 },
             }
     };
 
@@ -41,6 +42,11 @@ void scene_create(struct scene *scene)
     handle_buffer_array_bind(&scene->light_sources.point_lights, 
             scene->light_sources.point_lights_array);
     scene->light_sources.point_lights.buffer_usage = GL_UNIFORM_BUFFER;
+
+    handle_buffer_array_create(&scene->light_sources.direc_lights);
+    handle_buffer_array_bind(&scene->light_sources.direc_lights, 
+            scene->light_sources.direc_lights_array);
+    scene->light_sources.direc_lights.buffer_usage = GL_UNIFORM_BUFFER;
 }
 
 /**
@@ -51,6 +57,7 @@ void scene_create(struct scene *scene)
 void scene_delete(struct scene *scene)
 {
     handle_buffer_array_delete(&scene->light_sources.point_lights);
+    handle_buffer_array_delete(&scene->light_sources.direc_lights);
 
     array_destroy(make_system_allocator(), (void **) &scene->models_array);
     array_destroy(make_system_allocator(), (void **) &scene->light_sources.point_lights_array);
@@ -139,7 +146,7 @@ void scene_light_point_position(struct scene *scene, handle_t handle, struct vec
 void scene_light_point_color(struct scene *scene, handle_t handle, f32 color[4])
 {
     handle_buffer_array_set(&scene->light_sources.point_lights, handle, 
-            color, OFFSET_OF(struct light_point, color), sizeof(f32)*4);
+            color, OFFSET_OF(struct light_point, color), sizeof(f32[4]));
 }
 
 /**
@@ -176,14 +183,51 @@ void scene_light_point_remove(struct scene *scene, handle_t handle)
 }
 
 /**
- * @brief
- *
- * @param scene
- * @param light
+ * @brief 
+ * 
+ * @param scene 
+ * @param out_handle 
  */
-void scene_light_direc(struct scene *scene, struct light_directional light)
+void scene_light_direc(struct scene *scene, handle_t *out_handle)
 {
-    array_push(scene->light_sources.direc_lights_array, &light);
+    handle_buffer_array_push(&scene->light_sources.direc_lights, out_handle);
+}
+
+/**
+ * @brief 
+ * 
+ * @param scene 
+ * @param handle 
+ * @param dir 
+ */
+void scene_light_direc_orientation(struct scene *scene, handle_t handle, struct vector3 dir)
+{
+    handle_buffer_array_set(&scene->light_sources.direc_lights, handle, 
+            &dir, OFFSET_OF(struct light_directional, direction), sizeof(dir));
+}
+
+/**
+ * @brief 
+ * 
+ * @param scene 
+ * @param handle 
+ * @param color 
+ */
+void scene_light_direc_color(struct scene *scene, handle_t handle, f32 color[4])
+{
+    handle_buffer_array_set(&scene->light_sources.direc_lights, handle, 
+            color, OFFSET_OF(struct light_directional, color), sizeof(f32[4]));
+}
+
+/**
+ * @brief 
+ * 
+ * @param scene 
+ * @param handle 
+ */
+void scene_light_direc_remove(struct scene *scene, handle_t handle)
+{
+    handle_buffer_array_remove(&scene->light_sources.direc_lights, handle);
 }
 
 /**
@@ -233,14 +277,8 @@ void scene_load(struct scene *scene)
     if (loadable_needs_loading((struct loadable *) scene)) {
         // Load lights -- point lights
         handle_buffer_array_load(&scene->light_sources.point_lights);
-
         // Load lights -- directional lights
-        glGenBuffers(1, &scene->light_sources.ubo_dir_lights);
-        glBindBuffer(GL_UNIFORM_BUFFER, scene->light_sources.ubo_dir_lights);
-        glBufferData(GL_UNIFORM_BUFFER,
-                array_length(scene->light_sources.direc_lights_array) * sizeof(*scene->light_sources.direc_lights_array),
-                scene->light_sources.direc_lights_array, GL_STATIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        handle_buffer_array_load(&scene->light_sources.direc_lights);
 
         scene->load_state.flags |= LOADABLE_FLAG_LOADED;
 
@@ -265,12 +303,10 @@ void scene_unload(struct scene *scene)
     loadable_remove_user((struct loadable *) scene);
 
     if (loadable_needs_unloading((struct loadable *) scene)) {
-        // destroy buffers
-        glDeleteBuffers(1, &scene->light_sources.ubo_dir_lights);
-
+        
         scene->load_state.flags &= ~LOADABLE_FLAG_LOADED;
-
         handle_buffer_array_unload(&scene->light_sources.point_lights);
+        handle_buffer_array_unload(&scene->light_sources.direc_lights);
 
         for (size_t i = 0 ; i < array_length(scene->models_array) ; i++) {
             model_unload(scene->models_array[i]);
@@ -310,8 +346,10 @@ static void scene_lights_bind_uniform_blocks(struct scene *scene, struct shader 
         block_name = glGetUniformBlockIndex(shader->program, "BLOCK_LIGHT_DIRECTIONALS");
         glUniformBlockBinding(shader->program, block_name, SHADER_UBO_LIGHT_DIREC);
 
-        glBindBuffer(GL_UNIFORM_BUFFER, scene->light_sources.ubo_dir_lights);
-        glBindBufferBase(GL_UNIFORM_BUFFER, block_name, scene->light_sources.ubo_dir_lights);
+        glBindBuffer(GL_UNIFORM_BUFFER, 
+                scene->light_sources.direc_lights.buffer_name);
+        glBindBufferBase(GL_UNIFORM_BUFFER, block_name, 
+                scene->light_sources.direc_lights.buffer_name);
     }
     glUseProgram(0);
 }
@@ -336,7 +374,6 @@ static void scene_lights_send_uniforms(struct scene *scene, struct shader *shade
     }
     glUseProgram(0);
 }
-
 
 /**
  * @brief
