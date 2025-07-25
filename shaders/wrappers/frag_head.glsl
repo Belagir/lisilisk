@@ -43,7 +43,7 @@ struct Light {
 };
 
 struct LightPoint {
-    Light base;
+    vec4 color;
 
     vec4 position;
 
@@ -53,7 +53,7 @@ struct LightPoint {
 };
 
 struct LightDirectional {
-    Light base;
+    vec4 color;
     vec3 direction;
 };
 
@@ -104,10 +104,10 @@ vec4 LightContribution;
 // ---------------------------------------------------------
 // ---------------------------------------------------------
 
-vec4 light_diffuse(vec3 light_dir, Light l_base)
+vec4 light_diffuse(vec3 light_dir, vec4 light_color)
 {
     float diff = max(dot(Normal, light_dir), 0.0);
-    return l_base.color
+    return light_color
             * vec4(diff * MATERIAL.diffuse, 1.)
             * texture(diffuse_mask, FragUV)
             * MATERIAL.diffuse_strength;
@@ -115,13 +115,13 @@ vec4 light_diffuse(vec3 light_dir, Light l_base)
 
 // ---------------------------------------------------------
 
-vec4 light_specular(vec3 light_dir, Light l_base)
+vec4 light_specular(vec3 light_dir, vec4 light_color)
 {
     vec3 view_dir = normalize(CAMERA_POS - FragPos);
     vec3 reflect_dir = reflect(-light_dir, Normal);
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), MATERIAL.shininess);
 
-    return l_base.color
+    return light_color
             * vec4(spec * MATERIAL.specular, 1.)
             * texture(specular_mask, FragUV)
             * MATERIAL.specular_strength;
@@ -129,9 +129,9 @@ vec4 light_specular(vec3 light_dir, Light l_base)
 
 // ---------------------------------------------------------
 
-vec4 light_ambient_contribution(vec4 l)
+vec4 light_ambient_contribution(vec4 light_color)
 {
-    return l
+    return light_color
             * vec4(MATERIAL.ambient, 1.)
             * texture(ambient_mask, FragUV)
             * MATERIAL.ambient_strength;
@@ -144,8 +144,8 @@ vec4 light_point_contribution(LightPoint l)
 {
     vec3 light_dir = normalize(l.position.xyz - FragPos);
 
-    vec4 diffuse = light_diffuse(light_dir, l.base);
-    vec4 specular = light_specular(light_dir, l.base);
+    vec4 diffuse = light_diffuse(light_dir, l.color);
+    vec4 specular = light_specular(light_dir, l.color);
 
     float dist = length(l.position.xyz - FragPos);
     float attenuation = 1. / (l.constant + l.linear*dist + l.quadratic*(dist*dist));
@@ -159,8 +159,8 @@ vec4 light_directional_contribution(LightDirectional l)
 {
     vec3 light_dir = normalize(-l.direction);
 
-    vec4 diffuse = light_diffuse(light_dir, l.base);
-    vec4 specular = light_specular(light_dir, l.base);
+    vec4 diffuse = light_diffuse(light_dir, l.color);
+    vec4 specular = light_specular(light_dir, l.color);
 
     return diffuse + specular;
 }

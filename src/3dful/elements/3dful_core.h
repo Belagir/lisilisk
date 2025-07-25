@@ -12,26 +12,21 @@
 
 #include "../3dful.h"
 #include "../inout/file_operations.h"
+#include "../collections/3dful_collections.h"
+#include "../loading/3dful_loading.h"
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-
-#define LOADABLE_FLAG_NONE   (0x0)
-#define LOADABLE_FLAG_LOADED (0x1)
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
  * @brief Assigns integer values to semantic names for Uniform Buffer Objects binding indices.
- *
+ * @warning ubo locations are messed up my other computer !!! what ?
  */
 enum shader_ubo_binding {
+    SHADER_UBO_MATERIAL,
     SHADER_UBO_LIGHT_DIREC,
     SHADER_UBO_LIGHT_POINT,
-    SHADER_UBO_MATERIAL,
 };
 
 /**
@@ -71,25 +66,14 @@ enum cubemap_face {
     CUBEMAP_FACE_LEFT,
     CUBEMAP_FACE_TOP,
     CUBEMAP_FACE_BOTTOM,
-    CUBEMAP_FACE_BACK,
     CUBEMAP_FACE_FRONT,
+    CUBEMAP_FACE_BACK,
 
     CUBEMAP_FACES_NUMBER,
 };
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-
-/**
- * @brief
- *
- */
-struct loadable {
-    u16 flags;
-    u16 nb_users;
-};
-
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
  * @brief Stores names of vertex, fragment, and whole shader program.
@@ -101,7 +85,7 @@ struct shader {
     GLuint program;
 };
 
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
  * @brief Piece of data passed to OpengGL to represent a vertice composing a mesh.
@@ -126,12 +110,23 @@ struct geometry {
     struct face *faces_array;
 
     struct {
+        // TODO: update data behind this vbo when the vertices_array changes (?)
         GLuint vbo;
+        // TODO: update data behind this ebo when the face changes (?)
         GLuint ebo;
     } gpu_side;
 };
 
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief
+ *
+ */
+enum texture_flavor {
+    TEXTURE_FLAVOR_2D,
+    TEXTURE_FLAVOR_CUBEMAP,
+};
 
 /**
  * @brief
@@ -140,14 +135,33 @@ struct geometry {
 struct texture {
     struct loadable load_state;
 
-    SDL_Surface *image;
+    enum texture_flavor flavor;
+
+    union {
+        SDL_Surface *image_for_2D;
+        SDL_Surface *images_for_cubemap[CUBEMAP_FACES_NUMBER];
+    } specific;
 
     struct {
         GLuint name;
     } gpu_side;
 };
 
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief
+ *
+ */
+struct material_properties {
+        f32 ambient[3], ambient_strength;
+        f32 diffuse[3], diffuse_strength;
+        f32 specular[3], specular_strength;
+        f32 emissive[3], emissive_strength;
+        f32 shininess;
+
+        f32 PADDING[3];
+};
 
 /**
  * @brief Describes how some surface behaves in contact with light.
@@ -156,16 +170,7 @@ struct texture {
 struct material {
     struct loadable load_state;
 
-    struct {
-        f32 ambient[3], ambient_strength;
-        f32 diffuse[3], diffuse_strength;
-        f32 specular[3], specular_strength;
-        f32 emissive[3], emissive_strength;
-        f32 shininess;
-
-        f32 PADDING[3];
-    } properties;
-
+    struct material_properties properties;
     struct texture * samplers[16u];
 
     struct {
@@ -173,7 +178,7 @@ struct material {
     } gpu_side;
 };
 
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
  * @brief Stores data about a world model that can be rendered in the world.
@@ -186,16 +191,16 @@ struct model {
     struct geometry *geometry;
     struct material *material;
 
-    struct matrix4 *tr_instances_array;
+    struct matrix4 *instances_array;
+    struct handle_buffer_array instances;
 
     // opengl names referencing the model's data on the gpu.
     struct {
         GLuint vao;
-        GLuint vbo_instances;
     } gpu_side;
 };
 
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
  * @brief Stores a camera view & projection matrices.
@@ -211,7 +216,7 @@ struct camera {
     struct matrix4 projection;
 };
 
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
  * @brief Stores some light information.
@@ -231,9 +236,11 @@ struct light_point {
     f32 color[4];
     vector3 position;
 
+    f32 PADDING_1[1];
+
     f32 constant, linear, quadratic;
 
-    f32 PADDING[1];
+    f32 PADDING_2[1];
 };
 
 /**
@@ -248,15 +255,15 @@ struct light_directional {
     f32 PADDING[1];
 };
 
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 struct environment {
     struct loadable load_state;
 
-    struct geometry *unit_cube;
+    struct geometry *cube;
     struct shader *shader;
 
-    struct texture *cubemap[CUBEMAP_FACES_NUMBER];
+    struct texture *cube_texture;
     struct light ambient_light;
 
     f32 fog_color[3], fog_distance;
@@ -264,29 +271,19 @@ struct environment {
 
     struct {
         GLuint vao;
-        GLuint cubemap_texture;
     } gpu_side;
 };
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// TRANSFORMS --------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// TRANSFORMS ------------------------------------------------------------------
 
 void transform_translate(struct matrix4 *matrix, vector3 offset);
 void position_translate(struct vector3 *pos, vector3 offset);
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// GENERAL LOADABLES -------------------------------------------------------------------------------
-
-void loadable_add_user(struct loadable *obj);
-void loadable_remove_user(struct loadable *obj);
-i32 loadable_needs_loading(const struct loadable *obj);
-i32 loadable_needs_unloading(const struct loadable *obj);
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// SHADERS -----------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// SHADERS ---------------------------------------------------------------------
 
 void shader_material_vert_mem(struct shader *shader, const byte *source);
 void shader_material_vert(struct shader *shader, const char *path);
@@ -298,13 +295,12 @@ void shader_vert(struct shader *shader, const char *path);
 void shader_frag_mem(struct shader *shader, const byte *source);
 void shader_frag(struct shader *shader, const char *path);
 
-
 void shader_link(struct shader *shader);
 void shader_delete(struct shader *shader);
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// GEOMETRY ----------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// GEOMETRY --------------------------------------------------------------------
 
 void geometry_create(struct geometry *geometry);
 void geometry_delete(struct geometry *geometry);
@@ -323,21 +319,23 @@ void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv);
 void geometry_push_face(struct geometry *geometry, u32 *out_idx);
 void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u]);
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// TEXTURE -----------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// TEXTURE ---------------------------------------------------------------------
 
-void texture_default(struct texture *texture);
-void texture_file(struct texture *texture, const char *path);
-void texture_file_mem(struct texture *texture, const byte *image);
+void texture_2D_default(struct texture *texture);
+void texture_2D_file(struct texture *texture, const char *path);
+void texture_2D_file_mem(struct texture *texture, const byte *image_array);
+void texture_cubemap_file(struct texture *texture, enum cubemap_face face, const char *path);
+void texture_cubemap_file_mem(struct texture *texture, enum cubemap_face face, const byte *image_array);
 void texture_delete(struct texture *texture);
 
 void texture_load(struct texture *texture);
 void texture_unload(struct texture *texture);
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// MATERIAL ----------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// MATERIAL --------------------------------------------------------------------
 
 void material_texture(struct material *material, struct texture *texture);
 
@@ -358,9 +356,9 @@ void material_unload(struct material *material);
 void material_bind_uniform_blocks(struct material *material, struct shader *shader);
 void material_bind_textures(struct material *material, struct shader *shader);
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// MODEL -------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// MODEL -----------------------------------------------------------------------
 
 void model_create(struct model *model);
 void model_delete(struct model *model);
@@ -369,15 +367,17 @@ void model_geometry(struct model *model, struct geometry *geometry);
 void model_shader(struct model *model, struct shader *shader);
 void model_material(struct model *model, struct material *material);
 
-void model_instantiate(struct model *model, struct matrix4 tr);
+void model_instantiate(struct model *model, handle_t *out_handle);
+void model_instance_transform(struct model *model, handle_t handle, struct matrix4 tr);
+void model_instance_remove(struct model *model, handle_t handle);
 
 void model_load(struct model *model);
 void model_unload(struct model *model);
 void model_draw(struct model *model);
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// CAMERA ------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// CAMERA ----------------------------------------------------------------------
 
 void camera_position(struct camera *camera, struct vector3 pos);
 void camera_fov(struct camera *camera, f32 fov);
@@ -386,9 +386,9 @@ void camera_limits(struct camera *camera, f32 near, f32 far);
 void camera_aspect(struct camera *camera, f32 aspect);
 void camera_send_uniforms(struct camera *camera, struct shader *shader);
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// LIGHT -------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// LIGHT -----------------------------------------------------------------------
 
 void light_color(struct light *light, f32 color[4]);
 
@@ -399,14 +399,14 @@ void light_point_quadratic(struct light_point *light, f32 quadratic);
 
 void light_directional_direction(struct light_directional *light, struct vector3 direction);
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// ENVIRONMENT -------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// ENVIRONMENT -----------------------------------------------------------------
 
 void environment_cube(struct environment *env, struct geometry *cube);
 void environment_ambient(struct environment *env, struct light light);
 void environment_shader(struct environment *env, struct shader *shader);
-void environment_skybox(struct environment *env, struct texture *(*cubemap)[CUBEMAP_FACES_NUMBER]);
+void environment_skybox(struct environment *env, struct texture *cubemap);
 void environment_fog(struct environment *env, f32 color[3], f32 distance);
 void environment_bg(struct environment *env, f32 color[3]);
 

@@ -3,9 +3,8 @@
 
 #include <ustd/array.h>
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 /**
  * @brief
  *
@@ -13,7 +12,22 @@
  */
 void model_create(struct model *model)
 {
-    model->tr_instances_array = array_create(make_system_allocator(), sizeof(*model->tr_instances_array), 64);
+    *model = (struct model) {
+            .load_state = { 0 },
+
+            .shader = nullptr,
+            .geometry = nullptr,
+            .material = nullptr,
+
+            .instances_array = array_create(make_system_allocator(), sizeof(*model->instances_array), 32),
+            .instances = { { 0 }, 0 },
+
+            .gpu_side = { 0 },
+    };
+
+    handle_buffer_array_create(&model->instances);
+    handle_buffer_array_bind(&model->instances, model->instances_array);
+    model->instances.buffer_usage = GL_ARRAY_BUFFER;
 }
 
 /**
@@ -23,7 +37,10 @@ void model_create(struct model *model)
  */
 void model_delete(struct model *model)
 {
-    array_destroy(make_system_allocator(), (void **) &model->tr_instances_array);
+    array_destroy(make_system_allocator(), (void **) &model->instances_array);
+    handle_buffer_array_delete(&model->instances);
+
+    *model = (struct model) { 0 };
 }
 
 /**
@@ -81,12 +98,34 @@ void model_material(struct model *model, struct material *material)
  * @brief
  *
  * @param model
+ * @param out_handle
+ */
+void model_instantiate(struct model *model, handle_t *out_handle)
+{   
+    handle_buffer_array_push(&model->instances, out_handle);
+}
+
+/**
+ * @brief
+ *
+ * @param model
+ * @param handle
  * @param tr
  */
-void model_instantiate(struct model *model, struct matrix4 tr)
+void model_instance_transform(struct model *model, handle_t handle, struct matrix4 tr)
 {
-    array_ensure_capacity(make_system_allocator(), (void **) &model->tr_instances_array, 1);
-    array_push(model->tr_instances_array, &tr);
+    handle_buffer_array_set(&model->instances, handle, &tr, 0, sizeof(tr));
+}
+
+/**
+ * @brief
+ *
+ * @param model
+ * @param handle
+ */
+void model_instance_remove(struct model *model, handle_t handle)
+{
+    handle_buffer_array_remove(&model->instances, handle);
 }
 
 /**
@@ -104,16 +143,10 @@ void model_load(struct model *model)
         if (model->geometry) geometry_load(model->geometry);
         if (model->material) material_load(model->material);
 
+        handle_buffer_array_load(&model->instances);
+
         // model's vao
         glGenVertexArrays(1, &model->gpu_side.vao);
-
-        // instances data
-        glGenBuffers(1, &model->gpu_side.vbo_instances);
-        glBindBuffer(GL_ARRAY_BUFFER, model->gpu_side.vbo_instances);
-        glBufferData(GL_ARRAY_BUFFER,
-                array_length(model->tr_instances_array) * sizeof(*model->tr_instances_array),
-                model->tr_instances_array, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         glUseProgram(model->shader->program);
         {
@@ -134,7 +167,7 @@ void model_load(struct model *model)
                 glEnableVertexAttribArray(SHADER_VERT_UV);
 
                 // instances data
-                glBindBuffer(GL_ARRAY_BUFFER, model->gpu_side.vbo_instances);
+                glBindBuffer(GL_ARRAY_BUFFER, model->instances.buffer_name);
                 glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW0);
                 glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW0, 4, GL_FLOAT, GL_FALSE,
                         16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m0)));
@@ -175,13 +208,12 @@ void model_unload(struct model *model)
         glDeleteVertexArrays(1, &model->gpu_side.vao);
         model->gpu_side.vao = 0;
 
-        glDeleteBuffers(1, &model->gpu_side.vbo_instances);
-        model->gpu_side.vbo_instances = 0;
-
         model->load_state.flags &= ~LOADABLE_FLAG_LOADED;
-
+        
         if (model->geometry) geometry_unload(model->geometry);
         if (model->material) material_unload(model->material);
+
+        handle_buffer_array_unload(&model->instances);
     }
 }
 
@@ -203,7 +235,7 @@ void model_draw(struct model *model)
         {
             if (model->geometry) {
                 glDrawElementsInstanced(GL_TRIANGLES, array_length(model->geometry->faces_array) * 3,
-                        GL_UNSIGNED_INT, 0, array_length(model->tr_instances_array));
+                        GL_UNSIGNED_INT, 0, array_length(model->instances_array));
             }
         }
         glBindVertexArray(0);

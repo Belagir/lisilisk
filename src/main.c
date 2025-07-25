@@ -13,50 +13,46 @@ int main(int argc, const char *argv[])
 
     struct application target = application_create(argv[0], 1200, 800);
 
+
+    struct scene scene = { };
+    scene_create(&scene);
+    
+    // -----------------------------------------------------------------------
+    scene_load(&scene);
+    // -----------------------------------------------------------------------
+
     struct shader material_shader = { };
     shader_material_frag(&material_shader, "shaders/user_shaders/material.frag");
     shader_material_vert(&material_shader, "shaders/user_shaders/material.vert");
     shader_link(&material_shader);
 
     struct texture default_texture = { };
-    texture_default(&default_texture);
+    texture_2D_default(&default_texture);
 
-    struct material saucer_material = { };
-    material_ambient(&saucer_material,  (f32[4]) { .10, .10, .10, }, 1);
-    material_ambient_mask(&saucer_material, &default_texture);
-    material_specular(&saucer_material, (f32[4]) { .95, .95, 1.0, }, 1);
-    material_specular_mask(&saucer_material, &default_texture);
-    material_diffuse(&saucer_material,  (f32[4]) { .32, .32, .32, }, 0);
-    material_diffuse_mask(&saucer_material, &default_texture);
-    material_shininess(&saucer_material, 4.);
+    struct texture shroom_base_texture = { };
+    texture_2D_file(&shroom_base_texture, "models/mushroom/ShroomBase.png");
+    struct texture shroom_spec_texture = { };
+    texture_2D_file(&shroom_spec_texture, "models/mushroom/SpecularMap.png");
 
-    struct geometry saucer_geometry = { };
-    geometry_create(&saucer_geometry);
-    geometry_wavobj(&saucer_geometry, "models/saucer.obj");
+    struct material shroom_material = { };
+    material_texture(&shroom_material, &shroom_base_texture);
+    material_ambient(&shroom_material,  (f32[4]) { .30, .30, .30, }, 0);
+    material_ambient_mask(&shroom_material, &default_texture);
+    material_specular(&shroom_material, (f32[4]) { 1.0, 1.0, .6, }, 1.);
+    material_specular_mask(&shroom_material, &shroom_spec_texture);
+    material_diffuse(&shroom_material,  (f32[4]) { 1.0, 0.6, 1.0, }, 1.);
+    material_diffuse_mask(&shroom_material, &default_texture);
+    material_shininess(&shroom_material, 4.);
 
-    struct model saucer = { };
-    model_create(&saucer);
-    model_geometry(&saucer, &saucer_geometry);
-    model_shader(&saucer, &material_shader);
-    model_material(&saucer, &saucer_material);
-    model_instantiate(&saucer, MATRIX4_IDENTITY);
-    model_instantiate(&saucer, matrix4_translate(MATRIX4_IDENTITY, (vector3) { 0, 2, -180. }));
+    struct geometry shroom_geometry = { };
+    geometry_create(&shroom_geometry);
+    geometry_wavobj(&shroom_geometry, "models/mushroom/mushroom.obj");
 
-    struct texture sky_right = { };
-    texture_file(&sky_right, "images/skybox/right.jpg");
-    struct texture sky_left = { };
-    texture_file(&sky_left, "images/skybox/left.jpg");
-    struct texture sky_top = { };
-    texture_file(&sky_top, "images/skybox/top.jpg");
-    struct texture sky_bottom = { };
-    texture_file(&sky_bottom, "images/skybox/bottom.jpg");
-    struct texture sky_front = { };
-    texture_file(&sky_front, "images/skybox/front.jpg");
-    struct texture sky_back = { };
-    texture_file(&sky_back, "images/skybox/back.jpg");
-
-    struct texture *skybox[CUBEMAP_FACES_NUMBER] = { &sky_right, &sky_left, &sky_top,
-            &sky_bottom, &sky_front, &sky_back, };
+    struct model shroom = { };
+    model_create(&shroom);
+    model_geometry(&shroom, &shroom_geometry);
+    model_shader(&shroom, &material_shader);
+    model_material(&shroom, &shroom_material);
 
     struct shader sky_shader = { };
     shader_frag(&sky_shader, "shaders/3dful_shaders/skybox_frag.glsl");
@@ -68,61 +64,77 @@ int main(int argc, const char *argv[])
     camera_aspect(&cam, 1200. / 800.);
     camera_limits(&cam, .1, 300.);
     camera_target(&cam, VECTOR3_ORIGIN);
-    camera_position(&cam, (struct vector3) { 1, 1.75, 15 });
+    camera_position(&cam, (struct vector3) { 1, 3.75, 15 });
 
     struct geometry cube = { };
     geometry_create(&cube);
     geometry_wavobj(&cube, "models/cube.obj");
 
+    struct texture cubemap = { };
+    texture_cubemap_file(&cubemap, CUBEMAP_FACE_RIGHT,  "images/skybox/right.jpg");
+    texture_cubemap_file(&cubemap, CUBEMAP_FACE_LEFT,   "images/skybox/left.jpg");
+    texture_cubemap_file(&cubemap, CUBEMAP_FACE_TOP,    "images/skybox/top.jpg");
+    texture_cubemap_file(&cubemap, CUBEMAP_FACE_BOTTOM, "images/skybox/bottom.jpg");
+    texture_cubemap_file(&cubemap, CUBEMAP_FACE_BACK,   "images/skybox/back.jpg");
+    texture_cubemap_file(&cubemap, CUBEMAP_FACE_FRONT,  "images/skybox/front.jpg");
+
     struct environment env = { };
     environment_cube(&env, &cube);
     environment_ambient(&env, (struct light) { {1, 1, 1, 1} });
     environment_shader(&env, &sky_shader);
-    environment_skybox(&env, &skybox);
+    environment_skybox(&env, &cubemap);
     environment_fog(&env, (f32[3]) { .4, .6, .8 }, 200.);
     environment_bg(&env, (f32[3]) { .3, .1, .1 });
 
-    struct scene scene = { };
-    scene_create(&scene);
+    scene_model(&scene, &shroom);
+
     scene_camera(&scene, &cam);
     scene_environment(&scene, &env);
-    scene_light_direc(&scene, (struct light_directional) { .color = { 1., .9, .8, 1. },
-            .direction = (struct vector3) { 0, -1, .3 } });
-    scene_model(&scene, &saucer);
+    
+    handle_t h = 0;
+    scene_light_direc(&scene, &h);
+    scene_light_direc_color(&scene, h, (f32[4]) { 1, 0, 0., 1 });
+    scene_light_direc_orientation(&scene, h, (vector3) { 0, -1, 0 });
 
-    // -----------------------------------------------------------------------
-    scene_load(&scene);
-    // -----------------------------------------------------------------------
+    scene_light_direc(&scene, &h);
+    scene_light_direc_color(&scene, h, (f32[4]) { 0, 1, 0, 1 });
+    scene_light_direc_orientation(&scene, h, (vector3) { 0, 1, 0 });
 
+    
+    model_instantiate(&shroom, &h);
+    model_instance_transform(&shroom, h, MATRIX4_IDENTITY);
+    
+    
     i32 should_quit = 0;
     SDL_Event event = { };
     u32 time = 0;
 
+    struct quaternion r = quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, 0.004);
     while (!should_quit) {
         while (SDL_PollEvent(&event)) {
             should_quit = event.type == SDL_QUIT;
         }
 
+        camera_position(&cam, vector3_rotate_by_quaternion(cam.pos, r));
         scene_draw(&scene, time);
+
+        time += 1;
+
         SDL_GL_SwapWindow(target.sdl_window);
     }
 
     scene_delete(&scene);
 
     shader_delete(&material_shader);
-    geometry_delete(&saucer_geometry);
-    model_delete(&saucer);
+    geometry_delete(&shroom_geometry);
+    model_delete(&shroom);
+
     texture_delete(&default_texture);
+    texture_delete(&shroom_base_texture);
+    texture_delete(&shroom_spec_texture);
 
     shader_delete(&sky_shader);
     geometry_delete(&cube);
-
-    texture_delete(&sky_top);
-    texture_delete(&sky_left);
-    texture_delete(&sky_front);
-    texture_delete(&sky_right);
-    texture_delete(&sky_back);
-    texture_delete(&sky_bottom);
 
     application_destroy(&target);
 

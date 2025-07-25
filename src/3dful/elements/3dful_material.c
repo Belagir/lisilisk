@@ -5,6 +5,7 @@
 // -------------------------------------------------------------------------------------------------
 
 static void material_set_sampler(struct material *material, u8 true_index, struct texture *texture);
+static void material_update_ubo(struct material *material, size_t offset, size_t size);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -43,6 +44,11 @@ void material_ambient(struct material *material, f32 ambient[3], f32 strength)
         material->properties.ambient[i] = ambient[i];
     }
     material->properties.ambient_strength = strength;
+
+    material_update_ubo(material, OFFSET_OF(struct material_properties, ambient),
+            sizeof(material->properties.ambient));
+    material_update_ubo(material, OFFSET_OF(struct material_properties, ambient_strength),
+            sizeof(material->properties.ambient_strength));
 }
 
 /**
@@ -68,6 +74,11 @@ void material_diffuse(struct material *material, f32 diffuse[3], f32 strength)
         material->properties.diffuse[i] = diffuse[i];
     }
     material->properties.diffuse_strength = strength;
+
+    material_update_ubo(material, OFFSET_OF(struct material_properties, diffuse),
+            sizeof(material->properties.diffuse));
+    material_update_ubo(material, OFFSET_OF(struct material_properties, diffuse_strength),
+            sizeof(material->properties.diffuse_strength));
 }
 
 /**
@@ -93,6 +104,11 @@ void material_specular(struct material *material, f32 specular[3], f32 strength)
         material->properties.specular[i] = specular[i];
     }
     material->properties.specular_strength = strength;
+
+    material_update_ubo(material, OFFSET_OF(struct material_properties, specular),
+            sizeof(material->properties.specular));
+    material_update_ubo(material, OFFSET_OF(struct material_properties, specular_strength),
+            sizeof(material->properties.specular_strength));
 }
 
 /**
@@ -115,6 +131,9 @@ void material_specular_mask(struct material *material, struct texture *mask)
 void material_shininess(struct material *material, float shininess)
 {
     material->properties.shininess = shininess;
+
+    material_update_ubo(material, OFFSET_OF(struct material_properties, shininess),
+            sizeof(material->properties.shininess));
 }
 
 /**
@@ -130,6 +149,11 @@ void material_emissive(struct material *material, f32 emission[3], f32 strength)
         material->properties.emissive[i] = emission[i];
     }
     material->properties.emissive_strength = strength;
+
+    material_update_ubo(material, OFFSET_OF(struct material_properties, emissive),
+            sizeof(material->properties.emissive));
+    material_update_ubo(material, OFFSET_OF(struct material_properties, emissive_strength),
+            sizeof(material->properties.emissive_strength));
 }
 
 /**
@@ -177,8 +201,10 @@ void material_load(struct material *material)
 
     glGenBuffers(1, &material->gpu_side.ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, material->gpu_side.ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(material->properties),
-            &(material->properties), GL_STATIC_DRAW);
+    {
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(material->properties),
+                &(material->properties), GL_STATIC_DRAW);
+    }
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     material->load_state.flags |= LOADABLE_FLAG_LOADED;
@@ -264,6 +290,13 @@ void material_bind_textures(struct material *material, struct shader *shader)
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
+/**
+ * @brief
+ *
+ * @param material
+ * @param true_index
+ * @param texture
+ */
 static void material_set_sampler(struct material *material, u8 true_index, struct texture *texture)
 {
     if (material->load_state.flags & LOADABLE_FLAG_LOADED) {
@@ -276,4 +309,25 @@ static void material_set_sampler(struct material *material, u8 true_index, struc
     }
 
     material->samplers[true_index] = texture;
+}
+
+/**
+ * @brief
+ *
+ * @param material
+ * @param offset
+ * @param size
+ */
+static void material_update_ubo(struct material *material, size_t offset, size_t size)
+{
+    if (!(material->load_state.flags & LOADABLE_FLAG_LOADED)) {
+        return;
+    }
+
+    glBindBuffer(GL_UNIFORM_BUFFER, material->gpu_side.ubo);
+    {
+        glBufferSubData(GL_UNIFORM_BUFFER, offset, size,
+                (byte *) &(material->properties) + offset);
+    }
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
