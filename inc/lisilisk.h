@@ -3,7 +3,6 @@
 #define LISILISK_H__
 
 #include <stdint.h>
-#include <stddef.h>
 
 typedef uint32_t lisk_handle_t;
 
