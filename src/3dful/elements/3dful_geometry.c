@@ -1,3 +1,13 @@
+/**
+ * @file 3dful_geometry.c
+ * @author Gabriel Bédat
+ * @brief Implementation of geometry-related procedures.
+ * @version 0.1
+ * @date 2025-07-25
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
 
 #include "3dful_core.h"
 
@@ -6,15 +16,18 @@
 #include "geometry_parsing/3ful_geometry_parsing.h"
 
 /**
- * @brief Allocates memory for a geometry object so it can store vertices and faces.
+ * @brief Allocates memory for a geometry object so it can store vertices and
+ * faces.
  *
- * @param[out] geometry
+ * @param[out] geometry New geometry object.
  */
 void geometry_create(struct geometry *geometry)
 {
     *geometry = (struct geometry) {
-        .vertices_array = array_create(make_system_allocator(), sizeof(*geometry->vertices_array), 2),
-        .faces_array    = array_create(make_system_allocator(), sizeof(*geometry->faces_array), 2),
+        .vertices_array = array_create(make_system_allocator(),
+                sizeof(*geometry->vertices_array), 2),
+        .faces_array    = array_create(make_system_allocator(),
+                sizeof(*geometry->faces_array), 2),
     };
 }
 
@@ -22,12 +35,13 @@ void geometry_create(struct geometry *geometry)
  * @brief Loads geometry from a wavefront .obj file.
  * This operation will append the data from the file in the geometry object.
  *
- * @param[inout] geometry
- * @param[in] path
+ * @param[inout] geometry Modified geometry.
+ * @param[in] path Path to some .obj file.
  */
 void geometry_wavobj(struct geometry *geometry, const char *path)
 {
-    byte *buffer = array_create(make_system_allocator(), sizeof(*buffer), file_length(path));
+    byte *buffer = array_create(make_system_allocator(), sizeof(*buffer),
+            file_length(path));
 
     if (file_read_to_array(path, buffer) == 0) {
         geometry_wavobj_mem(geometry, buffer);
@@ -37,10 +51,11 @@ void geometry_wavobj(struct geometry *geometry, const char *path)
 }
 
 /**
- * @brief Loads geometry from a wavefront .obj file that has been loaded in memory.
+ * @brief Loads geometry from a wavefront .obj file that has been loaded in
+ * memory.
  *
- * @param[inout] geometry
- * @param[in] obj
+ * @param[inout] geometry Modified geometry.
+ * @param[in] obj Array of bytes. Must have been created with ustd/array.h.
  */
 void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer)
 {
@@ -57,7 +72,7 @@ void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer)
 /**
  * @brief Releases all memory taken by some geometry, invalidating it.
  *
- * @param[inout] geometry
+ * @param[inout] geometry Released geometry.
  */
 void geometry_delete(struct geometry *geometry)
 {
@@ -69,9 +84,10 @@ void geometry_delete(struct geometry *geometry)
 
 /**
  * @brief Sends geometry data to the GPU with OpenGL.
- * This will copy the geometry's vertices in gpu_side.vbo and the faces in gpu_side.ebo.
+ * This will copy the geometry's vertices in gpu_side.vbo and the faces
+ * in gpu_side::ebo.
  *
- * @param[in] geometry
+ * @param[in] geometry Loaded geometry.
  */
 void geometry_load(struct geometry *geometry)
 {
@@ -83,15 +99,15 @@ void geometry_load(struct geometry *geometry)
 
     glGenBuffers(1, &geometry->gpu_side.vbo);
     glBindBuffer(GL_ARRAY_BUFFER, geometry->gpu_side.vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-            array_length(geometry->vertices_array) * sizeof(*geometry->vertices_array),
-            geometry->vertices_array, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, array_length(geometry->vertices_array)
+            * sizeof(*geometry->vertices_array), geometry->vertices_array,
+            GL_STATIC_DRAW);
 
     glGenBuffers(1, &geometry->gpu_side.ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->gpu_side.ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-            array_length(geometry->faces_array) * sizeof(*geometry->faces_array),
-            geometry->faces_array, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, array_length(geometry->faces_array)
+            * sizeof(*geometry->faces_array), geometry->faces_array,
+            GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -102,7 +118,7 @@ void geometry_load(struct geometry *geometry)
 /**
  * @brief Quiery OpenGL to delete the buffers created during geometry_load().
  *
- * @param[inout] geometry
+ * @param[inout] geometry Unloaded geometry.
  */
 void geometry_unload(struct geometry *geometry)
 {
@@ -122,14 +138,16 @@ void geometry_unload(struct geometry *geometry)
 }
 
 /**
- * @brief Adds an empty vertex to the geometry, filling an index used to reference it.
+ * @brief Adds an empty vertex to the geometry, filling an index used to
+ * reference it.
  *
- * @param[inout] geometry
- * @param[out] out_idx
+ * @param[inout] geometry Modified geometry.
+ * @param[out] out_idx Outgoing index of the new vertex.
  */
 void geometry_push_vertex(struct geometry *geometry, u32 *out_idx)
 {
-    array_ensure_capacity(make_system_allocator(), (void **) &geometry->vertices_array, 1);
+    array_ensure_capacity(make_system_allocator(),
+            (void **) &geometry->vertices_array, 1);
     array_push(geometry->vertices_array, &(struct vertex) { 0 });
 
     if (out_idx) *out_idx = (u32) array_length(geometry->vertices_array) - 1;
@@ -138,9 +156,9 @@ void geometry_push_vertex(struct geometry *geometry, u32 *out_idx)
 /**
  * @brief Sets a vertex's position to some value through its index.
  *
- * @param[inout] geometry
- * @param[in] idx
- * @param[in] pos
+ * @param[inout] geometry Modified geometry.
+ * @param[in] idx Index of the modified vertex.
+ * @param[in] pos Position of the vertex.
  */
 void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos)
 {
@@ -150,21 +168,22 @@ void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos)
 /**
  * @brief Sets a vertex's normal to some value through its index.
  *
- * @param[inout] geometry
- * @param[in] idx
- * @param[in] normal
+ * @param[inout] geometry Modified geometry.
+ * @param[in] idx Index of the modified vertex.
+ * @param[in] normal Normal of the vertex.
  */
-void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3 normal)
+void geometry_vertex_normal(struct geometry *geometry, size_t idx,
+        vector3 normal)
 {
     geometry->vertices_array[idx].normal = normal;
 }
 
 /**
- * @brief
+ * @brief Sets a vertex's texture UV to some value through its index.
  *
- * @param geometry
- * @param idx
- * @param uv
+ * @param[inout] geometry Modified geometry.
+ * @param idx Index of the modified vertex.
+ * @param uv Uniform Vector of the vertex.
  */
 void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv)
 {
@@ -172,10 +191,10 @@ void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv)
 }
 
 /**
- * @brief
+ * @brief Sets the smoothing mode of this geometry.
  *
- * @param geometry
- * @param smooth
+ * @param[inout] geometry Modified geometry.
+ * @param[in] smooth true for render smooth, false for render flat.
  */
 void geometry_set_smoothing(struct geometry *geometry, bool smooth)
 {
@@ -187,14 +206,16 @@ void geometry_set_smoothing(struct geometry *geometry, bool smooth)
 }
 
 /**
- * @brief Adds an empty face to the geometry, filling an index used to reference it.
+ * @brief Adds an empty face to the geometry, filling an index used to
+ * reference it.
  *
- * @param[inout] geometry
- * @param[out] out_idx
+ * @param[inout] geometry Modified geometry.
+ * @param[out] out_idx outgoing face index.
  */
 void geometry_push_face(struct geometry *geometry, u32 *out_idx)
 {
-    array_ensure_capacity(make_system_allocator(), (void **) &geometry->faces_array, 1);
+    array_ensure_capacity(make_system_allocator(),
+            (void **) &geometry->faces_array, 1);
     array_push(geometry->faces_array, &(struct face) { 0 });
 
     if (out_idx) *out_idx = (u32) array_length(geometry->faces_array) - 1;
@@ -204,11 +225,12 @@ void geometry_push_face(struct geometry *geometry, u32 *out_idx)
  * @brief Sets a face's indices to describe a triangle of vertices.
  * Use the indices filled by geometry_push_vertex() for the vertex indices.
  *
- * @param[inout] geometry
- * @param[in] idx
- * @param[in] indices
+ * @param[inout] geometry Modified geometry.
+ * @param[in] idx Modified face.
+ * @param[in] indices Indices of the vertex composing the face.
  */
-void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u])
+void geometry_face_indices(struct geometry *geometry, size_t idx,
+        u32 indices[3u])
 {
     geometry->faces_array[idx].idx_vert[0] = indices[0];
     geometry->faces_array[idx].idx_vert[1] = indices[1];
