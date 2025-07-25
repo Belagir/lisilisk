@@ -1,11 +1,22 @@
+/**
+ * @file 3dful_camera.c
+ * @author Gabriel Bédat
+ * @brief
+ * @version 0.1
+ * @date 2025-07-25
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
 
 #include "3dful_core.h"
 
 /**
- * @brief
+ * @brief Sets the position of a camera, and update the view matrix.
+ * The camera will still be looking to its target position.
  *
- * @param camera
- * @param pos
+ * @param[inout] camera Moved camera.
+ * @param[in] pos new position.
  */
 void camera_position(struct camera *camera, struct vector3 pos)
 {
@@ -15,10 +26,11 @@ void camera_position(struct camera *camera, struct vector3 pos)
 }
 
 /**
- * @brief
+ * @brief Sets the field of view of the camera, and update the projection
+ * matrix.
  *
- * @param camera
- * @param fov
+ * @param[inout] camera Updated camera.
+ * @param[in] fov New field of view, in degrees.
  */
 void camera_fov(struct camera *camera, f32 fov)
 {
@@ -28,10 +40,10 @@ void camera_fov(struct camera *camera, f32 fov)
 }
 
 /**
- * @brief
+ * @brief Sets the target point of a camera, and update the view matrix.
  *
- * @param camera
- * @param target
+ * @param[inout] camera Updated camera.
+ * @param[in] target New looking target.
  */
 void camera_target(struct camera *camera, struct vector3 target)
 {
@@ -41,11 +53,12 @@ void camera_target(struct camera *camera, struct vector3 target)
 }
 
 /**
- * @brief
+ * @brief Sets the limits of the furstrum projected by a camera, and
+ * updates the projection matrix.
  *
- * @param camera
- * @param near
- * @param far
+ * @param[inout] camera Updated camera.
+ * @param[in] near Distance from the camera to the near plane.
+ * @param[in] far Distance from the camera to the far plane.
  */
 void camera_limits(struct camera *camera, f32 near, f32 far)
 {
@@ -56,10 +69,11 @@ void camera_limits(struct camera *camera, f32 near, f32 far)
 }
 
 /**
- * @brief
+ * @brief Sets the aspect ration of the camera, and updates the projection
+ * matrix.
  *
- * @param camera
- * @param aspect
+ * @param[inout] camera Updated camera.
+ * @param[in] aspect New aspect ratio.
  */
 void camera_aspect(struct camera *camera, f32 aspect)
 {
@@ -69,10 +83,14 @@ void camera_aspect(struct camera *camera, f32 aspect)
 }
 
 /**
- * @brief
+ * @brief Sends a camera's matrices to a shader.
+ * The expected uniforms are :
+ * - mat4 VIEW_MATRIX ;
+ * - mat4 PROJECTION_MATRIX ;
+ * - vec3 CAMERA_POS.
  *
- * @param camera
- * @param shader
+ * @param[in] camera Source camera.
+ * @param[in] shader Shader supporting the uniforms.
  */
 void camera_send_uniforms(struct camera *camera, struct shader *shader)
 {
@@ -80,15 +98,19 @@ void camera_send_uniforms(struct camera *camera, struct shader *shader)
 
     glUseProgram(shader->program);
     {
-        uniform_name = glGetUniformLocation(shader->program, "VIEW_MATRIX");
-        glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->view);
+        uniform_name = glGetUniformLocation(shader->program,
+                "VIEW_MATRIX");
+        glUniformMatrix4fv(uniform_name, 1, GL_FALSE,
+                (const GLfloat *) &camera->view);
 
-        uniform_name = glGetUniformLocation(shader->program, "PROJECTION_MATRIX");
-        glUniformMatrix4fv(uniform_name, 1, GL_FALSE, (const GLfloat *) &camera->projection);
+        uniform_name = glGetUniformLocation(shader->program,
+                "PROJECTION_MATRIX");
+        glUniformMatrix4fv(uniform_name, 1, GL_FALSE,
+                (const GLfloat *) &camera->projection);
 
-        uniform_name = glGetUniformLocation(shader->program, "CAMERA_POS");
+        uniform_name = glGetUniformLocation(shader->program,
+                "CAMERA_POS");
         glUniform3f(uniform_name, camera->pos.x, camera->pos.y, camera->pos.z);
     }
     glUseProgram(0);
-
 }
