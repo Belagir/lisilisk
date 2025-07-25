@@ -172,6 +172,21 @@ void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv)
 }
 
 /**
+ * @brief 
+ * 
+ * @param geometry 
+ * @param smooth 
+ */
+void geometry_set_smoothing(struct geometry *geometry, bool smooth)
+{
+    if (smooth) {
+        geometry->render_flags |= GEOMETRY_RENDER_FLAG_SMOOTH;
+    } else {
+        geometry->render_flags &= ~GEOMETRY_RENDER_FLAG_SMOOTH;
+    }
+}
+
+/**
  * @brief Adds an empty face to the geometry, filling an index used to reference it.
  *
  * @param[inout] geometry

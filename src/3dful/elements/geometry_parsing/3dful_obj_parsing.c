@@ -57,6 +57,7 @@ void wavefront_obj_create(struct wavefront_obj *obj)
             .vn_array = array_create(make_system_allocator(), sizeof(*obj->vn_array), 32),
             .vt_array = array_create(make_system_allocator(), sizeof(*obj->vt_array), 32),
             .f_array  = array_create(make_system_allocator(), sizeof(*obj->f_array), 32),
+            .smooth = false,
     };
 }
 
@@ -138,6 +139,8 @@ void wavefront_obj_to(const struct wavefront_obj *obj, struct geometry *geometry
         geometry_push_face(geometry, &idx_face);
         geometry_face_indices(geometry, idx_face, face_generated_indices);
     }
+
+    geometry_set_smoothing(geometry, obj->smooth);
 }
 
 /**
@@ -157,6 +160,9 @@ void wavefront_obj_dump(struct wavefront_obj *obj, FILE *file)
     for (size_t i = 0 ; i < array_length(obj->vt_array) ; i++) {
         fprintf(file, "vt %.4f %.4f\n", obj->vt_array[i].x, obj->vt_array[i].y);
     }
+
+    fprintf(file, "s %c\n", obj->smooth? '1' : '0');
+
     for (size_t i = 0 ; i < array_length(obj->f_array) ; i++) {
         fprintf(file, "f %d//%d %d//%d %d//%d\n", obj->f_array[i].v_idx[0]+1, obj->f_array[i].vn_idx[0]+1,
                 obj->f_array[i].v_idx[1]+1, obj->f_array[i].vn_idx[1]+1, obj->f_array[i].v_idx[2]+1, obj->f_array[i].vn_idx[2]+1);
@@ -216,15 +222,19 @@ static i32 wavefront_parse_obj_name(struct parser_state *state, struct wavefront
 static i32 wavefront_parse_obj_smoothing(struct parser_state *state, struct wavefront_obj *out_obj)
 {
     (void) out_obj;
+    char is_smooth = '0';
 
     // detect 'o' starting letter
     if (!accept(state, (char []) { 's' }, 1, NULL)) {
         return 0;
     }
 
-    while (!lookup(state, (char []) { '\n' }, 1, NULL)) {
-        parser_state_advance(state);
+    skip_whitespace(state);
+
+    if (expect(state, (char []) { '0', '1' }, 2, &is_smooth)) {
+        out_obj->smooth = (is_smooth == '1');
     }
+    
     return 1;
 }
 

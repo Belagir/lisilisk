@@ -17,6 +17,8 @@ struct wavefront_obj {
     struct vector3 *vn_array;
     struct vector2 *vt_array;
     struct wavefront_obj_face *f_array;
+
+    bool smooth;
 };
 
 void wavefront_obj_create(struct wavefront_obj *obj);
