@@ -183,6 +183,7 @@ void environment_unload(struct environment *env)
 void environment_draw(struct environment *env)
 {
     glDepthMask(GL_FALSE);
+    glCullFace(GL_FRONT);
 
     glUseProgram(env->shader->program);
     {
@@ -200,6 +201,7 @@ void environment_draw(struct environment *env)
     }
     glUseProgram(0);
 
+    glCullFace(GL_BACK);
     glDepthMask(GL_TRUE);
 }
 
