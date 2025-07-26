@@ -1,15 +1,21 @@
 
 #include "3dful_core.h"
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
-static void material_set_sampler(struct material *material, u8 true_index, struct texture *texture);
-static void material_update_ubo(struct material *material, size_t offset, size_t size);
+static void material_set_sampler(struct material *material, u8 true_index,
+        struct texture *texture);
+static void material_update_ubo(struct material *material, size_t offset,
+        size_t size);
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
+/**
+ * @brief Map of sampler enumeration values to their expected name in a shade
+ * program.
+ */
 static const char * material_sampler_uniforms[MATERIAL_BASE_SAMPLERS_NUMBER] = {
         [MATERIAL_BASE_SAMPLER_AMBIENT_MASK]  = "ambient_mask",
         [MATERIAL_BASE_SAMPLER_SPECULAR_MASK] = "specular_mask",
@@ -18,14 +24,15 @@ static const char * material_sampler_uniforms[MATERIAL_BASE_SAMPLERS_NUMBER] = {
         [MATERIAL_BASE_SAMPLER_TEXTURE]       = "base_texture",
 };
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
- * @brief
+ * @brief Sets the base texture image of a material.
+ * Usually the background skin of a model.
  *
- * @param material
- * @param texture
+ * @param[inout] material Modified material.
+ * @param[in] texture 2D texture.
  */
 void material_texture(struct material *material, struct texture *texture)
 {
@@ -35,8 +42,8 @@ void material_texture(struct material *material, struct texture *texture)
 /**
  * @brief Sets how a material reflects ambient, global light.
  *
- * @param[inout] material
- * @param[in] ambient
+ * @param[inout] material Modified material.
+ * @param[in] ambient Color albedo for ambient light.
  */
 void material_ambient(struct material *material, f32 ambient[3], f32 strength)
 {
@@ -45,17 +52,19 @@ void material_ambient(struct material *material, f32 ambient[3], f32 strength)
     }
     material->properties.ambient_strength = strength;
 
-    material_update_ubo(material, OFFSET_OF(struct material_properties, ambient),
+    material_update_ubo(material,
+            OFFSET_OF(struct material_properties, ambient),
             sizeof(material->properties.ambient));
-    material_update_ubo(material, OFFSET_OF(struct material_properties, ambient_strength),
+    material_update_ubo(material,
+            OFFSET_OF(struct material_properties, ambient_strength),
             sizeof(material->properties.ambient_strength));
 }
 
 /**
- * @brief
+ * @brief Sets the ambient light texture 2D mask.
  *
- * @param material
- * @param mask
+ * @param[inout] material Modified material.
+ * @param[in] texture 2D lightmap.
  */
 void material_ambient_mask(struct material *material, struct texture *mask)
 {
@@ -65,8 +74,9 @@ void material_ambient_mask(struct material *material, struct texture *mask)
 /**
  * @brief Sets how a material diffuses light.
  *
- * @param[inout] material
- * @param[in] diffuse
+ * @param[inout] material Modified material.
+ * @param[in] diffuse Color albedo for diffuse highlights.
+ * @param[in] strength Strength of the diffuse highlights.
  */
 void material_diffuse(struct material *material, f32 diffuse[3], f32 strength)
 {
@@ -75,17 +85,19 @@ void material_diffuse(struct material *material, f32 diffuse[3], f32 strength)
     }
     material->properties.diffuse_strength = strength;
 
-    material_update_ubo(material, OFFSET_OF(struct material_properties, diffuse),
+    material_update_ubo(material,
+            OFFSET_OF(struct material_properties, diffuse),
             sizeof(material->properties.diffuse));
-    material_update_ubo(material, OFFSET_OF(struct material_properties, diffuse_strength),
+    material_update_ubo(material,
+            OFFSET_OF(struct material_properties, diffuse_strength),
             sizeof(material->properties.diffuse_strength));
 }
 
 /**
- * @brief
+ * @brief Sets the diffuse light texture 2D mask.
  *
- * @param material
- * @param mask
+ * @param[inout] material Modified material.
+ * @param[in] texture 2D lightmap.
  */
 void material_diffuse_mask(struct material *material, struct texture *mask)
 {
@@ -95,8 +107,9 @@ void material_diffuse_mask(struct material *material, struct texture *mask)
 /**
  * @brief Sets how a material reflects light.
  *
- * @param[inout] material
- * @param[in] specular
+ * @param[inout] material Modified material.
+ * @param[in] diffuse Color albedo for specular highlights.
+ * @param[in] strength Strength of the specular highlights.
  */
 void material_specular(struct material *material, f32 specular[3], f32 strength)
 {
@@ -105,17 +118,19 @@ void material_specular(struct material *material, f32 specular[3], f32 strength)
     }
     material->properties.specular_strength = strength;
 
-    material_update_ubo(material, OFFSET_OF(struct material_properties, specular),
+    material_update_ubo(material,
+            OFFSET_OF(struct material_properties, specular),
             sizeof(material->properties.specular));
-    material_update_ubo(material, OFFSET_OF(struct material_properties, specular_strength),
+    material_update_ubo(material,
+            OFFSET_OF(struct material_properties, specular_strength),
             sizeof(material->properties.specular_strength));
 }
 
 /**
- * @brief
+ * @brief Sets the specular light texture 2D mask.
  *
- * @param material
- * @param mask
+ * @param[inout] material Modified material.
+ * @param[in] texture 2D lightmap.
  */
 void material_specular_mask(struct material *material, struct texture *mask)
 {
@@ -123,25 +138,26 @@ void material_specular_mask(struct material *material, struct texture *mask)
 }
 
 /**
- * @brief Sets how clearly a material reflects specular lights.
+ * @brief Sets how strongly a material reflects specular lights.
  *
- * @param[inout] material
- * @param[in] shininess
+ * @param[inout] material Modified material.
+ * @param[in] shininess Shininess value.
  */
 void material_shininess(struct material *material, float shininess)
 {
     material->properties.shininess = shininess;
 
-    material_update_ubo(material, OFFSET_OF(struct material_properties, shininess),
+    material_update_ubo(material,
+            OFFSET_OF(struct material_properties, shininess),
             sizeof(material->properties.shininess));
 }
 
 /**
- * @brief
+ * @brief Sets how a material emits light.
  *
- * @param material
- * @param emission
- * @param strength
+ * @param[inout] material Modified material.
+ * @param[in] diffuse Color of the emission.
+ * @param[in] strength Strength of the emission.
  */
 void material_emissive(struct material *material, f32 emission[3], f32 strength)
 {
@@ -150,17 +166,19 @@ void material_emissive(struct material *material, f32 emission[3], f32 strength)
     }
     material->properties.emissive_strength = strength;
 
-    material_update_ubo(material, OFFSET_OF(struct material_properties, emissive),
+    material_update_ubo(material,
+            OFFSET_OF(struct material_properties, emissive),
             sizeof(material->properties.emissive));
-    material_update_ubo(material, OFFSET_OF(struct material_properties, emissive_strength),
+    material_update_ubo(material,
+            OFFSET_OF(struct material_properties, emissive_strength),
             sizeof(material->properties.emissive_strength));
 }
 
 /**
- * @brief
+ * @brief Sets the emission 2D texture.
  *
- * @param material
- * @param mask
+ * @param[inout] material Modified material.
+ * @param[in] texture 2D lightmap.
  */
 void material_emissive_mask(struct material *material, struct texture *mask)
 {
@@ -170,11 +188,14 @@ void material_emissive_mask(struct material *material, struct texture *mask)
 /**
  * @brief
  *
+ * @warning Not implemented.
+ *
  * @param material
  * @param index
  * @param texture
  */
-void material_custom_texture(struct material *material, u8 index, struct texture *texture)
+void material_custom_texture(struct material *material, u8 index,
+        struct texture *texture)
 {
     // there needs to be a name attached to the texture to set the uniform...
     (void) material;
@@ -182,14 +203,16 @@ void material_custom_texture(struct material *material, u8 index, struct texture
     (void) texture;
 
 #if 0
-    material_set_sampler(material, index + MATERIAL_BASE_SAMPLERS_NUMBER, texture);
+    material_set_sampler(material, index + MATERIAL_BASE_SAMPLERS_NUMBER,
+            texture);
 #endif
 }
 
 /**
- * @brief
+ * @brief Mark the material as being needed to be loaded to the GPU so it can
+ * be usable.
  *
- * @param material
+ * @param[inout] material Loaded material.
  */
 void material_load(struct material *material)
 {
@@ -217,9 +240,9 @@ void material_load(struct material *material)
 }
 
 /**
- * @brief
+ * @brief Marks the material as no longer being needed on the GPU.
  *
- * @param material
+ * @param[inout] material Unloaded material.
  */
 void material_unload(struct material *material)
 {
@@ -240,12 +263,14 @@ void material_unload(struct material *material)
 }
 
 /**
- * @brief
+ * @brief Bind the buffers loaded by the material to the opengl context so a
+ * shader can take them as inputs.
  *
- * @param material
- * @param shader
+ * @param[in] material Target loaded material.
+ * @param[in] shader Shader taking the inputs.
  */
-void material_bind_uniform_blocks(struct material *material, struct shader *shader)
+void material_bind_uniform_blocks(struct material *material,
+        struct shader *shader)
 {
     glUseProgram(shader->program);
     {
@@ -261,10 +286,11 @@ void material_bind_uniform_blocks(struct material *material, struct shader *shad
 }
 
 /**
- * @brief
+ * @brief Bind the textures loaded by the material to the opengl context so a
+ * shader can take them as inputs
  *
- * @param material
- * @param shader
+ * @param[in] material Target loaded material.
+ * @param[in] shader Shader taking the textures.
  */
 void material_bind_textures(struct material *material, struct shader *shader)
 {
@@ -273,7 +299,8 @@ void material_bind_textures(struct material *material, struct shader *shader)
         for (size_t i = 0 ; i < COUNT_OF(material->samplers) ; i++) {
             glActiveTexture(GL_TEXTURE0 + i);
             if (material->samplers[i]) {
-                glBindTexture(GL_TEXTURE_2D, material->samplers[i]->gpu_side.name);
+                glBindTexture(GL_TEXTURE_2D,
+                        material->samplers[i]->gpu_side.name);
 
                 if (i < MATERIAL_BASE_SAMPLERS_NUMBER) {
                     glUniform1i(glGetUniformLocation(shader->program,
@@ -287,17 +314,19 @@ void material_bind_textures(struct material *material, struct shader *shader)
     glUseProgram(0);
 }
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
- * @brief
+ * @brief Changes the texture bound to a sampler index, loading and unloading
+ * textures as needed.
  *
- * @param material
- * @param true_index
- * @param texture
+ * @param[inout] material
+ * @param[in] true_index
+ * @param[inout] texture
  */
-static void material_set_sampler(struct material *material, u8 true_index, struct texture *texture)
+static void material_set_sampler(struct material *material, u8 true_index,
+         struct texture *texture)
 {
     if (material->load_state.flags & LOADABLE_FLAG_LOADED) {
         if (material->samplers[true_index]) {
@@ -312,13 +341,14 @@ static void material_set_sampler(struct material *material, u8 true_index, struc
 }
 
 /**
- * @brief
+ * @brief Updates the Uniform Buffer Object of the material if needed.
  *
- * @param material
- * @param offset
- * @param size
+ * @param[inout] material
+ * @param[in] offset
+ * @param[in] size
  */
-static void material_update_ubo(struct material *material, size_t offset, size_t size)
+static void material_update_ubo(struct material *material, size_t offset,
+         size_t size)
 {
     if (!(material->load_state.flags & LOADABLE_FLAG_LOADED)) {
         return;
