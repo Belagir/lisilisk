@@ -9,3 +9,4 @@
 - [ ] Separate light procedures in material fragment shader to clean up the clutter
 - [ ] The shader_material_*() interface is as coupled to the material struct as the model struct. Find a way to express it
 - [ ] Explain in the file headers the principles of design behind the data structures/interfaces
+- [ ] Lights are expressed with vec4. Make the last componenent the strength of the light.

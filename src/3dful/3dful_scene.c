@@ -1,3 +1,13 @@
+/**
+ * @file 3dful_scene.c
+ * @author Gabriel Bédat
+ * @brief Implementation of all scene-related procedures.
+ * @version 0.1
+ * @date 2025-07-27
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
 
 #include "3dful.h"
 
@@ -16,9 +26,9 @@ static void scene_time_send_uniforms(u32 time, struct shader *shader);
 // -----------------------------------------------------------------------------
 
 /**
- * @brief
+ * @brief Allocates memory for a new scene.
  *
- * @param scene
+ * @param[out] scene Created scene.
  */
 void scene_create(struct scene *scene)
 {
@@ -53,9 +63,9 @@ void scene_create(struct scene *scene)
 }
 
 /**
- * @brief
+ * @brief Releases memory taken by a scene object.
  *
- * @param scene
+ * @param[inout] scene Destroyed scene.
  */
 void scene_delete(struct scene *scene)
 {
@@ -73,10 +83,11 @@ void scene_delete(struct scene *scene)
 }
 
 /**
- * @brief
+ * @brief Adds a model to a scene. The instances of this model will be rendered
+ * when the scene is drawn.
  *
- * @param scene
- * @param model
+ * @param[inout] scene Modified scene.
+ * @param[in] model Model added to the scene.
  */
 void scene_model(struct scene *scene, struct model *model)
 {
@@ -91,10 +102,10 @@ void scene_model(struct scene *scene, struct model *model)
 }
 
 /**
- * @brief
+ * @brief Assigns a camera to a scene.
  *
- * @param scene
- * @param camera
+ * @param[inout] scene Modified scene.
+ * @param[in] camera New scene camera.
  */
 void scene_camera(struct scene *scene, struct camera *camera)
 {
@@ -102,10 +113,10 @@ void scene_camera(struct scene *scene, struct camera *camera)
 }
 
 /**
- * @brief
+ * @brief Assigns an environment to a scene.
  *
- * @param scene
- * @param env
+ * @param[inout] scene Modified scene.
+ * @param[in] env New scene environment.
  */
 void scene_environment(struct scene *scene, struct environment *env)
 {
@@ -122,10 +133,10 @@ void scene_environment(struct scene *scene, struct environment *env)
 }
 
 /**
- * @brief
+ * @brief Adds a light point to the scene.
  *
- * @param scene
- * @param out_handle
+ * @param[inout] scene Modified scene.
+ * @param[in] out_handle Filled with the handle used to access this light.
  */
 void scene_light_point(struct scene *scene, handle_t *out_handle)
 {
@@ -133,11 +144,11 @@ void scene_light_point(struct scene *scene, handle_t *out_handle)
 }
 
 /**
- * @brief
+ * @brief Sets the position of a light point of the scene.
  *
- * @param scene
- * @param handle
- * @param pos
+ * @param[inout] scene Modified scene.
+ * @param[in] handle Handle to the modified light.
+ * @param[in] pos New light position.
  */
 void scene_light_point_position(struct scene *scene, handle_t handle,
         struct vector3 pos)
@@ -147,8 +158,11 @@ void scene_light_point_position(struct scene *scene, handle_t handle,
 }
 
 /**
- * @brief
+ * @brief Sets the color of a light point.
  *
+ * @param[inout] scene Modified scene.
+ * @param[in] handle Handle to the modified light.
+ * @param[in] color New light color.
  */
 void scene_light_point_color(struct scene *scene, handle_t handle, f32 color[4])
 {
@@ -157,13 +171,14 @@ void scene_light_point_color(struct scene *scene, handle_t handle, f32 color[4])
 }
 
 /**
- * @brief
+ * @brief Sets the attenuation factors of a light point.
  *
- * @param scene
- * @param handle
- * @param constant
- * @param linear
- * @param quadratic
+ * @param[inout] scene Modified scene.
+ * @param[in] handle Handle to the modified light.
+ * @param[in] constant Constant attenuation, not dependent of distance.
+ * @param[in] linear Linear attenuation, dependent of distance.
+ * @param[in] quadratic Quadratic attenuation, dependent of the square of the
+ * distance.
  */
 void scene_light_point_attenuation(struct scene *scene, handle_t handle,
         f32 constant, f32 linear, f32 quadratic)
@@ -180,10 +195,10 @@ void scene_light_point_attenuation(struct scene *scene, handle_t handle,
 }
 
 /**
- * @brief
+ * @brief Removes a light point from a scene.
  *
- * @param scene
- * @param handle
+ * @param[inout] scene Modified scene.
+ * @param[in] handle Handle to the removed light.
  */
 void scene_light_point_remove(struct scene *scene, handle_t handle)
 {
@@ -191,10 +206,10 @@ void scene_light_point_remove(struct scene *scene, handle_t handle)
 }
 
 /**
- * @brief
+ * @brief Adds a directional light to the scene.
  *
- * @param scene
- * @param out_handle
+ * @param[inout] scene Modified scene.
+ * @param[in] out_handle Filled with the handle used to access this light.
  */
 void scene_light_direc(struct scene *scene, handle_t *out_handle)
 {
@@ -202,11 +217,11 @@ void scene_light_direc(struct scene *scene, handle_t *out_handle)
 }
 
 /**
- * @brief
+ * @brief Sets the orientation of a directional light.
  *
- * @param scene
- * @param handle
- * @param dir
+ * @param[inout] scene Modified scene.
+ * @param[in] handle Handle to the modified light.
+ * @param[in] dir Direction of the light rays.
  */
 void scene_light_direc_orientation(struct scene *scene, handle_t handle,
         struct vector3 dir)
@@ -216,11 +231,11 @@ void scene_light_direc_orientation(struct scene *scene, handle_t handle,
 }
 
 /**
- * @brief
+ * @brief Sets the color of a directional light.
  *
- * @param scene
- * @param handle
- * @param color
+ * @param[inout] scene Modified scene.
+ * @param[in] handle Handle to the modified light.
+ * @param[in] color New color of the light.
  */
 void scene_light_direc_color(struct scene *scene, handle_t handle, f32 color[4])
 {
@@ -229,10 +244,10 @@ void scene_light_direc_color(struct scene *scene, handle_t handle, f32 color[4])
 }
 
 /**
- * @brief
+ * @brief Removes a directional light from the scene.
  *
- * @param scene
- * @param handle
+ * @param[inout] scene Modified scene.
+ * @param[in] handle Handle to the removed light.
  */
 void scene_light_direc_remove(struct scene *scene, handle_t handle)
 {
@@ -240,9 +255,9 @@ void scene_light_direc_remove(struct scene *scene, handle_t handle)
 }
 
 /**
- * @brief
+ * @brief Draws the scene, which must be loaded, to the OpenGL context.
  *
- * @param scene
+ * @param[in] scene Drawn scene.
  */
 void scene_draw(struct scene *scene, u32 time)
 {
@@ -254,33 +269,32 @@ void scene_draw(struct scene *scene, u32 time)
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    {
-        if (scene->env) {
-            camera_send_uniforms(scene->camera, scene->env->shader);
-            environment_draw(scene->env);
-        }
+    if (scene->env) {
+        camera_send_uniforms(scene->camera, scene->env->shader);
+        environment_draw(scene->env);
+    }
 
-        for (size_t i = 0 ; i < array_length(scene->models_array) ; i++) {
-            if (scene->env) environment_send_uniforms(scene->env,
-                    scene->models_array[i]->shader);
-            if (scene->camera) camera_send_uniforms(scene->camera,
-                    scene->models_array[i]->shader);
+    for (size_t i = 0 ; i < array_length(scene->models_array) ; i++) {
+        if (scene->env) environment_send_uniforms(scene->env,
+                scene->models_array[i]->shader);
+        if (scene->camera) camera_send_uniforms(scene->camera,
+                scene->models_array[i]->shader);
 
-            scene_lights_bind_uniform_blocks(scene,
-                    scene->models_array[i]->shader);
-            scene_lights_send_uniforms(scene, scene->models_array[i]->shader);
+        scene_lights_bind_uniform_blocks(scene,
+                scene->models_array[i]->shader);
+        scene_lights_send_uniforms(scene, scene->models_array[i]->shader);
 
-            scene_time_send_uniforms(time, scene->models_array[i]->shader);
+        scene_time_send_uniforms(time, scene->models_array[i]->shader);
 
-            model_draw(scene->models_array[i]);
-        }
+        model_draw(scene->models_array[i]);
     }
 }
 
 /**
- * @brief
+ * @brief Marks the scene as needing to be loaded, and loads it if it wasn't.
+ * This will also load all components of the scene : environment, models...
  *
- * @param scene
+ * @param[inout] scene Loaded scene.
  */
 void scene_load(struct scene *scene)
 {
@@ -306,9 +320,10 @@ void scene_load(struct scene *scene)
 }
 
 /**
- * @brief
+ * @brief Marks the scene as no longer needing to be loaded, and this might
+ * unload it if no other user needs it.
  *
- * @param scene
+ * @param[inout] scene Unloaded scene.
  */
 void scene_unload(struct scene *scene)
 {
@@ -336,10 +351,11 @@ void scene_unload(struct scene *scene)
 // -----------------------------------------------------------------------------
 
 /**
- * @brief
+ * @brief Binds the UBOs containing the lights to the inputs of a shader
+ * program.
  *
- * @param scene
- * @param model
+ * @param[in] scene
+ * @param[in] model
  */
 static void scene_lights_bind_uniform_blocks(struct scene *scene,
         struct shader *shader)
@@ -347,35 +363,36 @@ static void scene_lights_bind_uniform_blocks(struct scene *scene,
     GLint block_name = -1;
 
     glUseProgram(shader->program);
-    {
-        block_name = glGetUniformBlockIndex(shader->program,
-                "BLOCK_LIGHT_POINTS");
-        glUniformBlockBinding(shader->program, block_name,
-                SHADER_UBO_LIGHT_POINT);
 
-        glBindBuffer(GL_UNIFORM_BUFFER,
-                scene->light_sources.point_lights.buffer_name);
-        glBindBufferBase(GL_UNIFORM_BUFFER, block_name,
-                scene->light_sources.point_lights.buffer_name);
+    block_name = glGetUniformBlockIndex(shader->program,
+            "BLOCK_LIGHT_POINTS");
+    glUniformBlockBinding(shader->program, block_name,
+            SHADER_UBO_LIGHT_POINT);
 
-        block_name = glGetUniformBlockIndex(shader->program,
-                "BLOCK_LIGHT_DIRECTIONALS");
-        glUniformBlockBinding(shader->program, block_name,
-                SHADER_UBO_LIGHT_DIREC);
+    glBindBuffer(GL_UNIFORM_BUFFER,
+            scene->light_sources.point_lights.buffer_name);
+    glBindBufferBase(GL_UNIFORM_BUFFER, block_name,
+            scene->light_sources.point_lights.buffer_name);
 
-        glBindBuffer(GL_UNIFORM_BUFFER,
-                scene->light_sources.direc_lights.buffer_name);
-        glBindBufferBase(GL_UNIFORM_BUFFER, block_name,
-                scene->light_sources.direc_lights.buffer_name);
-    }
+    block_name = glGetUniformBlockIndex(shader->program,
+            "BLOCK_LIGHT_DIRECTIONALS");
+    glUniformBlockBinding(shader->program, block_name,
+            SHADER_UBO_LIGHT_DIREC);
+
+    glBindBuffer(GL_UNIFORM_BUFFER,
+            scene->light_sources.direc_lights.buffer_name);
+    glBindBufferBase(GL_UNIFORM_BUFFER, block_name,
+            scene->light_sources.direc_lights.buffer_name);
+
     glUseProgram(0);
 }
 
 /**
- * @brief
+ * @brief Sends the uniforms related to the light collections to the inputs
+ * of a shader program.
  *
- * @param scene
- * @param model
+ * @param[in] scene
+ * @param[in] model
  */
 static void scene_lights_send_uniforms(struct scene *scene,
          struct shader *shader)
@@ -383,33 +400,34 @@ static void scene_lights_send_uniforms(struct scene *scene,
     GLint uniform_name = -1;
 
     glUseProgram(shader->program);
-    {
-        uniform_name = glGetUniformLocation(shader->program, "LIGHT_POINTS_NB");
-        glUniform1ui(uniform_name,
-                array_length(scene->light_sources.point_lights_array));
 
-        uniform_name = glGetUniformLocation(shader->program,
-                "LIGHT_DIRECTIONALS_NB");
-        glUniform1ui(uniform_name,
-                array_length(scene->light_sources.direc_lights_array));
-    }
+    uniform_name = glGetUniformLocation(shader->program, "LIGHT_POINTS_NB");
+    glUniform1ui(uniform_name,
+            array_length(scene->light_sources.point_lights_array));
+
+    uniform_name = glGetUniformLocation(shader->program,
+            "LIGHT_DIRECTIONALS_NB");
+    glUniform1ui(uniform_name,
+            array_length(scene->light_sources.direc_lights_array));
+
     glUseProgram(0);
 }
 
 /**
- * @brief
+ * @brief Sends the uniform related to the time to the inputs of a shader
+ * program.
  *
- * @param time
- * @param model
+ * @param[in] time
+ * @param[in] model
  */
 static void scene_time_send_uniforms(u32 time, struct shader *shader)
 {
     GLint uniform_name = -1;
 
     glUseProgram(shader->program);
-    {
-        uniform_name = glGetUniformLocation(shader->program, "TIME");
-            glUniform1ui(uniform_name, time);
-    }
+
+    uniform_name = glGetUniformLocation(shader->program, "TIME");
+        glUniform1ui(uniform_name, time);
+
     glUseProgram(0);
 }
