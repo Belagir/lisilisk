@@ -51,7 +51,7 @@ struct application application_create(const char *name, u32 width, u32 height)
     /* Create our window centered at 512x512 resolution */
     target.sdl_window = SDL_CreateWindow(name,
             SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+        width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
     if (!target.sdl_window) {
         logger_log(log, LOGGER_SEVERITY_CRIT,
                 "Failed to spawn window:\n%s", SDL_GetError());
