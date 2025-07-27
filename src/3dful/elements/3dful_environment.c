@@ -126,27 +126,23 @@ void environment_load(struct environment *env)
 
         // actual laoding scenario
         glUseProgram(env->shader->program);
-        {
-            glBindVertexArray(env->gpu_side.vao);
-            {
-                if (env->shape) {
-                    glBindBuffer(GL_ARRAY_BUFFER, env->shape->gpu_side.vbo);
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                            env->shape->gpu_side.ebo);
+        glBindVertexArray(env->gpu_side.vao);
+        if (env->shape) {
+            glBindBuffer(GL_ARRAY_BUFFER, env->shape->gpu_side.vbo);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                    env->shape->gpu_side.ebo);
 
-                    glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT,
-                            GL_FALSE, sizeof(struct vertex),
-                            (void *) OFFSET_OF(struct vertex, pos));
-                    glEnableVertexAttribArray(SHADER_VERT_POS);
-                }
-
-                if (env->cube_texture) {
-                    glBindTexture(GL_TEXTURE_CUBE_MAP,
-                            env->cube_texture->gpu_side.name);
-                }
-            }
-            glBindVertexArray(0);
+            glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT,
+                    GL_FALSE, sizeof(struct vertex),
+                    (void *) OFFSET_OF(struct vertex, pos));
+            glEnableVertexAttribArray(SHADER_VERT_POS);
         }
+
+        if (env->cube_texture) {
+            glBindTexture(GL_TEXTURE_CUBE_MAP,
+                    env->cube_texture->gpu_side.name);
+        }
+        glBindVertexArray(0);
         glUseProgram(0);
 
         env->load_state.flags |= LOADABLE_FLAG_LOADED;
@@ -186,19 +182,15 @@ void environment_draw(struct environment *env)
     glCullFace(GL_FRONT);
 
     glUseProgram(env->shader->program);
-    {
-        glBindVertexArray(env->gpu_side.vao);
-        {
-            // TODO : make it clear the cube + texture is requiered to draw a
-            // cubemap background !
-            if (env->shape && env->cube_texture) {
-                glDrawElements(GL_TRIANGLES,
-                        array_length(env->shape->faces_array)*3,
-                        GL_UNSIGNED_INT, nullptr);
-            }
-        }
-        glBindVertexArray(0);
+    glBindVertexArray(env->gpu_side.vao);
+    // TODO : make it clear the cube + texture is requiered to draw a
+    // cubemap background !
+    if (env->shape && env->cube_texture) {
+        glDrawElements(GL_TRIANGLES,
+                array_length(env->shape->faces_array)*3,
+                GL_UNSIGNED_INT, nullptr);
     }
+    glBindVertexArray(0);
     glUseProgram(0);
 
     glCullFace(GL_BACK);
@@ -220,14 +212,14 @@ void environment_send_uniforms(struct environment *env, struct shader *shader)
     GLint uniform_name = -1;
 
     glUseProgram(shader->program);
-    {
-        uniform_name = glGetUniformLocation(shader->program, "LIGHT_AMBIENT");
-        glUniform4fv(uniform_name, 1, env->ambient_light.color);
 
-        uniform_name = glGetUniformLocation(shader->program, "FOG_COLOR");
-        glUniform3fv(uniform_name, 1, env->fog_color);
-        uniform_name = glGetUniformLocation(shader->program, "FOG_DISTANCE");
-        glUniform1f(uniform_name, env->fog_distance);
-    }
+    uniform_name = glGetUniformLocation(shader->program, "LIGHT_AMBIENT");
+    glUniform4fv(uniform_name, 1, env->ambient_light.color);
+
+    uniform_name = glGetUniformLocation(shader->program, "FOG_COLOR");
+    glUniform3fv(uniform_name, 1, env->fog_color);
+    uniform_name = glGetUniformLocation(shader->program, "FOG_DISTANCE");
+    glUniform1f(uniform_name, env->fog_distance);
+
     glUseProgram(0);
 }

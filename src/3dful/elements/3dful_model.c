@@ -122,24 +122,11 @@ void model_instantiate(struct model *model, handle_t *out_handle)
 }
 
 /**
- * @brief Sets the transformation matrix of some instance of a model.
+ * @brief Sets the position of some instance of a model.
  *
  * @param[inout] model Model the instance belongs to.
  * @param[in] handle Handle to an instance of this model.
- * @param[in] tr New transformation assigned to this instance.
- */
-void model_instance_transform(struct model *model, handle_t handle,
-        struct matrix4 tr)
-{
-    handle_buffer_array_set(&model->instances, handle, &tr, 0, sizeof(tr));
-}
-
-/**
- * @brief
- *
- * @param model
- * @param handle
- * @param pos
+ * @param[in] pos New position assigned to this instance.
  */
 void model_instance_position(struct model *model, handle_t handle,
         struct vector3 pos)
@@ -150,11 +137,11 @@ void model_instance_position(struct model *model, handle_t handle,
 }
 
 /**
- * @brief
+ * @brief Sets the rotation of some instance of a model.
  *
- * @param model
- * @param handle
- * @param rotation
+ * @param[inout] model Model the instance belongs to.
+ * @param[in] handle Handle to an instance of this model.
+ * @param[in] rotation New quaternion rotation assigned to this instance.
  */
 void model_instance_rotation(struct model *model, handle_t handle,
         struct quaternion rotation)
@@ -165,11 +152,11 @@ void model_instance_rotation(struct model *model, handle_t handle,
 }
 
 /**
- * @brief
+ * @brief Sets the uniform scale of some instance of a model.
  *
- * @param model
- * @param handle
- * @param scale
+ * @param[inout] model Model the instance belongs to.
+ * @param[in] handle Handle to an instance of this model.
+ * @param[in] pos New scale factor assigned to this instance.
  */
 void model_instance_scale(struct model *model, handle_t handle,
         f32 scale)
@@ -210,57 +197,55 @@ void model_load(struct model *model)
         glGenVertexArrays(1, &model->gpu_side.vao);
 
         glUseProgram(model->shader->program);
-        {
-            // binding scenario for this VAO
-            glBindVertexArray(model->gpu_side.vao);
-            {
-                // vertex data from geometry
-                if (model->geometry) {
-                    glBindBuffer(GL_ARRAY_BUFFER,
-                            model->geometry->gpu_side.vbo);
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                            model->geometry->gpu_side.ebo);
-                }
+        // binding scenario for this VAO
+        glBindVertexArray(model->gpu_side.vao);
 
-                glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE,
-                        sizeof(struct vertex),
-                        (void *) OFFSET_OF(struct vertex, pos));
-                glEnableVertexAttribArray(SHADER_VERT_POS);
-
-                glVertexAttribPointer(SHADER_VERT_NORMAL, 3, GL_FLOAT,
-                        GL_FALSE, sizeof(struct vertex),
-                        (void *) OFFSET_OF(struct vertex, normal));
-                glEnableVertexAttribArray(SHADER_VERT_NORMAL);
-
-                glVertexAttribPointer(SHADER_VERT_UV, 2, GL_FLOAT, GL_FALSE,
-                        sizeof(struct vertex),
-                        (void *) OFFSET_OF(struct vertex, uv));
-                glEnableVertexAttribArray(SHADER_VERT_UV);
-
-                // instances data
-                glBindBuffer(GL_ARRAY_BUFFER, model->instances.buffer_name);
-
-                glEnableVertexAttribArray(SHADER_VERT_INSTANCEPOSITION);
-                glVertexAttribPointer(SHADER_VERT_INSTANCEPOSITION, 3,
-                        GL_FLOAT, GL_FALSE, sizeof(struct instance),
-                        (void*) (OFFSET_OF(struct instance, position)));
-
-                glEnableVertexAttribArray(SHADER_VERT_INSTANCESCALE);
-                glVertexAttribPointer(SHADER_VERT_INSTANCESCALE, 1,
-                        GL_FLOAT, GL_FALSE, sizeof(struct instance),
-                        (void*) (OFFSET_OF(struct instance, scale)));
-
-                glEnableVertexAttribArray(SHADER_VERT_INSTANCEROTATION);
-                glVertexAttribPointer(SHADER_VERT_INSTANCEROTATION, 4,
-                        GL_FLOAT, GL_FALSE, sizeof(struct instance),
-                        (void*) (OFFSET_OF(struct instance, rotation)));
-
-                glVertexAttribDivisor(SHADER_VERT_INSTANCEPOSITION, 1);
-                glVertexAttribDivisor(SHADER_VERT_INSTANCESCALE, 1);
-                glVertexAttribDivisor(SHADER_VERT_INSTANCEROTATION, 1);
-            }
-            glBindVertexArray(0);
+        // vertex data from geometry
+        if (model->geometry) {
+            glBindBuffer(GL_ARRAY_BUFFER,
+                    model->geometry->gpu_side.vbo);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                    model->geometry->gpu_side.ebo);
         }
+
+        glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE,
+                sizeof(struct vertex),
+                (void *) OFFSET_OF(struct vertex, pos));
+        glEnableVertexAttribArray(SHADER_VERT_POS);
+
+        glVertexAttribPointer(SHADER_VERT_NORMAL, 3, GL_FLOAT,
+                GL_FALSE, sizeof(struct vertex),
+                (void *) OFFSET_OF(struct vertex, normal));
+        glEnableVertexAttribArray(SHADER_VERT_NORMAL);
+
+        glVertexAttribPointer(SHADER_VERT_UV, 2, GL_FLOAT, GL_FALSE,
+                sizeof(struct vertex),
+                (void *) OFFSET_OF(struct vertex, uv));
+        glEnableVertexAttribArray(SHADER_VERT_UV);
+
+        // instances data
+        glBindBuffer(GL_ARRAY_BUFFER, model->instances.buffer_name);
+
+        glEnableVertexAttribArray(SHADER_VERT_INSTANCEPOSITION);
+        glVertexAttribPointer(SHADER_VERT_INSTANCEPOSITION, 3,
+                GL_FLOAT, GL_FALSE, sizeof(struct instance),
+                (void*) (OFFSET_OF(struct instance, position)));
+
+        glEnableVertexAttribArray(SHADER_VERT_INSTANCESCALE);
+        glVertexAttribPointer(SHADER_VERT_INSTANCESCALE, 1,
+                GL_FLOAT, GL_FALSE, sizeof(struct instance),
+                (void*) (OFFSET_OF(struct instance, scale)));
+
+        glEnableVertexAttribArray(SHADER_VERT_INSTANCEROTATION);
+        glVertexAttribPointer(SHADER_VERT_INSTANCEROTATION, 4,
+                GL_FLOAT, GL_FALSE, sizeof(struct instance),
+                (void*) (OFFSET_OF(struct instance, rotation)));
+
+        glVertexAttribDivisor(SHADER_VERT_INSTANCEPOSITION, 1);
+        glVertexAttribDivisor(SHADER_VERT_INSTANCESCALE, 1);
+        glVertexAttribDivisor(SHADER_VERT_INSTANCEROTATION, 1);
+
+        glBindVertexArray(0);
         glUseProgram(0);
 
         model->load_state.flags |= LOADABLE_FLAG_LOADED;
@@ -304,17 +289,13 @@ void model_draw(struct model *model)
     }
 
     glUseProgram(model->shader->program);
-    {
-        glBindVertexArray(model->gpu_side.vao);
-        {
-            if (model->geometry) {
-                glDrawElementsInstanced(GL_TRIANGLES,
-                        array_length(model->geometry->faces_array) * 3,
-                        GL_UNSIGNED_INT, 0,
-                        array_length(model->instances_array));
-            }
-        }
-        glBindVertexArray(0);
+    glBindVertexArray(model->gpu_side.vao);
+    if (model->geometry) {
+        glDrawElementsInstanced(GL_TRIANGLES,
+                array_length(model->geometry->faces_array) * 3,
+                GL_UNSIGNED_INT, 0,
+                array_length(model->instances_array));
     }
+    glBindVertexArray(0);
     glUseProgram(0);
 }

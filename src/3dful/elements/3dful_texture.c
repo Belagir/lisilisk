@@ -180,20 +180,20 @@ void texture_unload(struct texture *texture)
 static void texture_load_as_2D(struct texture *texture)
 {
     glBindTexture(GL_TEXTURE_2D, texture->gpu_side.name);
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                texture->specific.image_for_2D->w,
-                texture->specific.image_for_2D->h, 0,
-                format_from_surface(texture->specific.image_for_2D),
-                GL_UNSIGNED_BYTE, texture->specific.image_for_2D->pixels);
-        glGenerateMipmap(GL_TEXTURE_2D);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                GL_NEAREST_MIPMAP_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    }
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+            texture->specific.image_for_2D->w,
+            texture->specific.image_for_2D->h, 0,
+            format_from_surface(texture->specific.image_for_2D),
+            GL_UNSIGNED_BYTE, texture->specific.image_for_2D->pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+            GL_NEAREST_MIPMAP_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -205,25 +205,24 @@ static void texture_load_as_2D(struct texture *texture)
 static void texture_load_as_cubemap(struct texture *texture)
 {
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture->gpu_side.name);
-    {
 
-        for (size_t i = 0 ; i < CUBEMAP_FACES_NUMBER ; i++) {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA,
-                texture->specific.images_for_cubemap[i]->w,
-                texture->specific.images_for_cubemap[i]->h, 0,
-                format_from_surface(texture->specific.images_for_cubemap[i]),
-                GL_UNSIGNED_BYTE,
-                texture->specific.images_for_cubemap[i]->pixels);
-        }
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S,
-                GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T,
-                GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R,
-                GL_CLAMP_TO_EDGE);
+    for (size_t i = 0 ; i < CUBEMAP_FACES_NUMBER ; i++) {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA,
+            texture->specific.images_for_cubemap[i]->w,
+            texture->specific.images_for_cubemap[i]->h, 0,
+            format_from_surface(texture->specific.images_for_cubemap[i]),
+            GL_UNSIGNED_BYTE,
+            texture->specific.images_for_cubemap[i]->pixels);
     }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S,
+            GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T,
+            GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R,
+            GL_CLAMP_TO_EDGE);
+
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
