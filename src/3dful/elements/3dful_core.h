@@ -43,10 +43,9 @@ enum shader_vertex_binding {
     SHADER_VERT_POS,
     SHADER_VERT_NORMAL,
     SHADER_VERT_UV,
-    SHADER_VERT_INSTANCEMATRIX_ROW0,
-    SHADER_VERT_INSTANCEMATRIX_ROW1,
-    SHADER_VERT_INSTANCEMATRIX_ROW2,
-    SHADER_VERT_INSTANCEMATRIX_ROW3,
+    SHADER_VERT_INSTANCEPOSITION,
+    SHADER_VERT_INSTANCESCALE,
+    SHADER_VERT_INSTANCEROTATION,
 };
 
 /**
@@ -190,6 +189,12 @@ struct material {
 
 // -----------------------------------------------------------------------------
 
+struct instance {
+    struct vector3 position;
+    f32 scale;
+    struct quaternion rotation;
+};
+
 /**
  * @brief Stores data about a world model that can be rendered in the world.
  *
@@ -201,7 +206,7 @@ struct model {
     struct geometry *geometry;
     struct material *material;
 
-    struct matrix4 *instances_array;
+    struct instance *instances_array;
     struct handle_buffer_array instances;
 
     // opengl names referencing the model's data on the gpu.
@@ -392,9 +397,13 @@ void model_shader(struct model *model, struct shader *shader);
 void model_material(struct model *model, struct material *material);
 
 void model_instantiate(struct model *model, handle_t *out_handle);
-void model_instance_transform(struct model *model, handle_t handle,
-        struct matrix4 tr);
 void model_instance_remove(struct model *model, handle_t handle);
+void model_instance_position(struct model *model, handle_t handle,
+        struct vector3 pos);
+void model_instance_rotation(struct model *model, handle_t handle,
+        struct quaternion rotation);
+void model_instance_scale(struct model *model, handle_t handle,
+        f32 scale);
 
 void model_load(struct model *model);
 void model_unload(struct model *model);

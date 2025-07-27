@@ -1,9 +1,12 @@
 
 void vertex()
 {
-    Normal = normalize(mat3(transpose(inverse(InstanceMatrix))) * VertexNormal);
-    FragPos = vec3(InstanceMatrix * vec4(VertexPos, 1.0));
+    vec3 rotated = rotate_with_quaterion(VertexPos, InstanceRotation);
+    vec3 pos = InstancePosition + (InstanceScale * rotated);
+
+    Normal = VertexNormal;
+    FragPos = pos;
     FragUV = vec2(VertexUV.x, 1. - VertexUV.y);
 
-    gl_Position = PROJECTION_MATRIX * VIEW_MATRIX * InstanceMatrix * vec4(VertexPos, 1.0);
+    gl_Position = PROJECTION_MATRIX * VIEW_MATRIX * vec4(pos, 1.0);
 }

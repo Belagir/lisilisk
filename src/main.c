@@ -176,13 +176,14 @@ int main(int argc, const char *argv[])
     // -----------------------------------------------------------------------
     handle_t h = 0;
     model_instantiate(&rock, &h);
-    model_instance_transform(&rock, h, MATRIX4_IDENTITY);
+    model_instance_scale(&rock, h, 1.);
+    model_instance_rotation(&rock, h, quaternion_identity());
 
     model_instantiate(&stele, &h);
-    model_instance_transform(&stele, h,
-        matrix4_translate(
-            matrix4_scale(MATRIX4_IDENTITY, (vector3) {.15, .15, .15}),
-        (vector3) { 0, .05, -.20 }));
+    model_instance_scale(&stele, h, .15);
+    model_instance_position(&stele, h, (vector3) { 0, .05, -.20 });
+    model_instance_rotation(&stele, h,
+            quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, PI/32));
 
     scene_light_point(&scene, &h);
     scene_light_point_color(&scene, h, (f32[4]) { 0.2, 0.5, 1, 1 });
@@ -190,14 +191,18 @@ int main(int argc, const char *argv[])
     scene_light_point_attenuation(&scene, h, 1, 1, 1);
 
     model_instantiate(&shroom, &h);
-    model_instance_transform(&shroom, h,
-        matrix4_translate(
-            matrix4_scale(MATRIX4_IDENTITY, (vector3) {.05, .05, .05}),
-        (vector3) { .06, 0, .10 }));
+    model_instance_scale(&shroom, h, .05);
+    model_instance_position(&shroom, h, (vector3) { .06, 0, .10 });
+    model_instance_rotation(&shroom, h,
+            quaternion_from_axis_and_angle(VECTOR3_Z_POSITIVE, PI/24));
 
     scene_light_direc(&scene, &h);
-    scene_light_direc_color(&scene, h, (f32[4]) { .2, .1 ,.2, 1. });
+    scene_light_direc_color(&scene, h, (f32[4]) { .1, .05 ,.1, 1. });
     scene_light_direc_orientation(&scene, h, (vector3) { -.2, .3, 1 });
+
+    scene_light_direc(&scene, &h);
+    scene_light_direc_color(&scene, h, (f32[4]) { .25, .1 ,.25, 1. });
+    scene_light_direc_orientation(&scene, h, (vector3) { 0, 1, .3 });
     // -----------------------------------------------------------------------
 
     i32 should_quit = 0;

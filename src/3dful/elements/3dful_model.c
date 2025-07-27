@@ -135,6 +135,51 @@ void model_instance_transform(struct model *model, handle_t handle,
 }
 
 /**
+ * @brief
+ *
+ * @param model
+ * @param handle
+ * @param pos
+ */
+void model_instance_position(struct model *model, handle_t handle,
+        struct vector3 pos)
+{
+    handle_buffer_array_set(&model->instances, handle,
+            &pos, OFFSET_OF(struct instance, position),
+            sizeof(pos));
+}
+
+/**
+ * @brief
+ *
+ * @param model
+ * @param handle
+ * @param rotation
+ */
+void model_instance_rotation(struct model *model, handle_t handle,
+        struct quaternion rotation)
+{
+    handle_buffer_array_set(&model->instances, handle,
+            &rotation, OFFSET_OF(struct instance, rotation),
+            sizeof(rotation));
+}
+
+/**
+ * @brief
+ *
+ * @param model
+ * @param handle
+ * @param scale
+ */
+void model_instance_scale(struct model *model, handle_t handle,
+        f32 scale)
+{
+    handle_buffer_array_set(&model->instances, handle,
+            &scale, OFFSET_OF(struct instance, scale),
+            sizeof(scale));
+}
+
+/**
  * @brief Removes an instance from a model. The handle becomes unusable.
  *
  * @param[inout] model Model the instance belongs to.
@@ -194,27 +239,25 @@ void model_load(struct model *model)
 
                 // instances data
                 glBindBuffer(GL_ARRAY_BUFFER, model->instances.buffer_name);
-                glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW0);
-                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW0, 4,
-                        GL_FLOAT, GL_FALSE, 16*sizeof(float),
-                        (void*) (OFFSET_OF(struct matrix4, m0)));
-                glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW1);
-                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW1, 4,
-                        GL_FLOAT, GL_FALSE, 16*sizeof(float),
-                        (void*) (OFFSET_OF(struct matrix4, m4)));
-                glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW2);
-                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW2, 4,
-                        GL_FLOAT, GL_FALSE, 16*sizeof(float),
-                        (void*) (OFFSET_OF(struct matrix4, m8)));
-                glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW3);
-                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW3, 4,
-                        GL_FLOAT, GL_FALSE, 16*sizeof(float),
-                        (void*) (OFFSET_OF(struct matrix4, m12)));
 
-                glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW0, 1);
-                glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW1, 1);
-                glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW2, 1);
-                glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW3, 1);
+                glEnableVertexAttribArray(SHADER_VERT_INSTANCEPOSITION);
+                glVertexAttribPointer(SHADER_VERT_INSTANCEPOSITION, 3,
+                        GL_FLOAT, GL_FALSE, sizeof(struct instance),
+                        (void*) (OFFSET_OF(struct instance, position)));
+
+                glEnableVertexAttribArray(SHADER_VERT_INSTANCESCALE);
+                glVertexAttribPointer(SHADER_VERT_INSTANCESCALE, 1,
+                        GL_FLOAT, GL_FALSE, sizeof(struct instance),
+                        (void*) (OFFSET_OF(struct instance, scale)));
+
+                glEnableVertexAttribArray(SHADER_VERT_INSTANCEROTATION);
+                glVertexAttribPointer(SHADER_VERT_INSTANCEROTATION, 4,
+                        GL_FLOAT, GL_FALSE, sizeof(struct instance),
+                        (void*) (OFFSET_OF(struct instance, rotation)));
+
+                glVertexAttribDivisor(SHADER_VERT_INSTANCEPOSITION, 1);
+                glVertexAttribDivisor(SHADER_VERT_INSTANCESCALE, 1);
+                glVertexAttribDivisor(SHADER_VERT_INSTANCEROTATION, 1);
             }
             glBindVertexArray(0);
         }
