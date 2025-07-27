@@ -1,4 +1,13 @@
-
+/**
+ * @file 3dful.h
+ * @author Gabriel Bédat
+ * @brief Main header needed to orchestrate an OpenGL-powered scene.
+ * @version 0.1
+ * @date 2025-07-27
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
 #ifndef APPLICATION_3DFUL_H__
 #define APPLICATION_3DFUL_H__
 
@@ -14,6 +23,11 @@
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+/**
+ * @brief Links to the window and opengl context. We let SDL manage the
+ * OS-related stuff while we stand back in our  comfy chairs.
+ *
+ */
 struct application {
     SDL_Window *sdl_window;
     SDL_GLContext *ogl_context;
@@ -24,7 +38,9 @@ struct application {
 // -----------------------------------------------------------------------------
 
 /**
- * @brief
+ * @brief Holds data about a scene. Models, lights, environment, and camera :
+ * all that is needed to compose and render a scene of models to an opengl
+ * context.
  *
  */
 struct scene {
@@ -60,16 +76,21 @@ void scene_environment(struct scene *scene, struct environment *env);
 // -----------------------------------------------------------------------------
 
 void scene_light_point(struct scene *scene, handle_t *out_handle);
-void scene_light_point_position(struct scene *scene, handle_t handle, struct vector3 pos);
-void scene_light_point_color(struct scene *scene, handle_t handle, f32 color[4]);
-void scene_light_point_attenuation(struct scene *scene, handle_t handle, f32 constant, f32 linear, f32 quadratic);
+void scene_light_point_position(struct scene *scene, handle_t handle,
+        struct vector3 pos);
+void scene_light_point_color(struct scene *scene, handle_t handle,
+        f32 color[4]);
+void scene_light_point_attenuation(struct scene *scene, handle_t handle,
+        f32 constant, f32 linear, f32 quadratic);
 void scene_light_point_remove(struct scene *scene, handle_t handle);
 
 // -----------------------------------------------------------------------------
 
 void scene_light_direc(struct scene *scene, handle_t *out_handle);
-void scene_light_direc_orientation(struct scene *scene, handle_t handle, struct vector3 dir);
-void scene_light_direc_color(struct scene *scene, handle_t handle, f32 color[4]);
+void scene_light_direc_orientation(struct scene *scene, handle_t handle,
+        struct vector3 dir);
+void scene_light_direc_color(struct scene *scene, handle_t handle,
+        f32 color[4]);
 void scene_light_direc_remove(struct scene *scene, handle_t handle);
 
 // -----------------------------------------------------------------------------

@@ -13,10 +13,12 @@ compilation time.
 
 **Vertex attributes:**
 
-- `vec3 VertexPos` : on layout 0.
-- `vec3 VertexNormal` : on layout 1.
-- `vec2 VertexUV` : on layout 2.
-- `mat4 InstanceMatrix` : on layout 3, 4, 5, and 6.
+- `vec3 VertexPos` : on location 0.
+- `vec3 VertexNormal` : on location 1.
+- `vec2 VertexUV` : on location 2.
+- `vec3 InstancePosition` : on location 3.
+- `float InstanceScale` : on location 4.
+- `vec4 InstanceRotation` : on location 5.
 
 **Uniforms:**
 
@@ -30,7 +32,7 @@ compilation time.
 - `vec3 FragPos`
 - `vec2 FragUV`
 
-## Fragment Shader default
+## Fragment Shader defaults
 
 **Uniforms:**
 
@@ -45,16 +47,21 @@ compilation time.
 
 - `vec3 MATERIAL.specular`
 - `float MATERIAL.specular_strength`
-- `float MATERIAL.shininess`
 
 - `vec3 MATERIAL.emissive`
 - `float MATERIAL.emissive_strength`
 
-- `sampler2D ambient_mask` : on layout 0
-- `sampler2D specular_mask` : on layout 1
-- `sampler2D diffuse_mask` : on layout 2
-- `sampler2D emissive_mask` : on layout 3
-- `sampler2D base_texture` : on layout 4
+- `float MATERIAL.shininess`
+
+- `sampler2D ambient_mask` : on location 0
+- `sampler2D specular_mask` : on location 1
+- `sampler2D diffuse_mask` : on location 2
+- `sampler2D emissive_mask` : on location 3
+- `sampler2D base_texture` : on location 4
+
+- `LIGHT_POINTS.array`
+- `LIGHT_DIRECTIONALS.array`
+- `vec4 LIGHT_AMBIENT`
 
 - `vec3 FOG_COLOR`
 - `float FOG_DISTANCE`
@@ -64,7 +71,11 @@ compilation time.
 - `vec3 Normal`
 - `vec3 FragPos`
 - `vec2 FragUV`
+
 - `vec4 LightContribution`
+- `vec4 FogContribution`
+- `vec4 EmissionContribution`
+- `vec4 TextureContribution`
 
 **Outputs:**
 

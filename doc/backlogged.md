@@ -5,7 +5,7 @@
 - [x] MEMORY LEAKS !!!!
 - [x] change skybox shape from cube to ~~icosphere~~ UV sphere
 - [ ] Implement custom textures passing to material shader
-- [ ] documentation
+- [x] documentation
 - [ ] Separate light procedures in material fragment shader to clean up the clutter
 - [ ] The shader_material_*() interface is as coupled to the material struct as the model struct. Find a way to express it
 - [ ] Explain in the file headers the principles of design behind the data structures/interfaces
