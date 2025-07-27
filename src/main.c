@@ -35,18 +35,16 @@ int main(int argc, const char *argv[])
     // -----------------------------------------------------------------------
     struct texture shroom_texture = { };
     texture_2D_file(&shroom_texture, "models/mushroom/ShroomBase.png");
-    struct texture shroom_spec_texture = { };
-    texture_2D_file(&shroom_spec_texture, "models/mushroom/SpecularMap.png");
 
     struct material shroom_material = { };
     material_texture(&shroom_material, &shroom_texture);
     material_ambient(&shroom_material,  (f32[3]) { 1.0, 1.0, 1.0, }, .15);
-    material_ambient_mask(&shroom_material, &shroom_texture);
+    material_ambient_mask(&shroom_material, &default_texture);
     material_specular(&shroom_material, (f32[3]) { 1.0, 1.0, 1.0, }, 1.);
-    material_specular_mask(&shroom_material, &shroom_spec_texture);
-    material_diffuse(&shroom_material,  (f32[3]) { 1.0, 1., 1.0, }, 2.);
-    material_diffuse_mask(&shroom_material, &shroom_texture);
-    material_shininess(&shroom_material, 64.);
+    material_specular_mask(&shroom_material, &default_texture);
+    material_diffuse(&shroom_material,  (f32[3]) { 1.0, 1.0, 1.0, }, 1.3);
+    material_diffuse_mask(&shroom_material, &default_texture);
+    material_shininess(&shroom_material, 1.);
 
     struct geometry shroom_geometry = { };
     geometry_create(&shroom_geometry);
@@ -71,12 +69,12 @@ int main(int argc, const char *argv[])
     struct material rock_material = { };
     material_texture(&rock_material, &rock_texture);
     material_ambient(&rock_material,  (f32[3]) { 1.0, 1.0, 1.0, }, .15);
-    material_ambient_mask(&rock_material, &rock_texture);
+    material_ambient_mask(&rock_material, &default_texture);
     material_specular(&rock_material, (f32[3]) { 1.0, 1.0, 1.0, }, 1.2);
     material_specular_mask(&rock_material, &rock_mask);
     material_diffuse(&rock_material,  (f32[3]) { 1.0, 1., 1.0, }, 1.5);
     material_diffuse_mask(&rock_material, &default_texture);
-    material_shininess(&rock_material, 1.);
+    material_shininess(&rock_material, 64.);
 
     struct geometry rock_geometry = { };
     geometry_create(&rock_geometry);
@@ -103,10 +101,10 @@ int main(int argc, const char *argv[])
     material_ambient(&stele_material,  (f32[3]) { 1, 1, 1 }, .15);
     material_ambient_mask(&stele_material, &default_texture);
     material_specular(&stele_material, (f32[3]) { 1, 1, 1 }, 1);
-    material_specular_mask(&stele_material, &stele_texture);
+    material_specular_mask(&stele_material, &default_texture);
     material_diffuse(&stele_material,  (f32[3]) { 1, 1, 1 }, 1);
-    material_diffuse_mask(&stele_material, &stele_texture);
-    material_shininess(&stele_material, 2.);
+    material_diffuse_mask(&stele_material, &default_texture);
+    material_shininess(&stele_material, 4.);
     material_emissive(&stele_material, (f32[3]) { .4, .6, 1 }, .8);
     material_emissive_mask(&stele_material, &stele_mask);
 
@@ -169,6 +167,7 @@ int main(int argc, const char *argv[])
     // -----------------------------------------------------------------------
     scene_model(&scene, &rock);
     scene_model(&scene, &stele);
+    scene_model(&scene, &shroom);
     scene_camera(&scene, &cam);
     scene_environment(&scene, &env);
     // -----------------------------------------------------------------------
@@ -176,14 +175,6 @@ int main(int argc, const char *argv[])
     // -----------------------------------------------------------------------
     // -----------------------------------------------------------------------
     handle_t h = 0;
-    scene_light_direc(&scene, &h);
-    scene_light_direc_color(&scene, h, (f32[4]) { 1, .9, .8, 1 });
-    scene_light_direc_orientation(&scene, h, (vector3) { 0, -1, 0 });
-
-    scene_light_direc(&scene, &h);
-    scene_light_direc_color(&scene, h, (f32[4]) { .2, .37, .6, 1 });
-    scene_light_direc_orientation(&scene, h, (vector3) { 0, 1, -1 });
-
     model_instantiate(&rock, &h);
     model_instance_transform(&rock, h, MATRIX4_IDENTITY);
 
@@ -194,13 +185,19 @@ int main(int argc, const char *argv[])
         (vector3) { 0, .05, -.20 }));
 
     scene_light_point(&scene, &h);
-    scene_light_point_color(&scene, h, (f32[4]) { .4, .6, 1, 1 });
-    scene_light_point_position(&scene, h, (vector3) { 0, .1, -0.08 });
-    scene_light_point_attenuation(&scene, h, 1, .2, .05);
+    scene_light_point_color(&scene, h, (f32[4]) { 0.2, 0.5, 1, 1 });
+    scene_light_point_position(&scene, h, (vector3) { -0.08, .2, 0. });
+    scene_light_point_attenuation(&scene, h, 1, 1, 1);
+
+    model_instantiate(&shroom, &h);
+    model_instance_transform(&shroom, h,
+        matrix4_translate(
+            matrix4_scale(MATRIX4_IDENTITY, (vector3) {.05, .05, .05}),
+        (vector3) { .06, 0, .10 }));
 
     scene_light_direc(&scene, &h);
-    scene_light_direc_color(&scene, h, (f32[4]) { .1, .1, .05, 1 });
-    scene_light_direc_orientation(&scene, h, (vector3) { .2, 0, .8 });
+    scene_light_direc_color(&scene, h, (f32[4]) { .2, .1 ,.2, 1. });
+    scene_light_direc_orientation(&scene, h, (vector3) { -.2, .3, 1 });
     // -----------------------------------------------------------------------
 
     i32 should_quit = 0;
@@ -239,7 +236,6 @@ int main(int argc, const char *argv[])
     texture_delete(&cubemap);
 
     texture_delete(&shroom_texture);
-    texture_delete(&shroom_spec_texture);
 
     texture_delete(&stele_texture);
     texture_delete(&stele_mask);
