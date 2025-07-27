@@ -181,9 +181,9 @@ int main(int argc, const char *argv[])
 
     model_instantiate(&stele, &h);
     model_instance_scale(&stele, h, .15);
-    model_instance_position(&stele, h, (vector3) { 0, .05, -.20 });
+    model_instance_position(&stele, h, (vector3) { 0, .03, -.20 });
     model_instance_rotation(&stele, h,
-            quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, PI/32));
+            quaternion_from_axis_and_angle(VECTOR3_Z_POSITIVE, PI/32));
 
     scene_light_point(&scene, &h);
     scene_light_point_color(&scene, h, (f32[4]) { 0.2, 0.5, 1, 1 });
@@ -195,6 +195,16 @@ int main(int argc, const char *argv[])
     model_instance_position(&shroom, h, (vector3) { .06, 0, .10 });
     model_instance_rotation(&shroom, h,
             quaternion_from_axis_and_angle(VECTOR3_Z_POSITIVE, PI/24));
+    model_instantiate(&shroom, &h);
+    model_instance_scale(&shroom, h, .03);
+    model_instance_position(&shroom, h, (vector3) { -.2, .01, .3 });
+    model_instance_rotation(&shroom, h,
+            quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, PI));
+    model_instantiate(&shroom, &h);
+    model_instance_scale(&shroom, h, .035);
+    model_instance_position(&shroom, h, (vector3) { -.25, .01, .05 });
+    model_instance_rotation(&shroom, h,
+            quaternion_from_axis_and_angle(VECTOR3_Y_POSITIVE, PI/4));
 
     scene_light_direc(&scene, &h);
     scene_light_direc_color(&scene, h, (f32[4]) { .1, .05 ,.1, 1. });
