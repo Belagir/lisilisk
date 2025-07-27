@@ -56,7 +56,8 @@ void light_point_quadratic(struct light_point *light, f32 quadratic)
 }
 
 /**
- * @brief Sets a light's color value : indices 0, 1 and 2 are the color's rgb, and 3 the strength.
+ * @brief Sets a light's color value : indices 0, 1 and 2 are the color's rgb,
+ * and 3 the strength.
  *
  * @param[inout] light Modified light.
  * @param[in] color New color of the light.
@@ -74,7 +75,8 @@ void light_color(struct light *light, f32 color[4])
  * @param[inout] light Modified directional light.
  * @param[in] direction Light rays direction.
  */
-void light_directional_direction(struct light_directional *light, vector3 direction)
+void light_directional_direction(struct light_directional *light,
+        vector3 direction)
 {
     light->direction = vector3_normalize(direction);
 }
