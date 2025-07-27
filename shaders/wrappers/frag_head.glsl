@@ -100,6 +100,9 @@ out vec4 FragColor;
 // ---------------------------------------------------------
 
 vec4 LightContribution;
+vec4 FogContribution;
+vec4 EmissionContribution;
+vec4 TextureContribution;
 
 // ---------------------------------------------------------
 // ---------------------------------------------------------
@@ -148,7 +151,8 @@ vec4 light_point_contribution(LightPoint l)
     vec4 specular = light_specular(light_dir, l.color);
 
     float dist = length(l.position.xyz - FragPos);
-    float attenuation = 1. / (l.constant + l.linear*dist + l.quadratic*(dist*dist));
+    float attenuation = 1. /
+            (l.constant + l.linear*dist + l.quadratic*(dist*dist));
 
     return (diffuse + specular) * attenuation;
 }
@@ -173,6 +177,13 @@ vec4 fog_contribution()
     float tmp = dist/FOG_DISTANCE;
 
     return vec4(FOG_COLOR, 1.) * (tmp*tmp);
+}
+
+vec4 emissive_contribution()
+{
+    return vec4(MATERIAL.emissive, 1.)
+            * texture(emissive_mask, FragUV)
+            * MATERIAL.emissive_strength;
 }
 
 // Rest of the shader code is concatenated after this ------

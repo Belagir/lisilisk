@@ -13,10 +13,13 @@ void main()
         LightContribution += light_point_contribution(LIGHT_POINTS.array[i]);
     }
     for (uint i = 0u ; i < LIGHT_DIRECTIONALS_NB ; i++) {
-        LightContribution += light_directional_contribution(LIGHT_DIRECTIONALS.array[i]);
+        LightContribution += light_directional_contribution(
+                LIGHT_DIRECTIONALS.array[i]);
     }
 
-    FragColor = mix(LightContribution, fog_contribution(), .5);
+    FogContribution = fog_contribution();
+    EmissionContribution = emissive_contribution();
+    TextureContribution = texture(base_texture, FragUV);
 
     fragment();
 }
