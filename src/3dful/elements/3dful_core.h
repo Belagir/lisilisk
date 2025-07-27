@@ -25,7 +25,8 @@
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Assigns integer values to semantic names for Uniform Buffer Objects binding indices.
+ * @brief Assigns integer values to semantic names for Uniform Buffer Objects
+ * binding indices.
  * @warning ubo locations are messed up my other computer !!! what ?
  */
 enum shader_ubo_binding {
@@ -64,7 +65,8 @@ enum material_base_sampler {
 
 /**
  * @brief
- * Matches OpenGL's GL_TEXTURE_CUBE_MAP_[POSITIVE,NEGATIVE]_[X,Y,Z] order of defines.
+ * Matches OpenGL's GL_TEXTURE_CUBE_MAP_[POSITIVE,NEGATIVE]_[X,Y,Z] order of
+ * defines.
  */
 enum cubemap_face {
     CUBEMAP_FACE_RIGHT,
@@ -93,7 +95,8 @@ struct shader {
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Piece of data passed to OpengGL to represent a vertice composing a mesh.
+ * @brief Piece of data passed to OpengGL to represent a vertice composing a
+ * mesh.
  *
  */
 struct vertex { struct vector3 pos, normal; struct vector2 uv; };
@@ -227,7 +230,8 @@ struct camera {
 
 /**
  * @brief Stores some light information.
- * @todo Keep those fields aligned to 16 bytes. OpenGL expects vec4-aligned data for its Uniform Blocks Objects.
+ * @todo Keep those fields aligned to 16 bytes. OpenGL expects vec4-aligned
+ * data for its Uniform Blocks Objects.
  *
  */
 struct light {
@@ -235,8 +239,10 @@ struct light {
 };
 
 /**
- * @brief Stores data about a specific light that is emmited from a point in space.
- * @todo Keep those fields aligned to 16 bytes. OpenGL expects vec4-aligned data for its Uniform Blocks Objects.
+ * @brief Stores data about a specific light that is emmited from a point in
+ * space.
+ * @todo Keep those fields aligned to 16 bytes. OpenGL expects vec4-aligned
+ * data for its Uniform Blocks Objects.
  *
  */
 struct light_point {
@@ -252,7 +258,8 @@ struct light_point {
 
 /**
  * @brief Stores data about a specific light that is emitted from very far away.
- * @todo Keep those fields aligned to 16 bytes. OpenGL expects vec4-aligned data for its Uniform Blocks Objects.
+ * @todo Keep those fields aligned to 16 bytes. OpenGL expects vec4-aligned
+ * data for its Uniform Blocks Objects.
  *
  */
 struct light_directional {
@@ -320,13 +327,15 @@ void geometry_wavobj_mem(struct geometry *geometry, const byte *obj);
 
 void geometry_push_vertex(struct geometry *geometry, u32 *out_idx);
 void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos);
-void geometry_vertex_normal(struct geometry *geometry, size_t idx, vector3 normal);
+void geometry_vertex_normal(struct geometry *geometry, size_t idx,
+        vector3 normal);
 void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv);
 
 void geometry_set_smoothing(struct geometry *geometry, bool smooth);
 
 void geometry_push_face(struct geometry *geometry, u32 *out_idx);
-void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u]);
+void geometry_face_indices(struct geometry *geometry, size_t idx,
+        u32 indices[3u]);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -335,8 +344,10 @@ void geometry_face_indices(struct geometry *geometry, size_t idx, u32 indices[3u
 void texture_2D_default(struct texture *texture);
 void texture_2D_file(struct texture *texture, const char *path);
 void texture_2D_file_mem(struct texture *texture, const byte *image_array);
-void texture_cubemap_file(struct texture *texture, enum cubemap_face face, const char *path);
-void texture_cubemap_file_mem(struct texture *texture, enum cubemap_face face, const byte *image_array);
+void texture_cubemap_file(struct texture *texture, enum cubemap_face face,
+        const char *path);
+void texture_cubemap_file_mem(struct texture *texture, enum cubemap_face face,
+        const byte *image_array);
 void texture_delete(struct texture *texture);
 
 void texture_load(struct texture *texture);
@@ -352,17 +363,21 @@ void material_ambient(struct material *material, f32 ambient[3], f32 strength);
 void material_ambient_mask(struct material *material, struct texture *mask);
 void material_diffuse(struct material *material, f32 diffuse[3], f32 strength);
 void material_diffuse_mask(struct material *material, struct texture *mask);
-void material_specular(struct material *material, f32 specular[3], f32 strength);
+void material_specular(struct material *material, f32 specular[3],
+        f32 strength);
 void material_specular_mask(struct material *material, struct texture *mask);
 void material_shininess(struct material *material, float shininess);
-void material_emissive(struct material *material, f32 emission[3], f32 strength);
+void material_emissive(struct material *material, f32 emission[3],
+        f32 strength);
 void material_emissive_mask(struct material *material, struct texture *mask);
 
-void material_custom_texture(struct material *material, u8 index, struct texture *texture);
+void material_custom_texture(struct material *material, u8 index,
+        struct texture *texture);
 
 void material_load(struct material *material);
 void material_unload(struct material *material);
-void material_bind_uniform_blocks(struct material *material, struct shader *shader);
+void material_bind_uniform_blocks(struct material *material,
+        struct shader *shader);
 void material_bind_textures(struct material *material, struct shader *shader);
 
 // -----------------------------------------------------------------------------
@@ -377,7 +392,8 @@ void model_shader(struct model *model, struct shader *shader);
 void model_material(struct model *model, struct material *material);
 
 void model_instantiate(struct model *model, handle_t *out_handle);
-void model_instance_transform(struct model *model, handle_t handle, struct matrix4 tr);
+void model_instance_transform(struct model *model, handle_t handle,
+        struct matrix4 tr);
 void model_instance_remove(struct model *model, handle_t handle);
 
 void model_load(struct model *model);
@@ -406,7 +422,8 @@ void light_point_constant(struct light_point *light, f32 constant);
 void light_point_linear(struct light_point *light, f32 linear);
 void light_point_quadratic(struct light_point *light, f32 quadratic);
 
-void light_directional_direction(struct light_directional *light, struct vector3 direction);
+void light_directional_direction(struct light_directional *light,
+        struct vector3 direction);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

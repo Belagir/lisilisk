@@ -3,8 +3,9 @@
 - [x] Detect channels (rgb / rgba) set in surfaces to set the correct value when we load the texture on GPU
 - [x] Add null-detection when the state of the data passed is acceptable (e.g. a scene without environment)
 - [x] MEMORY LEAKS !!!!
-- [ ] change skybox shape from cube to icosphere
+- [x] change skybox shape from cube to ~~icosphere~~ UV sphere
 - [ ] Implement custom textures passing to material shader
 - [ ] documentation
 - [ ] Separate light procedures in material fragment shader to clean up the clutter
 - [ ] The shader_material_*() interface is as coupled to the material struct as the model struct. Find a way to express it
+- [ ] Explain in the file headers the principles of design behind the data structures/interfaces

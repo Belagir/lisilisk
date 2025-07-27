@@ -1,3 +1,13 @@
+/**
+ * @file 3dful_model.c
+ * @author Gabriel Bédat
+ * @brief Implementation of model-related procedures.
+ * @version 0.1
+ * @date 2025-07-26
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
 
 #include "3dful_core.h"
 
@@ -5,10 +15,11 @@
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+
 /**
- * @brief
+ * @brief Allocates memory for a model object.
  *
- * @param model
+ * @param[out] model Allocated model object.
  */
 void model_create(struct model *model)
 {
@@ -19,7 +30,8 @@ void model_create(struct model *model)
             .geometry = nullptr,
             .material = nullptr,
 
-            .instances_array = array_create(make_system_allocator(), sizeof(*model->instances_array), 32),
+            .instances_array = array_create(make_system_allocator(),
+                    sizeof(*model->instances_array), 32),
             .instances = { { 0 }, 0 },
 
             .gpu_side = { 0 },
@@ -31,9 +43,9 @@ void model_create(struct model *model)
 }
 
 /**
- * @brief
+ * @brief Releases memory held by a model object.
  *
- * @param model
+ * @param[inout] model Destroyed model object.
  */
 void model_delete(struct model *model)
 {
@@ -44,10 +56,11 @@ void model_delete(struct model *model)
 }
 
 /**
- * @brief Links a model to a geometry. The model will be rendered with the geometry's mesh.
+ * @brief Links a model to a geometry. The model will be rendered with the
+ * geometry's mesh.
  *
- * @param[inout] model
- * @param[in] geometry
+ * @param[inout] model Modified model.
+ * @param[in] geometry New 3D data for this model.
  */
 void model_geometry(struct model *model, struct geometry *geometry)
 {
@@ -64,10 +77,11 @@ void model_geometry(struct model *model, struct geometry *geometry)
 }
 
 /**
- * @brief Links a model to a shader. The model's geometry will be rendered with this shader.
+ * @brief Links a model to a shader. The model's geometry will be rendered with
+ * this shader.
  *
- * @param[inout] model
- * @param[in] shader
+ * @param[inout] model Modified model.
+ * @param[in] shader New shader for this model.
  */
 void model_shader(struct model *model, struct shader *shader)
 {
@@ -75,10 +89,11 @@ void model_shader(struct model *model, struct shader *shader)
 }
 
 /**
- * @brief Links a model to a material. The model's shader will receive the material's data.
+ * @brief Links a model to a material. The model's shader will receive the
+ * material's data.
  *
- * @param[inout] model
- * @param[in] material
+ * @param[inout] model Modified model.
+ * @param[in] material New material for this model.
  */
 void model_material(struct model *model, struct material *material)
 {
@@ -95,33 +110,35 @@ void model_material(struct model *model, struct material *material)
 }
 
 /**
- * @brief
+ * @brief Adds an instance of this model to be rendered in the world space.
  *
- * @param model
- * @param out_handle
+ * @param[inout] model Model to instanciate.
+ * @param[out] out_handle Pointer to a handle, filled with the id of the new
+ * instance.
  */
 void model_instantiate(struct model *model, handle_t *out_handle)
-{   
+{
     handle_buffer_array_push(&model->instances, out_handle);
 }
 
 /**
- * @brief
+ * @brief Sets the transformation matrix of some instance of a model.
  *
- * @param model
- * @param handle
- * @param tr
+ * @param[inout] model Model the instance belongs to.
+ * @param[in] handle Handle to an instance of this model.
+ * @param[in] tr New transformation assigned to this instance.
  */
-void model_instance_transform(struct model *model, handle_t handle, struct matrix4 tr)
+void model_instance_transform(struct model *model, handle_t handle,
+        struct matrix4 tr)
 {
     handle_buffer_array_set(&model->instances, handle, &tr, 0, sizeof(tr));
 }
 
 /**
- * @brief
+ * @brief Removes an instance from a model. The handle becomes unusable.
  *
- * @param model
- * @param handle
+ * @param[inout] model Model the instance belongs to.
+ * @param[inout] handle Handle to an instance of this model.
  */
 void model_instance_remove(struct model *model, handle_t handle)
 {
@@ -130,9 +147,8 @@ void model_instance_remove(struct model *model, handle_t handle)
 
 /**
  * @brief Loads a model to the GPU with OpenGL.
- * Most of the trafic will be to tell which data is linked and sent to the shader.
  *
- * @param[inout] model
+ * @param[inout] model Loaded model.
  */
 void model_load(struct model *model)
 {
@@ -155,31 +171,45 @@ void model_load(struct model *model)
             {
                 // vertex data from geometry
                 if (model->geometry) {
-                    glBindBuffer(GL_ARRAY_BUFFER, model->geometry->gpu_side.vbo);
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->geometry->gpu_side.ebo);
+                    glBindBuffer(GL_ARRAY_BUFFER,
+                            model->geometry->gpu_side.vbo);
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                            model->geometry->gpu_side.ebo);
                 }
 
-                glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, pos));
+                glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE,
+                        sizeof(struct vertex),
+                        (void *) OFFSET_OF(struct vertex, pos));
                 glEnableVertexAttribArray(SHADER_VERT_POS);
-                glVertexAttribPointer(SHADER_VERT_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, normal));
+
+                glVertexAttribPointer(SHADER_VERT_NORMAL, 3, GL_FLOAT,
+                        GL_FALSE, sizeof(struct vertex),
+                        (void *) OFFSET_OF(struct vertex, normal));
                 glEnableVertexAttribArray(SHADER_VERT_NORMAL);
-                glVertexAttribPointer(SHADER_VERT_UV, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex), (void *) OFFSET_OF(struct vertex, uv));
+
+                glVertexAttribPointer(SHADER_VERT_UV, 2, GL_FLOAT, GL_FALSE,
+                        sizeof(struct vertex),
+                        (void *) OFFSET_OF(struct vertex, uv));
                 glEnableVertexAttribArray(SHADER_VERT_UV);
 
                 // instances data
                 glBindBuffer(GL_ARRAY_BUFFER, model->instances.buffer_name);
                 glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW0);
-                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW0, 4, GL_FLOAT, GL_FALSE,
-                        16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m0)));
+                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW0, 4,
+                        GL_FLOAT, GL_FALSE, 16*sizeof(float),
+                        (void*) (OFFSET_OF(struct matrix4, m0)));
                 glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW1);
-                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW1, 4, GL_FLOAT, GL_FALSE,
-                        16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m4)));
+                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW1, 4,
+                        GL_FLOAT, GL_FALSE, 16*sizeof(float),
+                        (void*) (OFFSET_OF(struct matrix4, m4)));
                 glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW2);
-                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW2, 4, GL_FLOAT, GL_FALSE,
-                        16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m8)));
+                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW2, 4,
+                        GL_FLOAT, GL_FALSE, 16*sizeof(float),
+                        (void*) (OFFSET_OF(struct matrix4, m8)));
                 glEnableVertexAttribArray(SHADER_VERT_INSTANCEMATRIX_ROW3);
-                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW3, 4, GL_FLOAT, GL_FALSE,
-                        16*sizeof(float), (void*) (OFFSET_OF(struct matrix4, m12)));
+                glVertexAttribPointer(SHADER_VERT_INSTANCEMATRIX_ROW3, 4,
+                        GL_FLOAT, GL_FALSE, 16*sizeof(float),
+                        (void*) (OFFSET_OF(struct matrix4, m12)));
 
                 glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW0, 1);
                 glVertexAttribDivisor(SHADER_VERT_INSTANCEMATRIX_ROW1, 1);
@@ -197,7 +227,7 @@ void model_load(struct model *model)
 /**
  * @brief Unloads the model from GPU memory.
  *
- * @param[inout] model
+ * @param[inout] model Unloaded model.
  */
 void model_unload(struct model *model)
 {
@@ -209,7 +239,7 @@ void model_unload(struct model *model)
         model->gpu_side.vao = 0;
 
         model->load_state.flags &= ~LOADABLE_FLAG_LOADED;
-        
+
         if (model->geometry) geometry_unload(model->geometry);
         if (model->material) material_unload(model->material);
 
@@ -218,9 +248,10 @@ void model_unload(struct model *model)
 }
 
 /**
- * @brief Renders a model to the current OpenGL context. The model should have been loaded.
+ * @brief Renders a model's instances to the current OpenGL context.
+ * The model should have been loaded.
  *
- * @param[in] model
+ * @param[in] model Drawn model.
  */
 void model_draw(struct model *model)
 {
@@ -234,8 +265,10 @@ void model_draw(struct model *model)
         glBindVertexArray(model->gpu_side.vao);
         {
             if (model->geometry) {
-                glDrawElementsInstanced(GL_TRIANGLES, array_length(model->geometry->faces_array) * 3,
-                        GL_UNSIGNED_INT, 0, array_length(model->instances_array));
+                glDrawElementsInstanced(GL_TRIANGLES,
+                        array_length(model->geometry->faces_array) * 3,
+                        GL_UNSIGNED_INT, 0,
+                        array_length(model->instances_array));
             }
         }
         glBindVertexArray(0);
