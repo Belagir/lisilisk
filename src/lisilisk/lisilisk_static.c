@@ -2,6 +2,7 @@
 #include <lisilisk.h>
 
 #include "../3dful/3dful.h"
+#include "lisilisk_internals.h"
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -15,6 +16,9 @@ static struct {
 
     struct application app;
     struct scene scene;
+
+    struct camera camera;
+    struct environment environment;
 } lisilisk_static;
 
 // -----------------------------------------------------------------------------
@@ -31,7 +35,15 @@ void lisk_init(void)
     }
 
     lisilisk_static.app = application_create("Lisilisk", 1200, 800);
+
+    lisilisk_default_camera(&lisilisk_static.camera,
+            lisilisk_static.app.sdl_window);
+
+    lisilisk_default_environment(&lisilisk_static.environment);
+
     scene_create(&lisilisk_static.scene);
+    scene_camera(&lisilisk_static.scene, &lisilisk_static.camera);
+    scene_environment(&lisilisk_static.scene, &lisilisk_static.environment);
 
     lisilisk_static.active = true;
 }
@@ -99,6 +111,10 @@ void lisk_show(void)
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) return;
         }
+
+        scene_draw(&lisilisk_static.scene, 0);
+
+        SDL_GL_SwapWindow(lisilisk_static.app.sdl_window);
 
         SDL_Delay(100);
     }

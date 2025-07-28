@@ -269,7 +269,8 @@ void scene_draw(struct scene *scene, u32 time)
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (scene->env) {
+
+    if (scene->env && scene->env->shader) {
         camera_send_uniforms(scene->camera, scene->env->shader);
         environment_draw(scene->env);
     }

@@ -7,8 +7,9 @@ int main(int argc, const char *argv[])
     (void) argv;
 
     lisk_init();
-
     lisk_rename("in nowhere");
+
+
 
     lisk_show();
 
