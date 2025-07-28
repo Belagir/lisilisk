@@ -9,7 +9,7 @@ int main(int argc, const char *argv[])
     lisk_init();
     lisk_rename("in nowhere");
 
-
+    lisk_model("shroom", "models/mushroom/mushroom.obj");
 
     lisk_show();
 

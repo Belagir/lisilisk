@@ -19,6 +19,10 @@ static struct {
 
     struct camera camera;
     struct environment environment;
+
+    struct texture empty_texture;
+    struct shader default_shader;
+    struct material default_material;
 } lisilisk_static;
 
 // -----------------------------------------------------------------------------
@@ -45,6 +49,11 @@ void lisk_init(void)
     scene_camera(&lisilisk_static.scene, &lisilisk_static.camera);
     scene_environment(&lisilisk_static.scene, &lisilisk_static.environment);
 
+    lisilisk_create_default_texture(&lisilisk_static.empty_texture);
+    lisilisk_create_default_material_shader(&lisilisk_static.default_shader);
+    lisilisk_default_material(&lisilisk_static.default_material,
+            &lisilisk_static.empty_texture);
+
     lisilisk_static.active = true;
 }
 
@@ -57,6 +66,9 @@ void lisk_deinit(void)
     if (!lisilisk_static.active) {
         return;
     }
+
+    texture_delete(&lisilisk_static.empty_texture);
+    shader_delete(&lisilisk_static.default_shader);
 
     scene_delete(&lisilisk_static.scene);
     application_destroy(&lisilisk_static.app);
@@ -91,6 +103,22 @@ void lisk_rename(const char *window_name)
     }
 
     SDL_SetWindowTitle(lisilisk_static.app.sdl_window, window_name);
+}
+
+
+void lisk_model(
+        const char *name,
+        const char *obj_file)
+{
+    (void) name, (void) obj_file;
+
+    // Create the geometry from the file and registers it in a map
+
+    // Create the model, registers it in a map
+
+    // Give the model a default shader
+
+    // Give the model a default material
 }
 
 /**
