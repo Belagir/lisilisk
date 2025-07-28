@@ -115,8 +115,8 @@ struct geometry {
 
     u32 render_flags;
 
-    struct vertex *vertices_array;
-    struct face *faces_array;
+    ARRAY(struct vertex) vertices;
+    ARRAY(struct face) faces;
 
     struct {
         // TODO: update data behind this vbo when the vertices_array changes (?)
@@ -206,7 +206,7 @@ struct model {
     struct geometry *geometry;
     struct material *material;
 
-    struct instance *instances_array;
+    ARRAY(struct instance) instances_array;
     struct handle_buffer_array instances;
 
     // opengl names referencing the model's data on the gpu.
@@ -297,14 +297,14 @@ struct environment {
 // -----------------------------------------------------------------------------
 // SHADERS ---------------------------------------------------------------------
 
-void shader_material_vert_mem(struct shader *shader, const byte *source);
+void shader_material_vert_mem(struct shader *shader, const ARRAY(byte) source);
 void shader_material_vert(struct shader *shader, const char *path);
-void shader_material_frag_mem(struct shader *shader, const byte *source);
+void shader_material_frag_mem(struct shader *shader, const ARRAY(byte) source);
 void shader_material_frag(struct shader *shader, const char *path);
 
-void shader_vert_mem(struct shader *shader, const byte *source);
+void shader_vert_mem(struct shader *shader, const ARRAY(byte) source);
 void shader_vert(struct shader *shader, const char *path);
-void shader_frag_mem(struct shader *shader, const byte *source);
+void shader_frag_mem(struct shader *shader, const ARRAY(byte) source);
 void shader_frag(struct shader *shader, const char *path);
 
 void shader_link(struct shader *shader);
@@ -321,7 +321,7 @@ void geometry_load(struct geometry *geometry);
 void geometry_unload(struct geometry *geometry);
 
 void geometry_wavobj(struct geometry *geometry, const char *path);
-void geometry_wavobj_mem(struct geometry *geometry, const byte *obj);
+void geometry_wavobj_mem(struct geometry *geometry, const ARRAY(byte) obj);
 
 void geometry_push_vertex(struct geometry *geometry, u32 *out_idx);
 void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos);
@@ -341,11 +341,12 @@ void geometry_face_indices(struct geometry *geometry, size_t idx,
 
 void texture_2D_default(struct texture *texture);
 void texture_2D_file(struct texture *texture, const char *path);
-void texture_2D_file_mem(struct texture *texture, const byte *image_array);
+void texture_2D_file_mem(struct texture *texture,
+        const ARRAY(byte) image);
 void texture_cubemap_file(struct texture *texture, enum cubemap_face face,
         const char *path);
 void texture_cubemap_file_mem(struct texture *texture, enum cubemap_face face,
-        const byte *image_array);
+        const ARRAY(byte) image);
 void texture_delete(struct texture *texture);
 
 void texture_load(struct texture *texture);

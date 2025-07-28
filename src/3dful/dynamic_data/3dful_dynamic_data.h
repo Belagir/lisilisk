@@ -18,6 +18,7 @@
 #include <GLES3/gl3.h>
 
 #include <ustd/common.h>
+#include <ustd/array.h>
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -59,9 +60,9 @@ struct handle_buffer_array {
     struct loadable load_state;
 
     /** Foreign-owned data. MUST be an array as defined in ustd/array.h. */
-    void *data_array;
+    ARRAY_ANY data_array;
     /** Owned handle array. MUST be an array as defined in ustd/array.h. */
-    handle_t *handles_array;
+    ARRAY(handle_t) handles;
 
     /** OpenGL name for the buffer object. Valid when the data is loaded. */
     GLuint buffer_name;
@@ -90,7 +91,7 @@ void handle_buffer_array_delete(struct handle_buffer_array *hb_array);
 
 // Assigns some array to the loadable array.
 void handle_buffer_array_bind(struct handle_buffer_array *hb_array,
-        void *array);
+        ARRAY_ANY array);
 
 // Adds a new element at the end of the bound array, syncing if needed.
 void handle_buffer_array_push(struct handle_buffer_array *hb_array,

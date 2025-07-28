@@ -44,8 +44,8 @@ void handle_buffer_array_create(struct handle_buffer_array *hb_array)
             .load_state = { 0 },
 
             .data_array = nullptr,
-            .handles_array = array_create(make_system_allocator(),
-                    sizeof(*hb_array->handles_array), 32),
+            .handles = array_create(make_system_allocator(),
+                    sizeof(*hb_array->handles), 32),
             .buffer_name = 0,
             .buffer_usage = GL_NONE,
     };
@@ -61,7 +61,7 @@ void handle_buffer_array_create(struct handle_buffer_array *hb_array)
  */
 void handle_buffer_array_delete(struct handle_buffer_array *hb_array)
 {
-    array_destroy(make_system_allocator(), (void **) &hb_array->handles_array);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &hb_array->handles);
     *hb_array = (struct handle_buffer_array) { 0 };
 }
 
@@ -77,7 +77,8 @@ void handle_buffer_array_delete(struct handle_buffer_array *hb_array)
  * @param[inout] hb_array Target array.
  * @param[in] array Newly bound array.
  */
-void handle_buffer_array_bind(struct handle_buffer_array *hb_array, void *array)
+void handle_buffer_array_bind(struct handle_buffer_array *hb_array,
+        ARRAY_ANY array)
 {
     hb_array->data_array = array;
     handle_buffer_array_reload(hb_array);
@@ -107,11 +108,11 @@ void handle_buffer_array_push(struct handle_buffer_array *hb_array,
     static_id_counter += 1;
 
     array_ensure_capacity(make_system_allocator(),
-            (void **) &hb_array->handles_array, 1);
-    array_push(hb_array->handles_array, out_handle);
+            (ARRAY_ANY *) &hb_array->handles, 1);
+    array_push(hb_array->handles, out_handle);
 
     array_ensure_capacity(make_system_allocator(),
-            (void **) &hb_array->data_array, 1);
+            (ARRAY_ANY *) &hb_array->data_array, 1);
     // no need to push something just accept garbage at the end
     target->length += 1;
 
@@ -133,11 +134,11 @@ void handle_buffer_array_remove(struct handle_buffer_array *hb_array,
 
     struct array_impl *target = array_impl_of(hb_array->data_array);
 
-    if (idx == array_length(hb_array->handles_array)) {
+    if (idx == array_length(hb_array->handles)) {
         return;
     }
 
-    array_remove_swapback(hb_array->handles_array, idx);
+    array_remove_swapback(hb_array->handles, idx);
     array_remove_swapback(hb_array->data_array, idx);
 
     handle_buffer_array_sync_element(hb_array, idx, 0, target->stride);
@@ -326,11 +327,11 @@ static size_t handle_buffer_array_index_of(
 {
     size_t pos = 0;
 
-    if (array_find(hb_array->handles_array, &handle_compare, &handle, &pos)) {
+    if (array_find(hb_array->handles, &handle_compare, &handle, &pos)) {
         return pos;
     }
 
-    return array_length(hb_array->handles_array);
+    return array_length(hb_array->handles);
 }
 
 /**

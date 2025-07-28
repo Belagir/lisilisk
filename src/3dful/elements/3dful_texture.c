@@ -60,7 +60,7 @@ void texture_2D_file(struct texture *texture, const char *path)
  * @param[out] texture Object receiving the texture.
  * @param[in] image Buffer containing a read image file.
  */
-void texture_2D_file_mem(struct texture *texture, const byte *image_array)
+void texture_2D_file_mem(struct texture *texture, const ARRAY(byte) image_array)
 {
     texture->flavor = TEXTURE_FLAVOR_2D;
     texture->specific.image_for_2D = IMG_Load_RW(
@@ -95,7 +95,7 @@ void texture_cubemap_file(struct texture *texture, enum cubemap_face face,
  * @param[in] image Buffer containing a read image file.
  */
 void texture_cubemap_file_mem(struct texture *texture, enum cubemap_face face,
-        const byte *image_array)
+        const ARRAY(byte) image_array)
 {
     texture->flavor = TEXTURE_FLAVOR_CUBEMAP;
     texture->specific.images_for_cubemap[face] = IMG_Load_RW(

@@ -187,7 +187,7 @@ void environment_draw(struct environment *env)
     // cubemap background !
     if (env->shape && env->cube_texture) {
         glDrawElements(GL_TRIANGLES,
-                array_length(env->shape->faces_array)*3,
+                array_length(env->shape->faces)*3,
                 GL_UNSIGNED_INT, nullptr);
     }
     glBindVertexArray(0);

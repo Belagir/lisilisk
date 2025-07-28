@@ -49,7 +49,8 @@ void model_create(struct model *model)
  */
 void model_delete(struct model *model)
 {
-    array_destroy(make_system_allocator(), (void **) &model->instances_array);
+    array_destroy(make_system_allocator(),
+        (ARRAY_ANY*) &model->instances_array);
     handle_buffer_array_delete(&model->instances);
 
     *model = (struct model) { 0 };
@@ -292,7 +293,7 @@ void model_draw(struct model *model)
     glBindVertexArray(model->gpu_side.vao);
     if (model->geometry) {
         glDrawElementsInstanced(GL_TRIANGLES,
-                array_length(model->geometry->faces_array) * 3,
+                array_length(model->geometry->faces) * 3,
                 GL_UNSIGNED_INT, 0,
                 array_length(model->instances_array));
     }

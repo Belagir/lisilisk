@@ -31,13 +31,13 @@ struct wavefront_obj_face { u32 v_idx[3], vn_idx[3], vt_idx[3]; };
  */
 struct wavefront_obj {
     /** Vertices. */
-    struct vector3 *v_array;
+    ARRAY(struct vector3) v_array;
     /** Normals. */
-    struct vector3 *vn_array;
+    ARRAY(struct vector3) vn_array;
     /** Texture UVs. */
-    struct vector2 *vt_array;
+    ARRAY(struct vector2) vt_array;
     /** Faces. */
-    struct wavefront_obj_face *f_array;
+    ARRAY(struct wavefront_obj_face) f_array;
 
     /** True if the model should be rendered smooth. */
     bool smooth;
@@ -51,7 +51,8 @@ void wavefront_obj_create(struct wavefront_obj *obj);
 // Releases memory from a parsing object.
 void wavefront_obj_delete(struct wavefront_obj *obj);
 // Loads an obj file (already in a buffer) to a parsing object.
-void wavefront_obj_parse(struct wavefront_obj *obj, const byte *buffer_array);
+void wavefront_obj_parse(struct wavefront_obj *obj,
+        const ARRAY(byte) buffer_array);
 // Builds a geometry from parsed data.
 void wavefront_obj_to(const struct wavefront_obj *obj,
         struct geometry *geometry);

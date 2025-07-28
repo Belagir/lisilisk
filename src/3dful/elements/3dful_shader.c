@@ -46,8 +46,8 @@ static i32 check_shader_compilation(GLuint name);
 static i32 check_shader_linking(GLuint program);
 static GLuint shader_compile_file(const char *path, GLenum kind,
         enum shader_wrapping wrapping);
-static GLuint shader_compile(const byte *shader_source, GLenum kind);
-static GLuint shader_wrap_compile(const byte *shader_source, GLenum kind);
+static GLuint shader_compile(const ARRAY(byte) shader_source, GLenum kind);
+static GLuint shader_wrap_compile(const ARRAY(byte) shader_source, GLenum kind);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -61,7 +61,7 @@ static GLuint shader_wrap_compile(const byte *shader_source, GLenum kind);
  * @param[inout] shader Shader object to receive the compiled vertex shader.
  * @param[in] source Source as an array of bytes (created with ustd/array.h).
  */
-void shader_material_vert_mem(struct shader *shader, const byte *source)
+void shader_material_vert_mem(struct shader *shader, const ARRAY(byte) source)
 {
     shader->vert_shader = shader_wrap_compile(source, GL_VERTEX_SHADER);
 }
@@ -75,7 +75,7 @@ void shader_material_vert_mem(struct shader *shader, const byte *source)
  * @param[inout] shader Shader object to receive the compiled fragment shader.
  * @param[in] source Source as an array of bytes (created with ustd/array.h).
  */
-void shader_material_frag_mem(struct shader *shader, const byte *source)
+void shader_material_frag_mem(struct shader *shader, const ARRAY(byte) source)
 {
     shader->frag_shader = shader_wrap_compile(source, GL_FRAGMENT_SHADER);
 }
@@ -124,7 +124,7 @@ void shader_material_frag(struct shader *shader, const char *path)
  * @param[inout] shader Shader object to receive the compiled vertex shader.
  * @param[in] source Buffer containing the shader's source.
  */
-void shader_vert_mem(struct shader *shader, const byte *source)
+void shader_vert_mem(struct shader *shader, const ARRAY(byte) source)
 {
     shader->vert_shader = shader_compile(source, GL_VERTEX_SHADER);
 }
@@ -135,7 +135,7 @@ void shader_vert_mem(struct shader *shader, const byte *source)
  * @param[inout] shader Shader object to receive the compiled fragment shader.
  * @param[in] source Buffer containing the shader's source.
  */
-void shader_frag_mem(struct shader *shader, const byte *source)
+void shader_frag_mem(struct shader *shader, const ARRAY(byte) source)
 {
     shader->frag_shader = shader_compile(source, GL_FRAGMENT_SHADER);
 }
@@ -260,7 +260,7 @@ static GLuint shader_compile_file(const char *path, GLenum kind,
 
     if (file_read_to_array(path, buffer) != 0) {
         fprintf(stderr, "failed to read file `%s`\n", path);
-        array_destroy(make_system_allocator(), (void **) &buffer);
+        array_destroy(make_system_allocator(), (ARRAY_ANY *) &buffer);
         return 0;
     }
 
@@ -273,7 +273,7 @@ static GLuint shader_compile_file(const char *path, GLenum kind,
             break;
     }
 
-    array_destroy(make_system_allocator(), (void **) &buffer);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &buffer);
 
     return shader_out;
 }
@@ -309,7 +309,7 @@ static i32 check_shader_compilation(GLuint name)
  * @param[in] kind
  * @return GLuint
  */
-static GLuint shader_compile(const byte *shader_source, GLenum kind)
+static GLuint shader_compile(const ARRAY(byte) shader_source, GLenum kind)
 {
     GLuint shader = glCreateShader(kind);
     GLint length = array_length(shader_source);
@@ -333,7 +333,7 @@ static GLuint shader_compile(const byte *shader_source, GLenum kind)
  * @param kind
  * @return GLuint
  */
-static GLuint shader_wrap_compile(const byte *shader_source, GLenum kind)
+static GLuint shader_wrap_compile(const ARRAY(byte) shader_source, GLenum kind)
 {
     byte *source_head = nullptr;
     byte *source_tail = nullptr;
@@ -367,15 +367,15 @@ static GLuint shader_wrap_compile(const byte *shader_source, GLenum kind)
             + array_capacity(shader_source)
             + array_capacity(source_tail));
 
-    array_append(full_source, (void *) source_head);
-    array_append(full_source, (void *) shader_source);
-    array_append(full_source, (void *) source_tail);
+    array_append(full_source, (ARRAY_ANY) source_head);
+    array_append(full_source, (ARRAY_ANY) shader_source);
+    array_append(full_source, (ARRAY_ANY) source_tail);
 
     out_shader = shader_compile(full_source, kind);
 
-    array_destroy(make_system_allocator(), (void **) &source_head);
-    array_destroy(make_system_allocator(), (void **) &source_tail);
-    array_destroy(make_system_allocator(), (void **) &full_source);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &source_head);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &source_tail);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &full_source);
 
     return out_shader;
 }

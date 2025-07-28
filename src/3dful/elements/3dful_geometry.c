@@ -24,10 +24,10 @@
 void geometry_create(struct geometry *geometry)
 {
     *geometry = (struct geometry) {
-        .vertices_array = array_create(make_system_allocator(),
-                sizeof(*geometry->vertices_array), 2),
-        .faces_array    = array_create(make_system_allocator(),
-                sizeof(*geometry->faces_array), 2),
+        .vertices = array_create(make_system_allocator(),
+                sizeof(*geometry->vertices), 2),
+        .faces    = array_create(make_system_allocator(),
+                sizeof(*geometry->faces), 2),
     };
 }
 
@@ -47,7 +47,7 @@ void geometry_wavobj(struct geometry *geometry, const char *path)
         geometry_wavobj_mem(geometry, buffer);
     }
 
-    array_destroy(make_system_allocator(), (void **) &buffer);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &buffer);
 }
 
 /**
@@ -57,7 +57,8 @@ void geometry_wavobj(struct geometry *geometry, const char *path)
  * @param[inout] geometry Modified geometry.
  * @param[in] obj Array of bytes. Must have been created with ustd/array.h.
  */
-void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer)
+void geometry_wavobj_mem(struct geometry *geometry,
+        const ARRAY(byte) obj_buffer)
 {
     struct wavefront_obj obj = { };
 
@@ -76,8 +77,8 @@ void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer)
  */
 void geometry_delete(struct geometry *geometry)
 {
-    array_destroy(make_system_allocator(), (void **) &geometry->vertices_array);
-    array_destroy(make_system_allocator(), (void **) &geometry->faces_array);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &geometry->vertices);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &geometry->faces);
 
     *geometry = (struct geometry) { 0 };
 }
@@ -99,14 +100,14 @@ void geometry_load(struct geometry *geometry)
 
     glGenBuffers(1, &geometry->gpu_side.vbo);
     glBindBuffer(GL_ARRAY_BUFFER, geometry->gpu_side.vbo);
-    glBufferData(GL_ARRAY_BUFFER, array_length(geometry->vertices_array)
-            * sizeof(*geometry->vertices_array), geometry->vertices_array,
+    glBufferData(GL_ARRAY_BUFFER, array_length(geometry->vertices)
+            * sizeof(*geometry->vertices), geometry->vertices,
             GL_STATIC_DRAW);
 
     glGenBuffers(1, &geometry->gpu_side.ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->gpu_side.ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, array_length(geometry->faces_array)
-            * sizeof(*geometry->faces_array), geometry->faces_array,
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, array_length(geometry->faces)
+            * sizeof(*geometry->faces), geometry->faces,
             GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -147,10 +148,10 @@ void geometry_unload(struct geometry *geometry)
 void geometry_push_vertex(struct geometry *geometry, u32 *out_idx)
 {
     array_ensure_capacity(make_system_allocator(),
-            (void **) &geometry->vertices_array, 1);
-    array_push(geometry->vertices_array, &(struct vertex) { 0 });
+            (void **) &geometry->vertices, 1);
+    array_push(geometry->vertices, &(struct vertex) { 0 });
 
-    if (out_idx) *out_idx = (u32) array_length(geometry->vertices_array) - 1;
+    if (out_idx) *out_idx = (u32) array_length(geometry->vertices) - 1;
 }
 
 /**
@@ -162,7 +163,7 @@ void geometry_push_vertex(struct geometry *geometry, u32 *out_idx)
  */
 void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos)
 {
-    geometry->vertices_array[idx].pos = pos;
+    geometry->vertices[idx].pos = pos;
 }
 
 /**
@@ -175,7 +176,7 @@ void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos)
 void geometry_vertex_normal(struct geometry *geometry, size_t idx,
         vector3 normal)
 {
-    geometry->vertices_array[idx].normal = normal;
+    geometry->vertices[idx].normal = normal;
 }
 
 /**
@@ -187,7 +188,7 @@ void geometry_vertex_normal(struct geometry *geometry, size_t idx,
  */
 void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv)
 {
-    geometry->vertices_array[idx].uv = uv;
+    geometry->vertices[idx].uv = uv;
 }
 
 /**
@@ -215,10 +216,10 @@ void geometry_set_smoothing(struct geometry *geometry, bool smooth)
 void geometry_push_face(struct geometry *geometry, u32 *out_idx)
 {
     array_ensure_capacity(make_system_allocator(),
-            (void **) &geometry->faces_array, 1);
-    array_push(geometry->faces_array, &(struct face) { 0 });
+            (void **) &geometry->faces, 1);
+    array_push(geometry->faces, &(struct face) { 0 });
 
-    if (out_idx) *out_idx = (u32) array_length(geometry->faces_array) - 1;
+    if (out_idx) *out_idx = (u32) array_length(geometry->faces) - 1;
 }
 
 /**
@@ -232,7 +233,7 @@ void geometry_push_face(struct geometry *geometry, u32 *out_idx)
 void geometry_face_indices(struct geometry *geometry, size_t idx,
         u32 indices[3u])
 {
-    geometry->faces_array[idx].idx_vert[0] = indices[0];
-    geometry->faces_array[idx].idx_vert[1] = indices[1];
-    geometry->faces_array[idx].idx_vert[2] = indices[2];
+    geometry->faces[idx].idx_vert[0] = indices[0];
+    geometry->faces[idx].idx_vert[1] = indices[1];
+    geometry->faces[idx].idx_vert[2] = indices[2];
 }

@@ -18,7 +18,7 @@
  * @brief Private state of the parser.
  */
 struct parser_state {
-    const byte *buffer_array;
+    const ARRAY(byte) buffer_array;
     size_t buffer_idx;
     u32 line, column;
 };
@@ -100,10 +100,10 @@ void wavefront_obj_create(struct wavefront_obj *obj)
  */
 void wavefront_obj_delete(struct wavefront_obj *obj)
 {
-    array_destroy(make_system_allocator(), (void **) &obj->v_array);
-    array_destroy(make_system_allocator(), (void **) &obj->vn_array);
-    array_destroy(make_system_allocator(), (void **) &obj->vt_array);
-    array_destroy(make_system_allocator(), (void **) &obj->f_array);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->v_array);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->vn_array);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->vt_array);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->f_array);
 
     *obj = (struct wavefront_obj) { 0 };
 }
