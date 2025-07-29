@@ -3,6 +3,7 @@
 
 #include "../3dful/3dful.h"
 #include "lisilisk_internals.h"
+#include "stores/lisilisk_stores.h"
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -23,6 +24,8 @@ static struct {
     struct texture empty_texture;
     struct shader default_shader;
     struct material default_material;
+
+    struct lisilisk_geometry_store geometry_store;
 } lisilisk_static;
 
 // -----------------------------------------------------------------------------
@@ -54,6 +57,8 @@ void lisk_init(void)
     lisilisk_default_material(&lisilisk_static.default_material,
             &lisilisk_static.empty_texture);
 
+    lisilisk_static.geometry_store = lisilisk_geometry_store_create();
+
     lisilisk_static.active = true;
 }
 
@@ -66,6 +71,8 @@ void lisk_deinit(void)
     if (!lisilisk_static.active) {
         return;
     }
+
+    lisilisk_geometry_store_delete(&lisilisk_static.geometry_store);
 
     texture_delete(&lisilisk_static.empty_texture);
     shader_delete(&lisilisk_static.default_shader);
@@ -105,16 +112,32 @@ void lisk_rename(const char *window_name)
     SDL_SetWindowTitle(lisilisk_static.app.sdl_window, window_name);
 }
 
-
+/**
+ * @brief
+ *
+ * @param name
+ * @param obj_file
+ */
 void lisk_model(
         const char *name,
         const char *obj_file)
 {
-    (void) name, (void) obj_file;
+    struct geometry *geometry = nullptr;
+
+    if (!lisilisk_static.active) {
+        return;
+    }
 
     // Create the geometry from the file and registers it in a map
+    geometry = lisilisk_geometry_store_item(&lisilisk_static.geometry_store,
+            obj_file);
 
-    // Create the model, registers it in a map
+    if (!geometry) {
+        return;
+    }
+
+    // Create the model, register it in a map
+
 
     // Give the model a default shader
 

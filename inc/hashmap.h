@@ -25,12 +25,12 @@ size_t hashmap_index_of(
         HASHMAP_ANY map,
         const char *key);
 
-void hashmap_set(
+size_t hashmap_set(
         HASHMAP_ANY map,
         const char *key,
         void *value);
 
-void hashmap_set_hashed(
+size_t hashmap_set_hashed(
         HASHMAP_ANY map,
         u32 hash,
         void *value);

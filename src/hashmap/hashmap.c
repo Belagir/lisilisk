@@ -178,20 +178,25 @@ size_t hashmap_index_of(
  * @param key
  * @param value
  */
-void hashmap_set(
+size_t hashmap_set(
         HASHMAP_ANY map,
         const char *key,
         void *value)
 {
     u32 hash = 0;
 
+    if (!map) {
+        return 0;
+    }
+
     if (!key) {
-        return;
+        return array_length(map);
     }
 
     hash = hash_jenkins_one_at_a_time((const byte *) key,
             c_string_length(key, 128, false), 0);
-    hashmap_set_hashed(map, hash, value);
+
+    return hashmap_set_hashed(map, hash, value);
 }
 
 /**
@@ -201,7 +206,7 @@ void hashmap_set(
  * @param hash
  * @param value
  */
-void hashmap_set_hashed(
+size_t hashmap_set_hashed(
         HASHMAP_ANY map,
         u32 hash,
         void *value)
@@ -210,8 +215,12 @@ void hashmap_set_hashed(
     bool exists = false;
     size_t pos = 0;
 
-    if (!map || !value) {
-        return;
+    if (!map) {
+        return 0;
+    }
+
+    if (!value) {
+        return array_length(map);
     }
 
     target = hashmap_impl_of(map);
@@ -224,6 +233,8 @@ void hashmap_set_hashed(
         array_insert_value(target->keys, pos, &hash);
         array_insert_value(map, pos, value);
     }
+
+    return pos;
 }
 
 // -----------------------------------------------------------------------------
