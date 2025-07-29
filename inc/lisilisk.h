@@ -27,6 +27,7 @@ lisk_handle_t lisk_model_instanciate(
         float scale);
 
 void lisk_model_instance_remove(
+        const char *model_name,
         lisk_handle_t instance);
 
 void lisk_ambient_light_set(

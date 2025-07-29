@@ -117,16 +117,24 @@ void environment_load(struct environment *env)
 {
     loadable_add_user((struct loadable *) env);
 
-    if (loadable_needs_loading((struct loadable *) env)) {
-        if (env->shape) geometry_load(env->shape);
-        if (env->cube_texture) texture_load(env->cube_texture);
+    if (!loadable_needs_loading((struct loadable *) env)) {
+        return;
+    }
 
-        // create cubemap vao
-        glGenVertexArrays(1, &env->gpu_side.vao);
+    if (env->shape) {
+        geometry_load(env->shape);
+    }
+    if (env->cube_texture) {
+        texture_load(env->cube_texture);
+    }
 
-        // actual laoding scenario
+    // create cubemap vao
+    glGenVertexArrays(1, &env->gpu_side.vao);
+
+    if (env->shader) {
         glUseProgram(env->shader->program);
         glBindVertexArray(env->gpu_side.vao);
+
         if (env->shape) {
             glBindBuffer(GL_ARRAY_BUFFER, env->shape->gpu_side.vbo);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
@@ -142,11 +150,13 @@ void environment_load(struct environment *env)
             glBindTexture(GL_TEXTURE_CUBE_MAP,
                     env->cube_texture->gpu_side.name);
         }
+
         glBindVertexArray(0);
         glUseProgram(0);
-
-        env->load_state.flags |= LOADABLE_FLAG_LOADED;
     }
+
+
+    env->load_state.flags |= LOADABLE_FLAG_LOADED;
 }
 
 /**

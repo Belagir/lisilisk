@@ -57,7 +57,7 @@ struct geometry *lisilisk_geometry_store_item(
 {
     struct allocator alloc = make_system_allocator();
     size_t pos = 0;
-    struct geometry new_geometry = { };
+    struct geometry *new_geometry = nullptr;
 
     if (!store) {
         return nullptr;
@@ -70,19 +70,20 @@ struct geometry *lisilisk_geometry_store_item(
     }
 
     // create geometry from file
-    geometry_create(&new_geometry);
-    geometry_wavobj(&new_geometry, obj_path);
+    new_geometry = alloc.malloc(alloc, sizeof(*new_geometry));
+    geometry_create(new_geometry);
+    geometry_wavobj(new_geometry, obj_path);
 
     // if successful, allocate a new geometry and copy the valid geometry to it
-    if (array_length(new_geometry.faces)) {
-        hashmap_ensure_capacity(make_system_allocator(),
+    if (array_length(new_geometry->faces)) {
+        hashmap_ensure_capacity(alloc,
                 (HASHMAP_ANY *) &store->geometries, 1);
-        pos = hashmap_set(store->geometries, obj_path,
-                alloc.malloc(alloc, sizeof(new_geometry)));
+        pos = hashmap_set(store->geometries, obj_path, new_geometry);
 
-        *store->geometries[pos] = new_geometry;
+        store->geometries[pos] = new_geometry;
     } else {
-        geometry_delete(&new_geometry);
+        geometry_delete(new_geometry);
+        alloc.free(alloc, new_geometry);
     }
 
     return store->geometries[pos];
