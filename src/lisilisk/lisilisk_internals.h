@@ -1,3 +1,13 @@
+/**
+ * @file lisilisk_internals.h
+ * @author Gabriel Bédat
+ * @brief
+ * @version 0.1
+ * @date 2025-07-29
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
 
 #ifndef LISILISK_INTERNALS_H__
 #define LISILISK_INTERNALS_H__

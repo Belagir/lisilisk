@@ -9,117 +9,129 @@
 // -----------------------------------------------------------------------------
 
 /**
- * @brief
- *
+ * @brief This data chunk contains the global, unique lisilisk engine internals
+ * used to simplify the library usage.
  */
 static struct {
     bool active;
 
     struct application app;
-    struct scene scene;
+    struct {
+        struct scene scene;
+        struct camera camera;
+        struct environment environment;
+    } world;
 
-    struct camera camera;
-    struct environment environment;
+    struct {
+        struct texture blank_texture;
+        struct shader material_shader;
+        struct material material;
+    } defaults;
 
-    struct texture blank_texture;
-    struct shader default_shader;
-    struct material default_material;
-
-    struct lisilisk_geometry_store geometry_store;
-    struct lisilisk_model_store model_store;
-} lisilisk_static;
+    struct {
+        struct lisilisk_geometry_store geometry_store;
+        struct lisilisk_model_store model_store;
+    } stores;
+} static_data;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
 /**
- * @brief
- *
+ * @brief This function orchestrates the setup of the engine. It will set the
+ * engine data into a blank state, ready to receive models and modifications.
+ * Once this is done, the window can be shown with lisk_show().
  */
 void lisk_init(void)
 {
-    if (lisilisk_static.active) {
+    if (static_data.active) {
         return;
     }
 
-    lisilisk_static.app = application_create("Lisilisk", 1200, 800);
+    static_data.app = application_create("Lisilisk", 1200, 800);
 
-    lisilisk_default_camera(&lisilisk_static.camera,
-            lisilisk_static.app.sdl_window);
+    lisilisk_default_camera(&static_data.world.camera,
+            static_data.app.sdl_window);
 
-    lisilisk_default_environment(&lisilisk_static.environment);
+    lisilisk_default_environment(&static_data.world.environment);
 
-    scene_create(&lisilisk_static.scene);
-    scene_camera(&lisilisk_static.scene, &lisilisk_static.camera);
-    scene_environment(&lisilisk_static.scene, &lisilisk_static.environment);
+    scene_create(&static_data.world.scene);
+    scene_camera(&static_data.world.scene, &static_data.world.camera);
+    scene_environment(&static_data.world.scene, &static_data.world.environment);
 
-    lisilisk_create_default_texture(&lisilisk_static.blank_texture);
-    lisilisk_create_default_material_shader(&lisilisk_static.default_shader);
-    lisilisk_default_material(&lisilisk_static.default_material,
-            &lisilisk_static.blank_texture);
+    lisilisk_create_default_texture(
+            &static_data.defaults.blank_texture);
+    lisilisk_create_default_material_shader(
+            &static_data.defaults.material_shader);
+    lisilisk_default_material(&static_data.defaults.material,
+            &static_data.defaults.blank_texture);
 
-    lisilisk_static.geometry_store = lisilisk_geometry_store_create();
-    lisilisk_static.model_store = lisilisk_model_store_create();
+    static_data.stores.geometry_store = lisilisk_geometry_store_create();
+    static_data.stores.model_store = lisilisk_model_store_create();
 
-    lisilisk_static.active = true;
+    static_data.active = true;
 }
 
 /**
- * @brief
- *
+ * @brief Wipes the engine data. This will release all memory, taken by the
+ * models, shaders, etc...
  */
 void lisk_deinit(void)
 {
-    if (!lisilisk_static.active) {
+    if (!static_data.active) {
         return;
     }
 
-    lisilisk_geometry_store_delete(&lisilisk_static.geometry_store);
-    lisilisk_model_store_delete(&lisilisk_static.model_store);
+    lisilisk_geometry_store_delete(&static_data.stores.geometry_store);
+    lisilisk_model_store_delete(&static_data.stores.model_store);
 
-    texture_delete(&lisilisk_static.blank_texture);
-    shader_delete(&lisilisk_static.default_shader);
+    texture_delete(&static_data.defaults.blank_texture);
+    shader_delete(&static_data.defaults.material_shader);
 
-    scene_delete(&lisilisk_static.scene);
-    application_destroy(&lisilisk_static.app);
+    scene_delete(&static_data.world.scene);
+    application_destroy(&static_data.app);
 
-    lisilisk_static.active = false;
+    static_data.active = false;
 }
 
 /**
- * @brief
+ * @brief Changes the dimensions of the window showing the OpenGL context.
  *
- * @param width
- * @param height
+ * @param[in] width Width, in pixels, of the window.
+ * @param[in] height Height, in pixels, of the window.
  */
 void lisk_resize(uint16_t width, uint16_t height)
 {
-    if (!lisilisk_static.active) {
+    if (!static_data.active) {
         return;
     }
 
-    SDL_SetWindowSize(lisilisk_static.app.sdl_window, width, height);
+    SDL_SetWindowSize(static_data.app.sdl_window, width, height);
 }
 
 /**
- * @brief
+ * @brief Changes the title of the window.
  *
- * @param window_name
+ * @param[in] window_name New name for the window.
  */
 void lisk_rename(const char *window_name)
 {
-    if (!lisilisk_static.active) {
+    if (!static_data.active) {
         return;
     }
 
-    SDL_SetWindowTitle(lisilisk_static.app.sdl_window, window_name);
+    SDL_SetWindowTitle(static_data.app.sdl_window, window_name);
 }
 
 /**
- * @brief
+ * @brief Registers a model to the engine. Instances of this model will be able
+ * to be rendered to the scene from this point on.
  *
- * @param name
- * @param obj_file
+ * The model starts with a default shader and material. The geometry is required
+ * to have a valid model.
+ *
+ * @param[in] name New name to reference the model.
+ * @param[in] obj_file Object file from which the model takes its geometry from.
  */
 void lisk_model(
         const char *name,
@@ -128,19 +140,19 @@ void lisk_model(
     struct geometry *geometry = nullptr;
     struct model *model = nullptr;
 
-    if (!lisilisk_static.active) {
+    if (!static_data.active) {
         return;
     }
 
     // Create the model, register it in a map
-    model = lisilisk_model_store_item(&lisilisk_static.model_store, name);
+    model = lisilisk_model_store_item(&static_data.stores.model_store, name);
 
     if (!model) {
         return;
     }
 
     // Create the geometry from the file and registers it in a map
-    geometry = lisilisk_geometry_store_item(&lisilisk_static.geometry_store,
+    geometry = lisilisk_geometry_store_item(&static_data.stores.geometry_store,
             obj_file);
 
     if (!geometry) {
@@ -148,29 +160,30 @@ void lisk_model(
     }
 
     model_geometry(model, geometry);
-    model_shader(model, &lisilisk_static.default_shader);
-    model_material(model, &lisilisk_static.default_material);
+    model_shader(model, &static_data.defaults.material_shader);
+    model_material(model, &static_data.defaults.material);
 
-    scene_model(&lisilisk_static.scene, model);
+    scene_model(&static_data.world.scene, model);
 }
 
 /**
- * @brief
+ * @brief Creates an instance of a model at some point in space. The model must
+ * exist within the engine (see lisk_model()). The function returns a handle
+ * referencing the new instance within the model.
  *
- * @param model_name
- * @param pos
- * @param scale
+ * @param[in] model_name String containing the name of a previously registered
+ * model.
+ * @param[in] pos 3D position of the new instance.
  * @return lisk_handle_t
  */
 lisk_handle_t lisk_model_instanciate(
         const char *model_name,
-        float (*pos)[3],
-        float scale)
+        float (*pos)[3])
 {
     struct model *model = nullptr;
     handle_t internal_handle = 0;
 
-    if (!lisilisk_static.active) {
+    if (!static_data.active) {
         return LISK_HANDLE_NONE;
     }
 
@@ -178,7 +191,7 @@ lisk_handle_t lisk_model_instanciate(
         return LISK_HANDLE_NONE;
     }
 
-    model = lisilisk_model_store_retrieve(&lisilisk_static.model_store,
+    model = lisilisk_model_store_retrieve(&static_data.stores.model_store,
             model_name);
 
     if (!model) {
@@ -188,16 +201,16 @@ lisk_handle_t lisk_model_instanciate(
     model_instantiate(model, &internal_handle);
     model_instance_position(model, internal_handle,
             (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
-    model_instance_scale(model, internal_handle, scale);
+    model_instance_scale(model, internal_handle, 1.);
     model_instance_rotation(model, internal_handle, quaternion_identity());
 
     return (lisk_handle_t) internal_handle;
 }
 
 /**
- * @brief
+ * @brief Deletes an instance from a model registered to the engine.
  *
- * @param instance
+ * @param[in] instance Handle to the deketed instance.
  */
 void lisk_model_instance_remove(
         const char *model_name,
@@ -205,7 +218,7 @@ void lisk_model_instance_remove(
 {
     struct model *model = nullptr;
 
-    if (!lisilisk_static.active) {
+    if (!static_data.active) {
         return;
     }
 
@@ -213,7 +226,7 @@ void lisk_model_instance_remove(
         return;
     }
 
-    model = lisilisk_model_store_retrieve(&lisilisk_static.model_store,
+    model = lisilisk_model_store_retrieve(&static_data.stores.model_store,
             model_name);
 
     if (!model) {
@@ -224,12 +237,12 @@ void lisk_model_instance_remove(
 }
 
 /**
- * @brief
+ * @brief Changes the ambient lighting of the scene.
  *
- * @param r
- * @param g
- * @param b
- * @param strength
+ * @param[in] r Red component, normalized.
+ * @param[in] g Green component, normalized.
+ * @param[in] b Blue component, normalized.
+ * @param strength Strength modifier.
  */
 void lisk_ambient_light_set(
         float r,
@@ -237,38 +250,40 @@ void lisk_ambient_light_set(
         float b,
         float strength)
 {
-    if (!lisilisk_static.active) {
+    if (!static_data.active) {
         return;
     }
 
-    environment_ambient(&lisilisk_static.environment,
+    environment_ambient(&static_data.world.environment,
             (struct light) { .color = { r, g, b, strength } });
 }
 
 /**
- * @brief
- *
+ * @brief Loads the scene, and shows the window that renders the OpenGL context.
+ * The function will block until the user quits the window.
  */
 void lisk_show(void)
 {
     SDL_Event event = { };
 
-    if (!lisilisk_static.active) {
+    if (!static_data.active) {
         return;
     }
 
-    scene_load(&lisilisk_static.scene);
-    SDL_ShowWindow(lisilisk_static.app.sdl_window);
+    scene_load(&static_data.world.scene);
+    SDL_ShowWindow(static_data.app.sdl_window);
 
     while (true) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) return;
         }
 
-        scene_draw(&lisilisk_static.scene, 0);
+        scene_draw(&static_data.world.scene, 0);
 
-        SDL_GL_SwapWindow(lisilisk_static.app.sdl_window);
+        SDL_GL_SwapWindow(static_data.app.sdl_window);
 
         SDL_Delay(100);
     }
+
+    scene_unload(&static_data.world.scene);
 }
