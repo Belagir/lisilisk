@@ -170,6 +170,10 @@ lisk_handle_t lisk_model_instanciate(
     struct model *model = nullptr;
     handle_t internal_handle = 0;
 
+    if (!lisilisk_static.active) {
+        return LISK_HANDLE_NONE;
+    }
+
     if (!model_name || !pos) {
         return LISK_HANDLE_NONE;
     }
@@ -201,6 +205,10 @@ void lisk_model_instance_remove(
 {
     struct model *model = nullptr;
 
+    if (!lisilisk_static.active) {
+        return;
+    }
+
     if (!model_name || (instance == LISK_HANDLE_NONE)) {
         return;
     }
@@ -213,6 +221,28 @@ void lisk_model_instance_remove(
     }
 
     model_instance_remove(model, (handle_t) instance);
+}
+
+/**
+ * @brief
+ *
+ * @param r
+ * @param g
+ * @param b
+ * @param strength
+ */
+void lisk_ambient_light_set(
+        float r,
+        float g,
+        float b,
+        float strength)
+{
+    if (!lisilisk_static.active) {
+        return;
+    }
+
+    environment_ambient(&lisilisk_static.environment,
+            (struct light) { .color = { r, g, b, strength } });
 }
 
 /**
