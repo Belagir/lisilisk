@@ -10,6 +10,7 @@
  */
 
 #include "3dful.h"
+#include "elements/3dful_core.h"
 
 #include <ustd/array.h>
 
