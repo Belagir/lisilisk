@@ -1,5 +1,5 @@
 
-#include "lisilisk_stores.h"
+#include "lisilisk_internals.h"
 
 /**
  * @brief
@@ -14,7 +14,15 @@ struct lisilisk_model_store lisilisk_model_store_create(void)
             .models = hashmap_create(
                     make_system_allocator(),
                     sizeof(*new_store.models), 32),
+            .defaults = { },
     };
+
+    lisilisk_create_default_texture(
+            &new_store.defaults.blank_texture);
+    lisilisk_create_default_material_shader(
+            &new_store.defaults.material_shader);
+    lisilisk_default_material(&new_store.defaults.material,
+            &new_store.defaults.blank_texture);
 
     return new_store;
 }
@@ -36,12 +44,14 @@ void lisilisk_model_store_delete(
     for (size_t i = 0 ; i < array_length(store->models) ; i++) {
         model_delete(store->models[i]);
         alloc.free(alloc, store->models[i]);
-
     }
+
+    texture_delete(&store->defaults.blank_texture);
+    shader_delete(&store->defaults.material_shader);
 
     hashmap_destroy(alloc, (HASHMAP_ANY *) &store->models);
 
-    *store = (struct lisilisk_model_store) { };
+    *store = (struct lisilisk_model_store) { 0 };
 }
 
 /**
@@ -51,50 +61,55 @@ void lisilisk_model_store_delete(
  * @param mesh
  * @return struct model*
  */
-struct model *lisilisk_model_store_item(
+u32 lisilisk_model_store_item(
         struct lisilisk_model_store *store,
         const char *name)
 {
     struct allocator alloc = make_system_allocator();
     struct model *stored = nullptr;
+    u32 model_hash = 0;
 
     if (!store) {
-        return nullptr;
+        return 0;
     }
 
-    stored = lisilisk_model_store_retrieve(store, name);
+    model_hash = hashmap_hash_of(name);
+    stored = lisilisk_model_store_retrieve(store, model_hash);
 
     if (stored) {
-        return stored;
+        return model_hash;
     }
 
     stored = alloc.malloc(alloc, sizeof(*stored));
+
     model_create(stored);
+    model_material(stored, &store->defaults.material);
+    model_shader(stored, &store->defaults.material_shader);
 
     hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->models, 1);
-    hashmap_set(store->models, name, &stored);
+    hashmap_set_hashed(store->models, model_hash, &stored);
 
-    return stored;
+    return model_hash;
 }
 
 /**
  * @brief
  *
  * @param store
- * @param name
+ * @param hash
  * @return struct model*
  */
 struct model *lisilisk_model_store_retrieve(
         struct lisilisk_model_store *store,
-        const char *name)
+        u32 hash)
 {
     size_t pos = 0;
 
     if (!store) {
-        return nullptr;
+        return 0;
     }
 
-    pos = hashmap_index_of(store->models, name);
+    pos = hashmap_index_of_hashed(store->models, hash);
 
     if (pos < array_length(store->models)) {
         return store->models[pos];

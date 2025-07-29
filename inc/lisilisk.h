@@ -18,7 +18,7 @@
 #define LISK_HANDLE_NONE ((lisk_handle_t) 0)
 
 /** Handle type to hold basic information and have it be a scalar. */
-typedef uint32_t lisk_handle_t;
+typedef uint64_t lisk_handle_t;
 
 // Sets the engine ready to be used.
 void lisk_init(void);
@@ -33,9 +33,12 @@ void lisk_resize(
 void lisk_rename(
         const char *window_name);
 
-// Registers a model to the engine.
-// The model is getting a default shader ans material.
-void lisk_model(
+// Makes it mossible for a model's instances to be rendered to the scene.
+void lisk_model_show(
+        const char *name);
+
+// Changes the geometry of a model.
+void lisk_model_geometry(
         const char *name,
         const char *obj_file);
 
@@ -46,7 +49,6 @@ lisk_handle_t lisk_model_instanciate(
 
 // Removes a model instance from the world.
 void lisk_model_instance_remove(
-        const char *model_name,
         lisk_handle_t instance);
 
 // Changes the ambient ight setting of the environment.

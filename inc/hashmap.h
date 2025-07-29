@@ -21,9 +21,16 @@ void hashmap_ensure_capacity(
         HASHMAP_ANY *map,
         size_t additional_capacity);
 
+u32 hashmap_hash_of(
+        const char *key);
+
 size_t hashmap_index_of(
         HASHMAP_ANY map,
         const char *key);
+
+size_t hashmap_index_of_hashed(
+        HASHMAP_ANY map,
+        u32 hash);
 
 size_t hashmap_set(
         HASHMAP_ANY map,

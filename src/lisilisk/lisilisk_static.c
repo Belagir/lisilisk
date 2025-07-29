@@ -3,7 +3,6 @@
 
 #include "../3dful/3dful.h"
 #include "lisilisk_internals.h"
-#include "stores/lisilisk_stores.h"
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -21,12 +20,6 @@ static struct {
         struct camera camera;
         struct environment environment;
     } world;
-
-    struct {
-        struct texture blank_texture;
-        struct shader material_shader;
-        struct material material;
-    } defaults;
 
     struct {
         struct lisilisk_geometry_store geometry_store;
@@ -59,13 +52,6 @@ void lisk_init(void)
     scene_camera(&static_data.world.scene, &static_data.world.camera);
     scene_environment(&static_data.world.scene, &static_data.world.environment);
 
-    lisilisk_create_default_texture(
-            &static_data.defaults.blank_texture);
-    lisilisk_create_default_material_shader(
-            &static_data.defaults.material_shader);
-    lisilisk_default_material(&static_data.defaults.material,
-            &static_data.defaults.blank_texture);
-
     static_data.stores.geometry_store = lisilisk_geometry_store_create();
     static_data.stores.model_store = lisilisk_model_store_create();
 
@@ -84,9 +70,6 @@ void lisk_deinit(void)
 
     lisilisk_geometry_store_delete(&static_data.stores.geometry_store);
     lisilisk_model_store_delete(&static_data.stores.model_store);
-
-    texture_delete(&static_data.defaults.blank_texture);
-    shader_delete(&static_data.defaults.material_shader);
 
     scene_delete(&static_data.world.scene);
     application_destroy(&static_data.app);
@@ -123,6 +106,25 @@ void lisk_rename(const char *window_name)
     SDL_SetWindowTitle(static_data.app.sdl_window, window_name);
 }
 
+void lisk_model_show(
+        const char *name)
+{
+    struct model *model = nullptr;
+    u32 model_hash = 0;
+
+    model_hash = lisilisk_model_store_item(
+            &static_data.stores.model_store, name);
+    model = lisilisk_model_store_retrieve(
+            &static_data.stores.model_store, model_hash);
+
+    if (!model) {
+        return;
+    }
+
+    scene_model(&static_data.world.scene, model);
+
+}
+
 /**
  * @brief Registers a model to the engine. Instances of this model will be able
  * to be rendered to the scene from this point on.
@@ -133,19 +135,23 @@ void lisk_rename(const char *window_name)
  * @param[in] name New name to reference the model.
  * @param[in] obj_file Object file from which the model takes its geometry from.
  */
-void lisk_model(
+void lisk_model_geometry(
         const char *name,
         const char *obj_file)
 {
     struct geometry *geometry = nullptr;
     struct model *model = nullptr;
+    u32 model_hash = 0;
 
     if (!static_data.active) {
         return;
     }
 
     // Create the model, register it in a map
-    model = lisilisk_model_store_item(&static_data.stores.model_store, name);
+    model_hash = lisilisk_model_store_item(
+            &static_data.stores.model_store, name);
+    model = lisilisk_model_store_retrieve(
+            &static_data.stores.model_store, model_hash);
 
     if (!model) {
         return;
@@ -160,16 +166,11 @@ void lisk_model(
     }
 
     model_geometry(model, geometry);
-    model_shader(model, &static_data.defaults.material_shader);
-    model_material(model, &static_data.defaults.material);
-
-    scene_model(&static_data.world.scene, model);
 }
 
 /**
- * @brief Creates an instance of a model at some point in space. The model must
- * exist within the engine (see lisk_model()). The function returns a handle
- * referencing the new instance within the model.
+ * @brief Creates an instance of a model at some point in space.
+ * The function returns a handle referencing the new instance within the model.
  *
  * @param[in] model_name String containing the name of a previously registered
  * model.
@@ -181,7 +182,8 @@ lisk_handle_t lisk_model_instanciate(
         float (*pos)[3])
 {
     struct model *model = nullptr;
-    handle_t internal_handle = 0;
+    u32 name_hash = 0;
+    union lisk_handle_layout handle = { .full = 0 };
 
     if (!static_data.active) {
         return LISK_HANDLE_NONE;
@@ -191,49 +193,53 @@ lisk_handle_t lisk_model_instanciate(
         return LISK_HANDLE_NONE;
     }
 
+    name_hash = lisilisk_model_store_item(
+            &static_data.stores.model_store, model_name);
     model = lisilisk_model_store_retrieve(&static_data.stores.model_store,
-            model_name);
+            name_hash);
 
     if (!model) {
         return LISK_HANDLE_NONE;
     }
 
-    model_instantiate(model, &internal_handle);
-    model_instance_position(model, internal_handle,
-            (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
-    model_instance_scale(model, internal_handle, 1.);
-    model_instance_rotation(model, internal_handle, quaternion_identity());
+    handle.hash = name_hash;
 
-    return (lisk_handle_t) internal_handle;
+    model_instantiate(model, &handle.internal_handle);
+    model_instance_position(model, handle.internal_handle,
+            (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
+    model_instance_scale(model, handle.internal_handle, 1.);
+    model_instance_rotation(model, handle.internal_handle, quaternion_identity());
+
+    return handle.full;
 }
 
 /**
  * @brief Deletes an instance from a model registered to the engine.
  *
- * @param[in] instance Handle to the deketed instance.
+ * @param[in] instance Handle to the deleted instance.
  */
 void lisk_model_instance_remove(
-        const char *model_name,
         lisk_handle_t instance)
 {
     struct model *model = nullptr;
+    union lisk_handle_layout handle = { .full = instance };
 
     if (!static_data.active) {
         return;
     }
 
-    if (!model_name || (instance == LISK_HANDLE_NONE)) {
+    if (instance == LISK_HANDLE_NONE) {
         return;
     }
 
     model = lisilisk_model_store_retrieve(&static_data.stores.model_store,
-            model_name);
+            handle.hash);
 
     if (!model) {
         return;
     }
 
-    model_instance_remove(model, (handle_t) instance);
+    model_instance_remove(model, (handle_t) handle.internal_handle);
 }
 
 /**

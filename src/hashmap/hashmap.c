@@ -137,6 +137,19 @@ void hashmap_ensure_capacity(
 /**
  * @brief
  *
+ * @param key
+ * @return u32
+ */
+u32 hashmap_hash_of(
+        const char *key)
+{
+    return hash_jenkins_one_at_a_time((const byte *) key,
+            c_string_length(key, 128, false), 0);
+}
+
+/**
+ * @brief
+ *
  * @param map
  * @param key
  * @return size_t
@@ -145,10 +158,7 @@ size_t hashmap_index_of(
         HASHMAP_ANY map,
         const char *key)
 {
-    size_t pos = 0;
     u32 hash = 0;
-    bool exists = false;
-    struct hashmap_impl *target = nullptr;
 
     if (!map) {
         return 0;
@@ -158,10 +168,30 @@ size_t hashmap_index_of(
         return array_length(map);
     }
 
-    target = hashmap_impl_of(map);
+    hash = hashmap_hash_of(key);
+    return hashmap_index_of_hashed(map, hash);
+}
 
-    hash = hash_jenkins_one_at_a_time((const byte *) key,
-            c_string_length(key, 128, false), 0);
+/**
+ * @brief
+ *
+ * @param map
+ * @param hash
+ * @return size_t
+ */
+size_t hashmap_index_of_hashed(
+        HASHMAP_ANY map,
+        u32 hash)
+{
+    struct hashmap_impl *target = nullptr;
+    bool exists = false;
+    size_t pos = 0;
+
+    if (!map) {
+        return 0;
+    }
+
+    target = hashmap_impl_of(map);
     exists = array_sorted_find(target->keys, &hash_compare, &hash, &pos);
 
     if (exists) {
@@ -193,9 +223,7 @@ size_t hashmap_set(
         return array_length(map);
     }
 
-    hash = hash_jenkins_one_at_a_time((const byte *) key,
-            c_string_length(key, 128, false), 0);
-
+    hash = hashmap_hash_of(key);
     return hashmap_set_hashed(map, hash, value);
 }
 
