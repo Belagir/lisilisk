@@ -42,6 +42,18 @@ void lisk_model_geometry(
         const char *name,
         const char *obj_file);
 
+void lisk_model_ambient_color(
+        const char *name,
+        float (*ambient)[4]);
+
+void lisk_model_diffuse_color(
+        const char *name,
+        float (*diffuse)[4]);
+
+void lisk_model_specular_color(
+        const char *name,
+        float (*specular)[4]);
+
 // Instanciate a model at some point in the world.
 lisk_handle_t lisk_model_instanciate(
         const char *model_name,

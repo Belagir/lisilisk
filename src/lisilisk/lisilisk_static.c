@@ -27,8 +27,8 @@ static struct {
     } world;
 
     struct {
-        struct lisilisk_geometry_store geometry_store;
-        struct lisilisk_model_store model_store;
+        struct lisilisk_store_geometry geometry_store;
+        struct lisilisk_store_model model_store;
     } stores;
 } static_data;
 
@@ -57,8 +57,8 @@ void lisk_init(void)
     scene_camera(&static_data.world.scene, &static_data.world.camera);
     scene_environment(&static_data.world.scene, &static_data.world.environment);
 
-    static_data.stores.geometry_store = lisilisk_geometry_store_create();
-    static_data.stores.model_store = lisilisk_model_store_create();
+    static_data.stores.geometry_store = lisilisk_store_geometry_create();
+    static_data.stores.model_store = lisilisk_store_model_create();
 
     static_data.active = true;
 }
@@ -73,8 +73,8 @@ void lisk_deinit(void)
         return;
     }
 
-    lisilisk_geometry_store_delete(&static_data.stores.geometry_store);
-    lisilisk_model_store_delete(&static_data.stores.model_store);
+    lisilisk_store_geometry_delete(&static_data.stores.geometry_store);
+    lisilisk_store_model_delete(&static_data.stores.model_store);
 
     scene_delete(&static_data.world.scene);
     application_destroy(&static_data.app);
@@ -117,9 +117,9 @@ void lisk_model_show(
     struct model *model = nullptr;
     u32 model_hash = 0;
 
-    model_hash = lisilisk_model_store_item(
+    model_hash = lisilisk_store_model_item(
             &static_data.stores.model_store, name);
-    model = lisilisk_model_store_retrieve(
+    model = lisilisk_store_model_retrieve(
             &static_data.stores.model_store, model_hash);
 
     if (!model) {
@@ -153,9 +153,9 @@ void lisk_model_geometry(
     }
 
     // Create the model, register it in a map
-    model_hash = lisilisk_model_store_item(
+    model_hash = lisilisk_store_model_item(
             &static_data.stores.model_store, name);
-    model = lisilisk_model_store_retrieve(
+    model = lisilisk_store_model_retrieve(
             &static_data.stores.model_store, model_hash);
 
     if (!model) {
@@ -163,7 +163,7 @@ void lisk_model_geometry(
     }
 
     // Create the geometry from the file and registers it in a map
-    geometry = lisilisk_geometry_store_item(&static_data.stores.geometry_store,
+    geometry = lisilisk_store_geometry_stash(&static_data.stores.geometry_store,
             obj_file);
 
     if (!geometry) {
@@ -198,9 +198,9 @@ lisk_handle_t lisk_model_instanciate(
         return LISK_HANDLE_NONE;
     }
 
-    name_hash = lisilisk_model_store_item(
+    name_hash = lisilisk_store_model_item(
             &static_data.stores.model_store, model_name);
-    model = lisilisk_model_store_retrieve(&static_data.stores.model_store,
+    model = lisilisk_store_model_retrieve(&static_data.stores.model_store,
             name_hash);
 
     if (!model) {
@@ -381,7 +381,7 @@ static struct model * static_data_model_of(union lisk_handle_layout handle)
         return nullptr;
     }
 
-    model = lisilisk_model_store_retrieve(&static_data.stores.model_store,
+    model = lisilisk_store_model_retrieve(&static_data.stores.model_store,
             handle.hash);
 
     return model;

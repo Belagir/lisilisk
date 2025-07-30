@@ -4,13 +4,13 @@
 /**
  * @brief
  *
- * @return struct lisilisk_geometry_store
+ * @return struct lisilisk_store_geometry
  */
-struct lisilisk_geometry_store lisilisk_geometry_store_create(void)
+struct lisilisk_store_geometry lisilisk_store_geometry_create(void)
 {
-    struct lisilisk_geometry_store new_store = { };
+    struct lisilisk_store_geometry new_store = { };
 
-    new_store = (struct lisilisk_geometry_store) {
+    new_store = (struct lisilisk_store_geometry) {
             .geometries = hashmap_create(
                     make_system_allocator(),
                     sizeof(*new_store.geometries), 32),
@@ -24,8 +24,8 @@ struct lisilisk_geometry_store lisilisk_geometry_store_create(void)
  *
  * @param store
  */
-void lisilisk_geometry_store_delete(
-        struct lisilisk_geometry_store *store)
+void lisilisk_store_geometry_delete(
+        struct lisilisk_store_geometry *store)
 {
     struct allocator alloc = make_system_allocator();
 
@@ -41,7 +41,7 @@ void lisilisk_geometry_store_delete(
 
     hashmap_destroy(alloc, (HASHMAP_ANY *) &store->geometries);
 
-    *store = (struct lisilisk_geometry_store) { };
+    *store = (struct lisilisk_store_geometry) { };
 }
 
 /**
@@ -51,8 +51,8 @@ void lisilisk_geometry_store_delete(
  * @param obj_path
  * @return struct geometry*
  */
-struct geometry *lisilisk_geometry_store_item(
-        struct lisilisk_geometry_store *store,
+struct geometry *lisilisk_store_geometry_stash(
+        struct lisilisk_store_geometry *store,
         const char *obj_path)
 {
     struct allocator alloc = make_system_allocator();
@@ -76,15 +76,15 @@ struct geometry *lisilisk_geometry_store_item(
 
     // if successful, allocate a new geometry and copy the valid geometry to it
     if (array_length(new_geometry->faces)) {
-        hashmap_ensure_capacity(alloc,
-                (HASHMAP_ANY *) &store->geometries, 1);
-        pos = hashmap_set(store->geometries, obj_path, new_geometry);
+        hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->geometries, 1);
+        pos = hashmap_set(store->geometries, obj_path, &new_geometry);
 
         store->geometries[pos] = new_geometry;
-    } else {
-        geometry_delete(new_geometry);
-        alloc.free(alloc, new_geometry);
+
+        return store->geometries[pos];
     }
 
-    return store->geometries[pos];
+    geometry_delete(new_geometry);
+    alloc.free(alloc, new_geometry);
+    return nullptr;
 }

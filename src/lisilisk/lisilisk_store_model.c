@@ -4,20 +4,18 @@
 /**
  * @brief
  *
- * @return struct lisilisk_model_store
+ * @return struct lisilisk_store_model
  */
-struct lisilisk_model_store lisilisk_model_store_create(void)
+struct lisilisk_store_model lisilisk_store_model_create(void)
 {
     struct allocator alloc = make_system_allocator();
-    struct lisilisk_model_store new_store = { };
+    struct lisilisk_store_model new_store = { };
 
-    new_store = (struct lisilisk_model_store) {
+    new_store = (struct lisilisk_store_model) {
             .models = hashmap_create(
                     make_system_allocator(),
                     sizeof(*new_store.models), 32),
             .defaults = {
-                .blank_texture = alloc.malloc(alloc,
-                        sizeof(*new_store.defaults.blank_texture)),
                 .material = alloc.malloc(alloc,
                         sizeof(*new_store.defaults.material)),
                 .material_shader = alloc.malloc(alloc,
@@ -25,16 +23,8 @@ struct lisilisk_model_store lisilisk_model_store_create(void)
             },
     };
 
-    *new_store.defaults.blank_texture = (struct texture) { 0 };
     *new_store.defaults.material = (struct material) { 0 };
     *new_store.defaults.material_shader = (struct shader) { 0 };
-
-    lisilisk_create_default_texture(
-            new_store.defaults.blank_texture);
-    lisilisk_create_default_material_shader(
-            new_store.defaults.material_shader);
-    lisilisk_default_material(new_store.defaults.material,
-            new_store.defaults.blank_texture);
 
     return new_store;
 }
@@ -44,8 +34,8 @@ struct lisilisk_model_store lisilisk_model_store_create(void)
  *
  * @param store
  */
-void lisilisk_model_store_delete(
-        struct lisilisk_model_store *store)
+void lisilisk_store_model_delete(
+        struct lisilisk_store_model *store)
 {
     struct allocator alloc = make_system_allocator();
 
@@ -58,16 +48,14 @@ void lisilisk_model_store_delete(
         alloc.free(alloc, store->models[i]);
     }
 
-    texture_delete(store->defaults.blank_texture);
     shader_delete(store->defaults.material_shader);
 
-    alloc.free(alloc, store->defaults.blank_texture),
     alloc.free(alloc, store->defaults.material),
     alloc.free(alloc, store->defaults.material_shader),
 
     hashmap_destroy(alloc, (HASHMAP_ANY *) &store->models);
 
-    *store = (struct lisilisk_model_store) { 0 };
+    *store = (struct lisilisk_store_model) { 0 };
 }
 
 /**
@@ -77,8 +65,8 @@ void lisilisk_model_store_delete(
  * @param mesh
  * @return struct model*
  */
-u32 lisilisk_model_store_item(
-        struct lisilisk_model_store *store,
+u32 lisilisk_store_model_item(
+        struct lisilisk_store_model *store,
         const char *name)
 {
     struct allocator alloc = make_system_allocator();
@@ -90,7 +78,7 @@ u32 lisilisk_model_store_item(
     }
 
     model_hash = hashmap_hash_of(name);
-    stored = lisilisk_model_store_retrieve(store, model_hash);
+    stored = lisilisk_store_model_retrieve(store, model_hash);
 
     if (stored) {
         return model_hash;
@@ -115,8 +103,8 @@ u32 lisilisk_model_store_item(
  * @param hash
  * @return struct model*
  */
-struct model *lisilisk_model_store_retrieve(
-        struct lisilisk_model_store *store,
+struct model *lisilisk_store_model_retrieve(
+        struct lisilisk_store_model *store,
         u32 hash)
 {
     size_t pos = 0;
