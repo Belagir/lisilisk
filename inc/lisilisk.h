@@ -48,8 +48,24 @@ lisk_handle_t lisk_model_instanciate(
         float (*pos)[3]);
 
 // Removes a model instance from the world.
-void lisk_model_instance_remove(
+void lisk_instance_remove(
         lisk_handle_t instance);
+
+// Changes the scale of an instance.
+void lisk_instance_set_scale(
+        lisk_handle_t instance,
+        float scale);
+
+// Changes the scale of an instance.
+void lisk_instance_set_position(
+        lisk_handle_t instance,
+        float (*pos)[3]);
+
+// Turns an instance around an axis.
+void lisk_instance_rotate(
+        lisk_handle_t instance,
+        float (*axis)[3],
+        float angle_rad);
 
 // Changes the ambient ight setting of the environment.
 void lisk_ambient_light_set(

@@ -7,6 +7,11 @@
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+static struct model * static_data_model_of(union lisk_handle_layout handle);
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 /**
  * @brief This data chunk contains the global, unique lisilisk engine internals
  * used to simplify the library usage.
@@ -218,28 +223,89 @@ lisk_handle_t lisk_model_instanciate(
  *
  * @param[in] instance Handle to the deleted instance.
  */
-void lisk_model_instance_remove(
+void lisk_instance_remove(
         lisk_handle_t instance)
 {
     struct model *model = nullptr;
     union lisk_handle_layout handle = { .full = instance };
 
-    if (!static_data.active) {
-        return;
-    }
-
-    if (instance == LISK_HANDLE_NONE) {
-        return;
-    }
-
-    model = lisilisk_model_store_retrieve(&static_data.stores.model_store,
-            handle.hash);
+    model = static_data_model_of(handle);
 
     if (!model) {
         return;
     }
 
-    model_instance_remove(model, (handle_t) handle.internal_handle);
+    model_instance_remove(model, handle.internal_handle);
+}
+
+/**
+ * @brief
+ *
+ * @param instance
+ * @param scale
+ */
+void lisk_instance_set_scale(
+        lisk_handle_t instance,
+        float scale)
+{
+    struct model *model = nullptr;
+    union lisk_handle_layout handle = { .full = instance };
+
+    model = static_data_model_of(handle);
+
+    if (!model) {
+        return;
+    }
+
+    model_instance_scale(model, handle.internal_handle, scale);
+}
+
+/**
+ * @brief
+ *
+ * @param instance
+ * @param pos
+ */
+void lisk_instance_set_position(
+        lisk_handle_t instance,
+        float (*pos)[3])
+{
+    struct model *model = nullptr;
+    union lisk_handle_layout handle = { .full = instance };
+
+    model = static_data_model_of(handle);
+
+    if (!model) {
+        return;
+    }
+
+    model_instance_position(model, handle.internal_handle,
+            (struct vector3) { (*pos)[0], (*pos)[2], (*pos)[3] });
+}
+
+/**
+ * @brief
+ *
+ * @param instance
+ * @param pos
+ */
+void lisk_instance_rotate(
+        lisk_handle_t instance,
+        float (*axis)[3],
+        float angle_rad)
+{
+    struct model *model = nullptr;
+    union lisk_handle_layout handle = { .full = instance };
+    struct vector3 axis_vec = { (*axis)[0], (*axis)[1], (*axis)[2] };
+
+    model = static_data_model_of(handle);
+
+    if (!model) {
+        return;
+    }
+
+    model_instance_rotation(model, handle.internal_handle,
+            quaternion_from_axis_and_angle(axis_vec, angle_rad));
 }
 
 /**
@@ -293,3 +359,31 @@ void lisk_show(void)
 
     scene_unload(&static_data.world.scene);
 }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief
+ *
+ * @param instance_handle
+ * @return struct model*
+ */
+static struct model * static_data_model_of(union lisk_handle_layout handle)
+{
+    struct model *model = nullptr;
+
+    if (!static_data.active) {
+        return nullptr;
+    }
+
+    if (handle.internal_handle == LISK_HANDLE_NONE) {
+        return nullptr;
+    }
+
+    model = lisilisk_model_store_retrieve(&static_data.stores.model_store,
+            handle.hash);
+
+    return model;
+}
+
