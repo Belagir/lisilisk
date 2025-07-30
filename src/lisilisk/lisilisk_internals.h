@@ -48,9 +48,9 @@ struct lisilisk_model_store {
     HASHMAP(struct model *) models;
 
     struct {
-        struct texture blank_texture;
-        struct shader material_shader;
-        struct material material;
+        struct texture *blank_texture;
+        struct shader *material_shader;
+        struct material *material;
     } defaults;
 };
 
