@@ -95,11 +95,11 @@ void handle_buffer_array_bind(struct handle_buffer_array *hb_array,
 void handle_buffer_array_push(struct handle_buffer_array *hb_array,
         handle_t *out_handle)
 {
-    static u16 static_id_counter = 1;
+    static handle_t static_id_counter = 1;
 
     struct array_impl *target = array_impl_of(hb_array->data_array);
 
-    if (static_id_counter == UINT16_MAX) {
+    if (static_id_counter == HANDLE_MAX) {
         *out_handle = 0;
         return;
     }

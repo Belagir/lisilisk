@@ -30,7 +30,9 @@
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-typedef u16 handle_t;               ///< Public handle, specifies only the size.
+#define HANDLE_BREADTH 24       ///< Bit length of a handle.
+#define HANDLE_MAX 0xffffff     ///< Maximum value a handle can take.
+typedef u32 handle_t;           ///< Public handle, stored on a type big enough.
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

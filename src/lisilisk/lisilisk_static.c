@@ -207,20 +207,24 @@ lisk_handle_t lisk_model_instanciate(
     struct model *model = nullptr;
     u32 model_hash = 0;
     union lisk_handle_layout handle = { .full = 0 };
+    handle_t in_handle = 0;
 
     model = static_data_model_named(name, &model_hash);
     if (!model) {
         return LISK_HANDLE_NONE;
     }
 
-    handle.hash = model_hash;
+    model_instantiate(model, &in_handle);
+    model_instance_position(model, in_handle,
+        (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
+    model_instance_scale(model, in_handle, 1.);
+    model_instance_rotation(model, in_handle,
+        quaternion_identity());
 
-    model_instantiate(model, &handle.internal_handle);
-    model_instance_position(model, handle.internal_handle,
-            (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
-    model_instance_scale(model, handle.internal_handle, 1.);
-    model_instance_rotation(model, handle.internal_handle,
-            quaternion_identity());
+    handle = (union lisk_handle_layout) {
+            .hash = model_hash,
+            .internal = in_handle
+    };
 
     return handle.full;
 }
@@ -242,7 +246,7 @@ void lisk_instance_remove(
         return;
     }
 
-    model_instance_remove(model, handle.internal_handle);
+    model_instance_remove(model, handle.internal);
 }
 
 /**
@@ -251,6 +255,7 @@ void lisk_instance_remove(
  * @param instance
  * @param scale
  */
+
 void lisk_instance_set_scale(
         lisk_handle_t instance,
         float scale)
@@ -264,7 +269,7 @@ void lisk_instance_set_scale(
         return;
     }
 
-    model_instance_scale(model, handle.internal_handle, scale);
+    model_instance_scale(model, handle.internal, scale);
 }
 
 /**
@@ -286,7 +291,7 @@ void lisk_instance_set_position(
         return;
     }
 
-    model_instance_position(model, handle.internal_handle,
+    model_instance_position(model, handle.internal,
             (struct vector3) { (*pos)[0], (*pos)[2], (*pos)[3] });
 }
 
@@ -311,7 +316,7 @@ void lisk_instance_rotate(
         return;
     }
 
-    model_instance_rotation(model, handle.internal_handle,
+    model_instance_rotation(model, handle.internal,
             quaternion_from_axis_and_angle(axis_vec, angle_rad));
 }
 
@@ -385,7 +390,7 @@ static struct model * static_data_model_of_instance(
         return nullptr;
     }
 
-    if (handle.internal_handle == LISK_HANDLE_NONE) {
+    if (handle.internal == LISK_HANDLE_NONE) {
         return nullptr;
     }
 

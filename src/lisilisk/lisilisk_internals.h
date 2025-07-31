@@ -19,7 +19,7 @@
 
 union lisk_handle_layout {
     lisk_handle_t full;
-    struct { u32 hash; u16 reserved; handle_t internal_handle; };
+    struct { lisk_handle_t hash:32, internal:HANDLE_BREADTH, reserved:8; };
 };
 
 void lisilisk_default_environment(
