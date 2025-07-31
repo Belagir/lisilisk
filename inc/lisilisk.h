@@ -42,18 +42,34 @@ void lisk_model_geometry(
         const char *name,
         const char *obj_file);
 
+void lisk_model_base_texture(
+        const char *name,
+        const char *texture);
+
 void lisk_model_ambient_color(
         const char *name,
         float (*ambient)[4]);
+
+void lisk_model_ambient_mask(
+        const char *name,
+        const char *texture_mask);
 
 void lisk_model_diffuse_color(
         const char *name,
         float (*diffuse)[4]);
 
+void lisk_model_diffuse_mask(
+        const char *name,
+        const char *texture_mask);
+
 void lisk_model_specular_color(
         const char *name,
         float (*specular)[4],
         float shininess);
+
+void lisk_model_specular_mask(
+        const char *name,
+        const char *texture_mask);
 
 // Instanciate a model at some point in the world.
 lisk_handle_t lisk_model_instanciate(
@@ -68,7 +84,10 @@ lisk_handle_t lisk_directional_light_add(
 // Creates a point light to illuminate part of the scene.
 lisk_handle_t lisk_point_light_add(
         float (*position)[3],
-        float (*color)[4]);
+        float (*color)[4],
+        float constant,
+        float linear,
+        float quadratic);
 
 // Removes a model instance or light from the world.
 void lisk_instance_remove(
