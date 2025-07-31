@@ -32,12 +32,11 @@ int main(int argc, const char *argv[])
 
     lisk_directional_light_add(&(float[3]) { 0, -1, 0 },
             &(float[4]) { 1, 1, 1, 1 });
-    lisk_handle_t light = lisk_directional_light_add(&(float[3]) { 1, -1, 0 },
+    lisk_handle_t p = lisk_point_light_add(&(float[3]) { 0, 0, 1 },
             &(float[4]) { 1, 0, 0, 1 });
+    lisk_instance_light_point_set_attenuation(p, 1, .45, 0);
 
     lisk_instance_remove(shroom1);
-
-    lisk_instance_set_rotation(light, &(float[3]) { 0, 0, -1 }, 1.6);
 
     lisk_show();
 

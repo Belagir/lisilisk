@@ -301,6 +301,43 @@ lisk_handle_t lisk_directional_light_add(
 }
 
 /**
+ * @brief
+ *
+ * @param position
+ * @param color
+ * @return lisk_handle_t
+ */
+lisk_handle_t lisk_point_light_add(
+        float (*position)[3],
+        float (*color)[4])
+{
+    union lisk_handle_layout handle = { .full = 0 };
+    handle_t in_handle = 0;
+
+    if (!static_data.active) {
+        return LISK_HANDLE_NONE;
+    }
+
+    scene_light_point(&static_data.world.scene, &in_handle);
+    scene_light_point_color(&static_data.world.scene, in_handle, *color);
+    scene_light_point_position(&static_data.world.scene, in_handle,
+            (struct vector3) {
+                (*position)[0],
+                (*position)[1],
+                (*position)[2] });
+    scene_light_point_attenuation(&static_data.world.scene, in_handle,
+            1., 0.15 ,0.7);
+
+    handle = (union lisk_handle_layout) {
+            .hash = 0,
+            .flavor = HANDLE_REPRESENTS_LIGHT_POINT,
+            .internal = in_handle
+    };
+
+    return handle.full;
+}
+
+/**
  * @brief Deletes an instance from a model registered to the engine.
  *
  * @param[in] instance Handle to the deleted instance.
@@ -319,6 +356,9 @@ void lisk_instance_remove(
             return;
         case HANDLE_REPRESENTS_LIGHT_DIREC:
             scene_light_direc_remove(&static_data.world.scene, handle.internal);
+            return;
+        case HANDLE_REPRESENTS_LIGHT_POINT:
+            scene_light_point_remove(&static_data.world.scene, handle.internal);
             return;
     }
 }
@@ -356,17 +396,25 @@ void lisk_instance_set_position(
         lisk_handle_t instance,
         float (*pos)[3])
 {
-    struct model *model = nullptr;
     union lisk_handle_layout handle = { .full = instance };
 
-    model = static_data_model_of_instance(handle);
-
-    if (!model) {
-        return;
+    switch ((enum handle_flavor) handle.flavor) {
+        case HANDLE_IS_INVALID:
+            return;
+        case HANDLE_REPRESENTS_INSTANCE:
+            model_instance_position(static_data_model_of_instance(handle),
+                    handle.internal,
+                    (struct vector3) { (*pos)[0], (*pos)[2], (*pos)[3] });
+            return;
+        case HANDLE_REPRESENTS_LIGHT_DIREC:
+            return;
+        case HANDLE_REPRESENTS_LIGHT_POINT:
+            scene_light_point_position(&static_data.world.scene,
+                    handle.internal,
+                    (struct vector3) { (*pos)[0], (*pos)[2], (*pos)[3] });
+            return;
     }
 
-    model_instance_position(model, handle.internal,
-            (struct vector3) { (*pos)[0], (*pos)[2], (*pos)[3] });
 }
 
 /**
@@ -396,6 +444,37 @@ void lisk_instance_set_rotation(
             scene_light_direc_orientation(&static_data.world.scene,
                     handle.internal,
                     vector3_rotate_by_quaternion(VECTOR3_Y_POSITIVE, q));
+            return;
+        case HANDLE_REPRESENTS_LIGHT_POINT:
+            return;
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param instance
+ * @param constant
+ * @param linear
+ * @param quadratic
+ */
+void lisk_instance_light_point_set_attenuation(
+        lisk_handle_t instance,
+        float constant, float linear, float quadratic)
+{
+    union lisk_handle_layout handle = { .full = instance };
+
+    switch ((enum handle_flavor) handle.flavor) {
+        case HANDLE_IS_INVALID:
+            return;
+        case HANDLE_REPRESENTS_INSTANCE:
+            return;
+        case HANDLE_REPRESENTS_LIGHT_DIREC:
+            return;
+        case HANDLE_REPRESENTS_LIGHT_POINT:
+            scene_light_point_attenuation(&static_data.world.scene,
+                    handle.internal,
+                    constant, linear, quadratic);
             return;
     }
 }

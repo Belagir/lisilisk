@@ -65,7 +65,12 @@ lisk_handle_t lisk_directional_light_add(
         float (*direction)[3],
         float (*color)[4]);
 
-// Removes a model instance from the world.
+// Creates a point light to illuminate part of the scene.
+lisk_handle_t lisk_point_light_add(
+        float (*position)[3],
+        float (*color)[4]);
+
+// Removes a model instance or light from the world.
 void lisk_instance_remove(
         lisk_handle_t instance);
 
@@ -74,16 +79,21 @@ void lisk_instance_set_scale(
         lisk_handle_t instance,
         float scale);
 
-// Changes the scale of an instance.
+// Changes the position of an instance or a point light.
 void lisk_instance_set_position(
         lisk_handle_t instance,
         float (*pos)[3]);
 
-// Turns an instance around an axis.
+// Changes the orientation of an instance or a directional light.
 void lisk_instance_set_rotation(
         lisk_handle_t instance,
         float (*axis)[3],
         float angle_rad);
+
+// Changes the attenuation properties of a light point.
+void lisk_instance_light_point_set_attenuation(
+        lisk_handle_t instance,
+        float constant, float linear, float quadratic);
 
 // Changes the ambient ight setting of the environment.
 void lisk_ambient_light_set(

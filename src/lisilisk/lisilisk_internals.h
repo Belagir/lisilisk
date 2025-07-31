@@ -21,6 +21,7 @@ enum handle_flavor {
     HANDLE_IS_INVALID,
     HANDLE_REPRESENTS_INSTANCE,
     HANDLE_REPRESENTS_LIGHT_DIREC,
+    HANDLE_REPRESENTS_LIGHT_POINT,
 };
 
 union lisk_handle_layout {
