@@ -15,6 +15,8 @@ void lisilisk_setup_environment(
         return;
     }
 
+    *env = (struct environment) { 0 };
+
     environment_bg(env, (f32[3]) { .2, .2, .2 });
     environment_fog(env, (f32[3]) { .0, .0, .0 }, 2048.);
     environment_ambient(env, (struct light) { { .3, .3, .3, 1. } });

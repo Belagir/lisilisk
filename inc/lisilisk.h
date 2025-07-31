@@ -121,7 +121,7 @@ void lisk_ambient_light_set(
         float b,
         float strength);
 
-//
+// Changes the skybox to a set of textures.
 void lisk_skybox_set(
         const char *(*cubemap)[6]);
 

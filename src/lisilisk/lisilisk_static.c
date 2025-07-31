@@ -31,6 +31,8 @@ static struct {
         struct environment environment;
     } world;
 
+    struct shader sky_shader;
+
     struct {
         struct lisilisk_store_texture texture_store;
         struct lisilisk_store_geometry geometry_store;
@@ -55,7 +57,6 @@ void lisk_init(void)
 
     static_data.app = application_create("Lisilisk", 1200, 800);
 
-
     static_data.stores.texture_store = lisilisk_store_texture_create();
     static_data.stores.geometry_store = lisilisk_store_geometry_create();
     static_data.stores.material_store = lisilisk_store_material_create(
@@ -69,7 +70,13 @@ void lisk_init(void)
 
     lisilisk_setup_environment(&static_data.world.environment,
             static_data.stores.geometry_store.sphere,
-            nullptr);
+            &static_data.sky_shader);
+
+    shader_frag(&static_data.sky_shader,
+            "shaders/3dful_shaders/skybox_frag.glsl");
+    shader_vert(&static_data.sky_shader,
+            "shaders/3dful_shaders/skybox_vert.glsl");
+    shader_link(&static_data.sky_shader);
 
     scene_create(&static_data.world.scene);
     scene_camera(&static_data.world.scene, &static_data.world.camera);
@@ -87,6 +94,8 @@ void lisk_deinit(void)
     if (!static_data.active) {
         return;
     }
+
+    shader_delete(&static_data.sky_shader);
 
     lisilisk_store_model_delete(&static_data.stores.model_store);
     lisilisk_store_geometry_delete(&static_data.stores.geometry_store);
@@ -606,12 +615,15 @@ void lisk_ambient_light_set(
 void lisk_skybox_set(
         const char *(*cubemap)[6])
 {
+    struct texture *texture = nullptr;
+
     if (!static_data.active) {
         return;
     }
 
-    (void) cubemap;
-    // environment_skybox(static_data.world.environment, )
+    texture = lisilisk_store_texture_cubemap_cache(
+            &static_data.stores.texture_store, cubemap);
+    environment_skybox(&static_data.world.environment, texture);
 }
 
 /**

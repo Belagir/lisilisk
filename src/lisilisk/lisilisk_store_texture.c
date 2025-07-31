@@ -61,7 +61,7 @@ void lisilisk_store_texture_delete(
  */
 struct texture *lisilisk_store_texture_cache(
         struct lisilisk_store_texture *store,
-        const char *name)
+        const char *image)
 {
     struct allocator alloc = make_system_allocator();
     size_t pos = 0;
@@ -71,18 +71,63 @@ struct texture *lisilisk_store_texture_cache(
         return nullptr;
     }
 
-    pos = hashmap_index_of(store->textures, name);
+    pos = hashmap_index_of(store->textures, image);
 
     if (pos < array_length(store->textures)) {
         return store->textures[pos];
     }
 
     new_texture = alloc.malloc(alloc, sizeof(*new_texture));
-    texture_2D_file(new_texture, name);
+    texture_2D_file(new_texture, image);
 
     if (new_texture->specific.image_for_2D) {
         hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->textures, 1);
-        pos = hashmap_set(store->textures, name, &new_texture);
+        pos = hashmap_set(store->textures, image, &new_texture);
+
+        store->textures[pos] = new_texture;
+
+        return store->textures[pos];
+    }
+
+    texture_delete(new_texture);
+    alloc.free(alloc, new_texture);
+
+    return nullptr;
+}
+
+/**
+ * @brief
+ *
+ * @param store
+ * @param images
+ * @return struct texture*
+ */
+struct texture *lisilisk_store_texture_cubemap_cache(
+        struct lisilisk_store_texture *store,
+        const char *(*images)[6])
+{
+    struct allocator alloc = make_system_allocator();
+    size_t pos = 0;
+    struct texture *new_texture = nullptr;
+
+    if (!store) {
+        return nullptr;
+    }
+
+    pos = hashmap_index_of(store->textures, (*images)[0]);
+
+    if (pos < array_length(store->textures)) {
+        return store->textures[pos];
+    }
+
+    new_texture = alloc.malloc(alloc, sizeof(*new_texture));
+    for (size_t i = 0 ; i < CUBEMAP_FACES_NUMBER ; i++) {
+        texture_cubemap_file(new_texture, i, (*images)[i]);
+    }
+
+    if (new_texture->specific.image_for_2D) {
+        hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->textures, 1);
+        pos = hashmap_set(store->textures, (*images)[0], &new_texture);
 
         store->textures[pos] = new_texture;
 

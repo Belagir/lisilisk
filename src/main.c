@@ -9,6 +9,15 @@ int main(int argc, const char *argv[])
     lisk_init();
     lisk_rename("in nowhere");
 
+    lisk_skybox_set(&(const char *[6]) {
+            "images/star_shower/right.png",
+            "images/star_shower/left.png",
+            "images/star_shower/top.png",
+            "images/star_shower/bottom.png",
+            "images/star_shower/front.png",
+            "images/star_shower/back.png",
+    });
+
     lisk_model_show("shroom");
     lisk_model_geometry("shroom", "models/mushroom/mushroom.obj");
     lisk_model_ambient_color("shroom",  &(float[4]) { 1, 1, 1, .1 });

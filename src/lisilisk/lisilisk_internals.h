@@ -84,7 +84,10 @@ void lisilisk_store_texture_delete(
 
 struct texture *lisilisk_store_texture_cache(
         struct lisilisk_store_texture *store,
-        const char *name);
+        const char *image);
+struct texture *lisilisk_store_texture_cubemap_cache(
+        struct lisilisk_store_texture *store,
+        const char *(*images)[6]);
 
 // -----------------------------------------------------------------------------
 
