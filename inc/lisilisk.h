@@ -98,6 +98,9 @@ lisk_handle_t lisk_point_light_add(
         float linear,
         float quadratic);
 
+// Fetches the camera rendering the world.
+lisk_handle_t lisk_camera(void);
+
 // Removes a model instance or light from the world.
 void lisk_instance_remove(
         lisk_handle_t instance);
@@ -122,6 +125,16 @@ void lisk_instance_set_rotation(
 void lisk_instance_light_point_set_attenuation(
         lisk_handle_t instance,
         float constant, float linear, float quadratic);
+
+void lisk_instance_camera_set_fov(
+        lisk_handle_t instance,
+        float fov);
+void lisk_instance_camera_set_limits(
+        lisk_handle_t instance,
+        float near, float far);
+void lisk_instance_camera_set_target(
+        lisk_handle_t instance,
+        float (*point)[3]);
 
 // Changes the ambient ight setting of the environment.
 void lisk_ambient_light_set(

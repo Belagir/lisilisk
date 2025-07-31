@@ -489,6 +489,28 @@ lisk_handle_t lisk_point_light_add(
 }
 
 /**
+ * @brief
+ *
+ * @return lisk_handle_t
+ */
+lisk_handle_t lisk_camera(void)
+{
+    union lisk_handle_layout handle = { .full = 0 };
+
+    if (!static_data.active) {
+        return LISK_HANDLE_NONE;
+    }
+
+    handle = (union lisk_handle_layout) {
+            .hash = 0,
+            .flavor = HANDLE_REPRESENTS_CAMERA,
+            .internal = 0
+    };
+
+    return handle.full;
+}
+
+/**
  * @brief Deletes an instance from a model registered to the engine.
  *
  * @param[in] instance Handle to the deleted instance.
@@ -511,6 +533,8 @@ void lisk_instance_remove(
         case HANDLE_REPRESENTS_LIGHT_POINT:
             scene_light_point_remove(&static_data.world.scene, handle.internal);
             return;
+        case HANDLE_REPRESENTS_CAMERA:
+            return;
     }
 }
 
@@ -525,16 +549,23 @@ void lisk_instance_set_scale(
         lisk_handle_t instance,
         float scale)
 {
-    struct model *model = nullptr;
     union lisk_handle_layout handle = { .full = instance };
 
-    model = static_data_model_of_instance(handle);
-
-    if (!model) {
-        return;
+    switch ((enum handle_flavor) handle.flavor) {
+        case HANDLE_IS_INVALID:
+            return;
+        case HANDLE_REPRESENTS_INSTANCE:
+            model_instance_scale(
+                    static_data_model_of_instance(handle),
+                    handle.internal, scale);
+            return;
+        case HANDLE_REPRESENTS_LIGHT_DIREC:
+            return;
+        case HANDLE_REPRESENTS_LIGHT_POINT:
+            return;
+        case HANDLE_REPRESENTS_CAMERA:
+            return;
     }
-
-    model_instance_scale(model, handle.internal, scale);
 }
 
 /**
@@ -564,8 +595,11 @@ void lisk_instance_set_position(
                     handle.internal,
                     (struct vector3) { (*pos)[0], (*pos)[2], (*pos)[3] });
             return;
+        case HANDLE_REPRESENTS_CAMERA:
+            camera_position(&static_data.world.camera,
+                    (struct vector3) { (*pos)[0], (*pos)[2], (*pos)[3] });
+            return;
     }
-
 }
 
 /**
@@ -598,6 +632,11 @@ void lisk_instance_set_rotation(
             return;
         case HANDLE_REPRESENTS_LIGHT_POINT:
             return;
+        case HANDLE_REPRESENTS_CAMERA:
+            camera_target(&static_data.world.camera,
+                    vector3_add(static_data.world.camera.pos,
+                    vector3_rotate_by_quaternion(VECTOR3_Z_NEGATIVE, q)));
+            return;
     }
 }
 
@@ -626,6 +665,8 @@ void lisk_instance_light_point_set_attenuation(
             scene_light_point_attenuation(&static_data.world.scene,
                     handle.internal,
                     constant, linear, quadratic);
+            return;
+        case HANDLE_REPRESENTS_CAMERA:
             return;
     }
 }

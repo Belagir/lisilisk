@@ -28,18 +28,23 @@ int main(int argc, const char *argv[])
 
     lisk_model_instanciate("rock", &(float[3]) {  0, 0, 0 }, .2);
 
-    lisk_directional_light_add(&(float[3]) { -1, 0, -3 },
+    lisk_directional_light_add(&(float[3]) { 0, 0, -1 },
             &(float[4]) { .3, .3, .3, 1 });
 
     lisk_show();
 
     SDL_Event event = { };
     int quit = 0;
+    float cam_r = 0;
 
     while (!quit) {
         while (SDL_PollEvent(&event)) {
             quit = quit || (event.type == SDL_QUIT);
         }
+
+        lisk_instance_set_rotation(lisk_camera(),
+                &(float[3]) { 0, 1, 0 }, cam_r);
+        cam_r = fmodf(cam_r+.02, 6.3);
 
         lisk_draw();
     }

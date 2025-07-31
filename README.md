@@ -114,9 +114,9 @@ Basically, the interface should initialize a static global instance of the backe
 
 When instancing a model, creating a light or a camera, the user should be given an instance handle that can act on the corresponding data (transforms, colors etc.) through a dedicated set of functions.
 
-### Tweens
+### Tweens & timers
 
-Give the engine tweening capabilities. There is still questions about tweening uniforms ?
+Give the engine tweening capabilities, as well as timers. There is still questions about tweening uniforms tho ?
 
 ### Transforms hierarchy
 

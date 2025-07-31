@@ -3,6 +3,7 @@ Important stuff
 
 - [x] MEMORY LEAKS !!!!
 - [x] documentation
+- [ ] more documentation !
 - [x] Detect channels (rgb / rgba) set in surfaces to set the correct value when we load the texture on GPU
 
 Half implemented

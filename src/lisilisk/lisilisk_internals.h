@@ -22,6 +22,7 @@ enum handle_flavor {
     HANDLE_REPRESENTS_INSTANCE,
     HANDLE_REPRESENTS_LIGHT_DIREC,
     HANDLE_REPRESENTS_LIGHT_POINT,
+    HANDLE_REPRESENTS_CAMERA,
 };
 
 union lisk_handle_layout {
