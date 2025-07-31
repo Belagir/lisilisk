@@ -89,7 +89,8 @@ u32 lisilisk_store_model_register(
     stored = alloc.malloc(alloc, sizeof(*stored));
 
     model_create(stored);
-    model_material(stored, store->material_store->default_material);
+    model_material(stored,
+            lisilisk_store_material_cache(store->material_store, name));
     model_shader(stored, store->defaults.material_shader);
 
     hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->models, 1);

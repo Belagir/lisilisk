@@ -25,6 +25,7 @@ int main(int argc, const char *argv[])
     lisk_instance_rotate(shroom3, &(float[3]) { 1, 0, 0 }, 1.6);
 
     lisk_model_geometry("shroom", "models/mushroom/mushroom.obj");
+    lisk_model_ambient_color("shroom",  &(float[4]) { 1, 0, 0, 1 });
     lisk_model_show("shroom");
 
     lisk_show();

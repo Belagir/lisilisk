@@ -10,6 +10,10 @@
 static struct model * static_data_model_of_instance(
         union lisk_handle_layout handle);
 
+static struct model * static_data_model_named(
+        const char *name,
+        u32 *out_hash);
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
@@ -125,19 +129,13 @@ void lisk_model_show(
         const char *name)
 {
     struct model *model = nullptr;
-    u32 model_hash = 0;
 
-    model_hash = lisilisk_store_model_register(
-            &static_data.stores.model_store, name);
-    model = lisilisk_store_model_retrieve(
-            &static_data.stores.model_store, model_hash);
-
+    model = static_data_model_named(name, nullptr);
     if (!model) {
         return;
     }
 
     scene_model(&static_data.world.scene, model);
-
 }
 
 /**
@@ -156,18 +154,8 @@ void lisk_model_geometry(
 {
     struct geometry *geometry = nullptr;
     struct model *model = nullptr;
-    u32 model_hash = 0;
 
-    if (!static_data.active) {
-        return;
-    }
-
-    // Create the model, register it in a map
-    model_hash = lisilisk_store_model_register(
-            &static_data.stores.model_store, name);
-    model = lisilisk_store_model_retrieve(
-            &static_data.stores.model_store, model_hash);
-
+    model = static_data_model_named(name, nullptr);
     if (!model) {
         return;
     }
@@ -181,6 +169,26 @@ void lisk_model_geometry(
     }
 
     model_geometry(model, geometry);
+}
+
+/**
+ * @brief
+ *
+ * @param name
+ * @param ambient
+ */
+void lisk_model_ambient_color(
+        const char *name,
+        float (*ambient)[4])
+{
+    struct model *model = nullptr;
+
+    model = static_data_model_named(name, nullptr);
+    if (!model) {
+        return;
+    }
+
+    material_ambient(model->material, *ambient, (*ambient)[3]);
 }
 
 /**
@@ -200,19 +208,7 @@ lisk_handle_t lisk_model_instanciate(
     u32 model_hash = 0;
     union lisk_handle_layout handle = { .full = 0 };
 
-    if (!static_data.active) {
-        return LISK_HANDLE_NONE;
-    }
-
-    if (!name || !pos) {
-        return LISK_HANDLE_NONE;
-    }
-
-    model_hash = lisilisk_store_model_register(
-            &static_data.stores.model_store, name);
-    model = lisilisk_store_model_retrieve(
-            &static_data.stores.model_store, model_hash);
-
+    model = static_data_model_named(name, &model_hash);
     if (!model) {
         return LISK_HANDLE_NONE;
     }
@@ -395,6 +391,36 @@ static struct model * static_data_model_of_instance(
 
     model = lisilisk_store_model_retrieve(&static_data.stores.model_store,
             handle.hash);
+
+    return model;
+}
+
+/**
+ * @brief
+ *
+ * @param name
+ * @return struct model*
+ */
+static struct model * static_data_model_named(
+        const char *name,
+        u32 *out_hash)
+{
+    struct model *model = nullptr;
+    u32 model_hash = 0;
+
+    if (!static_data.active) {
+        return nullptr;
+    }
+
+    // Create the model, register it in a map
+    model_hash = lisilisk_store_model_register(
+            &static_data.stores.model_store, name);
+    model = lisilisk_store_model_retrieve(
+            &static_data.stores.model_store, model_hash);
+
+    if (out_hash) {
+        *out_hash = model_hash;
+    }
 
     return model;
 }
