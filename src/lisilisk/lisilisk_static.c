@@ -672,6 +672,89 @@ void lisk_instance_light_point_set_attenuation(
 }
 
 /**
+ * @brief
+ *
+ * @param instance
+ * @param fov
+ */
+void lisk_instance_camera_set_fov(
+        lisk_handle_t instance,
+        float fov)
+{
+    union lisk_handle_layout handle = { .full = instance };
+
+    switch ((enum handle_flavor) handle.flavor) {
+        case HANDLE_IS_INVALID:
+            return;
+        case HANDLE_REPRESENTS_INSTANCE:
+            return;
+        case HANDLE_REPRESENTS_LIGHT_DIREC:
+            return;
+        case HANDLE_REPRESENTS_LIGHT_POINT:
+            return;
+        case HANDLE_REPRESENTS_CAMERA:
+            camera_fov(&static_data.world.camera, fov);
+            return;
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param instance
+ * @param near
+ * @param far
+ */
+void lisk_instance_camera_set_limits(
+        lisk_handle_t instance,
+        float near, float far)
+{
+    union lisk_handle_layout handle = { .full = instance };
+
+    switch ((enum handle_flavor) handle.flavor) {
+        case HANDLE_IS_INVALID:
+            return;
+        case HANDLE_REPRESENTS_INSTANCE:
+            return;
+        case HANDLE_REPRESENTS_LIGHT_DIREC:
+            return;
+        case HANDLE_REPRESENTS_LIGHT_POINT:
+            return;
+        case HANDLE_REPRESENTS_CAMERA:
+            camera_limits(&static_data.world.camera, near, far);
+            return;
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param instance
+ * @param point
+ */
+void lisk_instance_camera_set_target(
+        lisk_handle_t instance,
+        float (*point)[3])
+{
+    union lisk_handle_layout handle = { .full = instance };
+
+    switch ((enum handle_flavor) handle.flavor) {
+        case HANDLE_IS_INVALID:
+            return;
+        case HANDLE_REPRESENTS_INSTANCE:
+            return;
+        case HANDLE_REPRESENTS_LIGHT_DIREC:
+            return;
+        case HANDLE_REPRESENTS_LIGHT_POINT:
+            return;
+        case HANDLE_REPRESENTS_CAMERA:
+            camera_target(&static_data.world.camera,
+                    (struct vector3) { (*point)[0], (*point)[2], (*point)[3] });
+            return;
+    }
+}
+
+/**
  * @brief Changes the ambient lighting of the scene.
  *
  * @param[in] r Red component, normalized.

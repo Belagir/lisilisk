@@ -129,9 +129,11 @@ void lisk_instance_light_point_set_attenuation(
 void lisk_instance_camera_set_fov(
         lisk_handle_t instance,
         float fov);
+
 void lisk_instance_camera_set_limits(
         lisk_handle_t instance,
         float near, float far);
+
 void lisk_instance_camera_set_target(
         lisk_handle_t instance,
         float (*point)[3]);
