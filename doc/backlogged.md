@@ -10,6 +10,7 @@ Half implemented
 - [ ] Lights are expressed with vec4. Make the last componenent the strength of the light.
 - [ ] Add flags to the geometry to decide how it is rendered : culling, smooth, etc
 - [ ] Implement custom textures passing to material shader
+- [ ] Fog has been deactivated
 
 Refactor ideas
 

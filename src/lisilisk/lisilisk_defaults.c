@@ -6,8 +6,10 @@
  *
  * @param env
  */
-void lisilisk_default_environment(
-        struct environment *env)
+void lisilisk_setup_environment(
+        struct environment *env,
+        struct geometry *sky_shape,
+        struct shader *sky_shader)
 {
     if (!env) {
         return;
@@ -16,6 +18,8 @@ void lisilisk_default_environment(
     environment_bg(env, (f32[3]) { .2, .2, .2 });
     environment_fog(env, (f32[3]) { .0, .0, .0 }, 2048.);
     environment_ambient(env, (struct light) { { .3, .3, .3, 1. } });
+    environment_shader(env, sky_shader);
+    environment_geometry(env, sky_shape);
 }
 
 /**
@@ -23,7 +27,7 @@ void lisilisk_default_environment(
  *
  * @param camera
  */
-void lisilisk_default_camera(
+void lisilisk_setup_camera(
         struct camera *camera,
         struct SDL_Window *window)
 {

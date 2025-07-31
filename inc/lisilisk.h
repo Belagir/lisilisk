@@ -121,6 +121,10 @@ void lisk_ambient_light_set(
         float b,
         float strength);
 
+//
+void lisk_skybox_set(
+        const char *(*cubemap)[6]);
+
 // Shows the window and the scene.
 void lisk_show(void);
 

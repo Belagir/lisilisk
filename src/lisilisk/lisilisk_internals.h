@@ -29,9 +29,11 @@ union lisk_handle_layout {
     struct { lisk_handle_t hash:32, internal:HANDLE_BREADTH, flavor:8; };
 };
 
-void lisilisk_default_environment(
-        struct environment *env);
-void lisilisk_default_camera(
+void lisilisk_setup_environment(
+        struct environment *env,
+        struct geometry *sky_shape,
+        struct shader *sky_shader);
+void lisilisk_setup_camera(
         struct camera *camera,
         struct SDL_Window *window);
 
@@ -47,6 +49,7 @@ struct lisilisk_store_texture {
 };
 
 struct lisilisk_store_geometry {
+    struct geometry *sphere;
     HASHMAP(struct geometry *) geometries;
 };
 

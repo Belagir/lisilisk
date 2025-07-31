@@ -55,14 +55,6 @@ void lisk_init(void)
 
     static_data.app = application_create("Lisilisk", 1200, 800);
 
-    lisilisk_default_camera(&static_data.world.camera,
-            static_data.app.sdl_window);
-
-    lisilisk_default_environment(&static_data.world.environment);
-
-    scene_create(&static_data.world.scene);
-    scene_camera(&static_data.world.scene, &static_data.world.camera);
-    scene_environment(&static_data.world.scene, &static_data.world.environment);
 
     static_data.stores.texture_store = lisilisk_store_texture_create();
     static_data.stores.geometry_store = lisilisk_store_geometry_create();
@@ -71,6 +63,17 @@ void lisk_init(void)
 
     static_data.stores.model_store = lisilisk_store_model_create(
             &static_data.stores.material_store);
+
+    lisilisk_setup_camera(&static_data.world.camera,
+            static_data.app.sdl_window);
+
+    lisilisk_setup_environment(&static_data.world.environment,
+            static_data.stores.geometry_store.sphere,
+            nullptr);
+
+    scene_create(&static_data.world.scene);
+    scene_camera(&static_data.world.scene, &static_data.world.camera);
+    scene_environment(&static_data.world.scene, &static_data.world.environment);
 
     static_data.active = true;
 }
@@ -593,6 +596,22 @@ void lisk_ambient_light_set(
 
     environment_ambient(&static_data.world.environment,
             (struct light) { .color = { r, g, b, strength } });
+}
+
+/**
+ * @brief
+ *
+ * @param cubemap
+ */
+void lisk_skybox_set(
+        const char *(*cubemap)[6])
+{
+    if (!static_data.active) {
+        return;
+    }
+
+    (void) cubemap;
+    // environment_skybox(static_data.world.environment, )
 }
 
 /**

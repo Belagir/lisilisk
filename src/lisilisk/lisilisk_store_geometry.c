@@ -8,13 +8,20 @@
  */
 struct lisilisk_store_geometry lisilisk_store_geometry_create(void)
 {
+    struct allocator alloc = make_system_allocator();
     struct lisilisk_store_geometry new_store = { };
 
     new_store = (struct lisilisk_store_geometry) {
+            .sphere = alloc.malloc(alloc, sizeof(*(new_store.sphere))),
+
             .geometries = hashmap_create(
                     make_system_allocator(),
                     sizeof(*new_store.geometries), 32),
     };
+
+    *new_store.sphere = (struct geometry) { 0 };
+    geometry_create(new_store.sphere);
+    geometry_wavobj(new_store.sphere, "models/sphere.obj");
 
     return new_store;
 }
@@ -32,6 +39,9 @@ void lisilisk_store_geometry_delete(
     if (!store) {
         return;
     }
+
+    geometry_delete(store->sphere);
+    alloc.free(alloc, store->sphere);
 
     for (size_t i = 0 ; i < array_length(store->geometries) ; i++) {
         geometry_delete(store->geometries[i]);
