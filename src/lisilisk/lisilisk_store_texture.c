@@ -39,6 +39,7 @@ void lisilisk_store_texture_delete(
     }
 
     texture_delete(store->default_texture);
+    alloc.free(alloc, store->default_texture);
 
     for (size_t i = 0 ; i < array_length(store->textures) ; i++) {
         texture_delete(store->textures[i]);
@@ -58,7 +59,7 @@ void lisilisk_store_texture_delete(
  * @param name
  * @return struct texture*
  */
-struct texture *lisilisk_store_texture_stash(
+struct texture *lisilisk_store_texture_cache(
         struct lisilisk_store_texture *store,
         const char *name)
 {

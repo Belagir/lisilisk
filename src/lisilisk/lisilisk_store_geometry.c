@@ -51,7 +51,7 @@ void lisilisk_store_geometry_delete(
  * @param obj_path
  * @return struct geometry*
  */
-struct geometry *lisilisk_store_geometry_stash(
+struct geometry *lisilisk_store_geometry_cache(
         struct lisilisk_store_geometry *store,
         const char *obj_path)
 {

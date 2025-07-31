@@ -7,7 +7,8 @@
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static struct model * static_data_model_of(union lisk_handle_layout handle);
+static struct model * static_data_model_of_instance(
+        union lisk_handle_layout handle);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -27,7 +28,9 @@ static struct {
     } world;
 
     struct {
+        struct lisilisk_store_texture texture_store;
         struct lisilisk_store_geometry geometry_store;
+        struct lisilisk_store_material material_store;
         struct lisilisk_store_model model_store;
     } stores;
 } static_data;
@@ -57,8 +60,13 @@ void lisk_init(void)
     scene_camera(&static_data.world.scene, &static_data.world.camera);
     scene_environment(&static_data.world.scene, &static_data.world.environment);
 
+    static_data.stores.texture_store = lisilisk_store_texture_create();
     static_data.stores.geometry_store = lisilisk_store_geometry_create();
-    static_data.stores.model_store = lisilisk_store_model_create();
+    static_data.stores.material_store = lisilisk_store_material_create(
+            &static_data.stores.texture_store);
+
+    static_data.stores.model_store = lisilisk_store_model_create(
+            &static_data.stores.material_store);
 
     static_data.active = true;
 }
@@ -73,8 +81,10 @@ void lisk_deinit(void)
         return;
     }
 
-    lisilisk_store_geometry_delete(&static_data.stores.geometry_store);
     lisilisk_store_model_delete(&static_data.stores.model_store);
+    lisilisk_store_geometry_delete(&static_data.stores.geometry_store);
+    lisilisk_store_material_delete(&static_data.stores.material_store);
+    lisilisk_store_texture_delete(&static_data.stores.texture_store);
 
     scene_delete(&static_data.world.scene);
     application_destroy(&static_data.app);
@@ -117,7 +127,7 @@ void lisk_model_show(
     struct model *model = nullptr;
     u32 model_hash = 0;
 
-    model_hash = lisilisk_store_model_item(
+    model_hash = lisilisk_store_model_register(
             &static_data.stores.model_store, name);
     model = lisilisk_store_model_retrieve(
             &static_data.stores.model_store, model_hash);
@@ -153,7 +163,7 @@ void lisk_model_geometry(
     }
 
     // Create the model, register it in a map
-    model_hash = lisilisk_store_model_item(
+    model_hash = lisilisk_store_model_register(
             &static_data.stores.model_store, name);
     model = lisilisk_store_model_retrieve(
             &static_data.stores.model_store, model_hash);
@@ -163,7 +173,7 @@ void lisk_model_geometry(
     }
 
     // Create the geometry from the file and registers it in a map
-    geometry = lisilisk_store_geometry_stash(&static_data.stores.geometry_store,
+    geometry = lisilisk_store_geometry_cache(&static_data.stores.geometry_store,
             obj_file);
 
     if (!geometry) {
@@ -177,43 +187,44 @@ void lisk_model_geometry(
  * @brief Creates an instance of a model at some point in space.
  * The function returns a handle referencing the new instance within the model.
  *
- * @param[in] model_name String containing the name of a previously registered
+ * @param[in] name String containing the name of a previously registered
  * model.
  * @param[in] pos 3D position of the new instance.
  * @return lisk_handle_t
  */
 lisk_handle_t lisk_model_instanciate(
-        const char *model_name,
+        const char *name,
         float (*pos)[3])
 {
     struct model *model = nullptr;
-    u32 name_hash = 0;
+    u32 model_hash = 0;
     union lisk_handle_layout handle = { .full = 0 };
 
     if (!static_data.active) {
         return LISK_HANDLE_NONE;
     }
 
-    if (!model_name || !pos) {
+    if (!name || !pos) {
         return LISK_HANDLE_NONE;
     }
 
-    name_hash = lisilisk_store_model_item(
-            &static_data.stores.model_store, model_name);
-    model = lisilisk_store_model_retrieve(&static_data.stores.model_store,
-            name_hash);
+    model_hash = lisilisk_store_model_register(
+            &static_data.stores.model_store, name);
+    model = lisilisk_store_model_retrieve(
+            &static_data.stores.model_store, model_hash);
 
     if (!model) {
         return LISK_HANDLE_NONE;
     }
 
-    handle.hash = name_hash;
+    handle.hash = model_hash;
 
     model_instantiate(model, &handle.internal_handle);
     model_instance_position(model, handle.internal_handle,
             (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
     model_instance_scale(model, handle.internal_handle, 1.);
-    model_instance_rotation(model, handle.internal_handle, quaternion_identity());
+    model_instance_rotation(model, handle.internal_handle,
+            quaternion_identity());
 
     return handle.full;
 }
@@ -229,7 +240,7 @@ void lisk_instance_remove(
     struct model *model = nullptr;
     union lisk_handle_layout handle = { .full = instance };
 
-    model = static_data_model_of(handle);
+    model = static_data_model_of_instance(handle);
 
     if (!model) {
         return;
@@ -251,7 +262,7 @@ void lisk_instance_set_scale(
     struct model *model = nullptr;
     union lisk_handle_layout handle = { .full = instance };
 
-    model = static_data_model_of(handle);
+    model = static_data_model_of_instance(handle);
 
     if (!model) {
         return;
@@ -273,7 +284,7 @@ void lisk_instance_set_position(
     struct model *model = nullptr;
     union lisk_handle_layout handle = { .full = instance };
 
-    model = static_data_model_of(handle);
+    model = static_data_model_of_instance(handle);
 
     if (!model) {
         return;
@@ -298,7 +309,7 @@ void lisk_instance_rotate(
     union lisk_handle_layout handle = { .full = instance };
     struct vector3 axis_vec = { (*axis)[0], (*axis)[1], (*axis)[2] };
 
-    model = static_data_model_of(handle);
+    model = static_data_model_of_instance(handle);
 
     if (!model) {
         return;
@@ -369,7 +380,8 @@ void lisk_show(void)
  * @param instance_handle
  * @return struct model*
  */
-static struct model * static_data_model_of(union lisk_handle_layout handle)
+static struct model * static_data_model_of_instance(
+        union lisk_handle_layout handle)
 {
     struct model *model = nullptr;
 
@@ -386,4 +398,3 @@ static struct model * static_data_model_of(union lisk_handle_layout handle)
 
     return model;
 }
-
