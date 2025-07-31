@@ -20,16 +20,16 @@ int main(int argc, const char *argv[])
             "images/star_shower/back.png",
     });
 
-    lisk_model_geometry("shroom", "models/mushroom/mushroom.obj");
-    lisk_model_base_texture("shroom", "models/mushroom/ShroomBase.png");
-    lisk_model_show("shroom");
+    lisk_model_geometry("rock", "models/stele/Stele.obj");
+    lisk_model_base_texture("rock", "models/stele/SteleBase.png");
+    lisk_model_emission_color("rock", &(float[4]) { 1, 1, 1, 1 });
+    lisk_model_emission_mask("rock", "models/stele/SteleEmission.png");
+    lisk_model_show("rock");
 
-    lisk_model_instanciate("shroom", &(float[3]) {  0, 0, 0 }, .2);
+    lisk_model_instanciate("rock", &(float[3]) {  0, 0, 0 }, .2);
 
-    lisk_directional_light_add(&(float[3]) { -1, 0, 0 },
-            &(float[4]) { 1, 1, 1, 1 });
-    lisk_point_light_add(&(float[3]) { 0, 0, 1 },
-            &(float[4]) { 1, 0, 0, 1 }, 1, .45, 0);
+    lisk_directional_light_add(&(float[3]) { -1, 0, -3 },
+            &(float[4]) { .3, .3, .3, 1 });
 
     lisk_show();
 

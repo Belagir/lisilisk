@@ -337,6 +337,49 @@ void lisk_model_specular_mask(
 }
 
 /**
+ * @brief
+ *
+ * @param name
+ * @param emission
+ */
+void lisk_model_emission_color(
+        const char *name,
+        float (*emission)[4])
+{
+    struct model *model = nullptr;
+
+    model = static_data_model_named(name, nullptr);
+    if (!model) {
+        return;
+    }
+
+    material_emissive(model->material, *emission, (*emission)[3]);
+}
+
+/**
+ * @brief
+ *
+ * @param name
+ * @param texture_mask
+ */
+void lisk_model_emission_mask(
+        const char *name,
+        const char *texture_mask)
+{
+    struct model *model = nullptr;
+    struct texture *mask = nullptr;
+
+    model = static_data_model_named(name, nullptr);
+    if (!model) {
+        return;
+    }
+
+    mask = lisilisk_store_texture_cache(
+            &static_data.stores.texture_store, texture_mask);
+    material_emissive_mask(model->material, mask);
+}
+
+/**
  * @brief Creates an instance of a model at some point in space.
  * The function returns a handle referencing the new instance within the model.
  *

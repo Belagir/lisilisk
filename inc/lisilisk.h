@@ -71,6 +71,14 @@ void lisk_model_specular_mask(
         const char *name,
         const char *texture_mask);
 
+void lisk_model_emission_color(
+        const char *name,
+        float (*emission)[4]);
+
+void lisk_model_emission_mask(
+        const char *name,
+        const char *texture_mask);
+
 // Instanciate a model at some point in the world.
 lisk_handle_t lisk_model_instanciate(
         const char *model_name,
