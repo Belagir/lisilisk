@@ -192,6 +192,48 @@ void lisk_model_ambient_color(
 }
 
 /**
+ * @brief
+ *
+ * @param name
+ * @param diffuse
+ */
+void lisk_model_diffuse_color(
+        const char *name,
+        float (*diffuse)[4])
+{
+    struct model *model = nullptr;
+
+    model = static_data_model_named(name, nullptr);
+    if (!model) {
+        return;
+    }
+
+    material_diffuse(model->material, *diffuse, (*diffuse)[3]);
+}
+
+/**
+ * @brief
+ *
+ * @param name
+ * @param specular
+ */
+void lisk_model_specular_color(
+        const char *name,
+        float (*specular)[4],
+        float shininess)
+{
+    struct model *model = nullptr;
+
+    model = static_data_model_named(name, nullptr);
+    if (!model) {
+        return;
+    }
+
+    material_specular(model->material, *specular, (*specular)[3]);
+    material_shininess(model->material, shininess);
+}
+
+/**
  * @brief Creates an instance of a model at some point in space.
  * The function returns a handle referencing the new instance within the model.
  *

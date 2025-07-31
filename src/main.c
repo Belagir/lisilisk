@@ -26,6 +26,8 @@ int main(int argc, const char *argv[])
 
     lisk_model_geometry("shroom", "models/mushroom/mushroom.obj");
     lisk_model_ambient_color("shroom",  &(float[4]) { 1, 1, 1, .1 });
+    lisk_model_diffuse_color("shroom",  &(float[4]) { 1, 1, 1, .5 });
+    lisk_model_specular_color("shroom",  &(float[4]) { 1, 1, 1, 1 }, 16.);
     lisk_model_show("shroom");
 
     lisk_directional_light_add(&(float[3]) { 0, -1, 0 },

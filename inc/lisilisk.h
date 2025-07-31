@@ -52,7 +52,8 @@ void lisk_model_diffuse_color(
 
 void lisk_model_specular_color(
         const char *name,
-        float (*specular)[4]);
+        float (*specular)[4],
+        float shininess);
 
 // Instanciate a model at some point in the world.
 lisk_handle_t lisk_model_instanciate(
