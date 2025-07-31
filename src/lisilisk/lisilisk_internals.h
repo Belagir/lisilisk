@@ -17,9 +17,16 @@
 
 #include "../3dful/3dful.h"
 
+enum handle_flavor {
+    HANDLE_IS_INVALID,
+    HANDLE_REPRESENTS_INSTANCE,
+    HANDLE_REPRESENTS_LIGHT_DIREC,
+    HANDLE_REPRESENTS_LIGHT_POINT,
+};
+
 union lisk_handle_layout {
     lisk_handle_t full;
-    struct { lisk_handle_t hash:32, internal:HANDLE_BREADTH, reserved:8; };
+    struct { lisk_handle_t hash:32, internal:HANDLE_BREADTH, flavor:8; };
 };
 
 void lisilisk_default_environment(

@@ -223,6 +223,7 @@ lisk_handle_t lisk_model_instanciate(
 
     handle = (union lisk_handle_layout) {
             .hash = model_hash,
+            .flavor = HANDLE_REPRESENTS_INSTANCE,
             .internal = in_handle
     };
 
@@ -390,7 +391,7 @@ static struct model * static_data_model_of_instance(
         return nullptr;
     }
 
-    if (handle.internal == LISK_HANDLE_NONE) {
+    if (handle.flavor != HANDLE_REPRESENTS_INSTANCE) {
         return nullptr;
     }
 
