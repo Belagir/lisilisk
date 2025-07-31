@@ -20,13 +20,22 @@ int main(int argc, const char *argv[])
     lisk_instance_set_scale(shroom2, .2);
     lisk_instance_set_scale(shroom3, .3);
 
-    lisk_instance_rotate(shroom1, &(float[3]) { 0, 0, 1 }, 1.6);
-    lisk_instance_rotate(shroom2, &(float[3]) { 0, 1, 0 }, 1.6);
-    lisk_instance_rotate(shroom3, &(float[3]) { 1, 0, 0 }, 1.6);
+    lisk_instance_set_rotation(shroom1, &(float[3]) { 0, 0, 1 }, 1.6);
+    lisk_instance_set_rotation(shroom2, &(float[3]) { 0, 1, 0 }, 1.6);
+    lisk_instance_set_rotation(shroom3, &(float[3]) { 1, 0, 0 }, 1.6);
 
     lisk_model_geometry("shroom", "models/mushroom/mushroom.obj");
-    lisk_model_ambient_color("shroom",  &(float[4]) { 1, 0, 0, 1 });
+    lisk_model_ambient_color("shroom",  &(float[4]) { 1, 1, 1, .1 });
     lisk_model_show("shroom");
+
+    lisk_directional_light_add(&(float[3]) { 0, -1, 0 },
+            &(float[4]) { 1, 1, 1, 1 });
+    lisk_handle_t light = lisk_directional_light_add(&(float[3]) { 1, -1, 0 },
+            &(float[4]) { 1, 0, 0, 1 });
+
+    lisk_instance_remove(shroom1);
+
+    lisk_instance_set_rotation(light, &(float[3]) { 0, 0, -1 }, 1.6);
 
     lisk_show();
 

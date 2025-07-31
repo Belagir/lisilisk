@@ -59,6 +59,11 @@ lisk_handle_t lisk_model_instanciate(
         const char *model_name,
         float (*pos)[3]);
 
+// Creates a directional light to illuminate the scene.
+lisk_handle_t lisk_directional_light_add(
+        float (*direction)[3],
+        float (*color)[4]);
+
 // Removes a model instance from the world.
 void lisk_instance_remove(
         lisk_handle_t instance);
@@ -74,7 +79,7 @@ void lisk_instance_set_position(
         float (*pos)[3]);
 
 // Turns an instance around an axis.
-void lisk_instance_rotate(
+void lisk_instance_set_rotation(
         lisk_handle_t instance,
         float (*axis)[3],
         float angle_rad);

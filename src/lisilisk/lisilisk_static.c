@@ -230,6 +230,34 @@ lisk_handle_t lisk_model_instanciate(
     return handle.full;
 }
 
+lisk_handle_t lisk_directional_light_add(
+        float (*direction)[3],
+        float (*color)[4])
+{
+    union lisk_handle_layout handle = { .full = 0 };
+    handle_t in_handle = 0;
+
+    if (!static_data.active) {
+        return LISK_HANDLE_NONE;
+    }
+
+    scene_light_direc(&static_data.world.scene, &in_handle);
+    scene_light_direc_color(&static_data.world.scene, in_handle, *color);
+    scene_light_direc_orientation(&static_data.world.scene, in_handle,
+            (struct vector3) {
+                (*direction)[0],
+                (*direction)[1],
+                (*direction)[2] });
+
+    handle = (union lisk_handle_layout) {
+            .hash = 0,
+            .flavor = HANDLE_REPRESENTS_LIGHT_DIREC,
+            .internal = in_handle
+    };
+
+    return handle.full;
+}
+
 /**
  * @brief Deletes an instance from a model registered to the engine.
  *
@@ -238,16 +266,19 @@ lisk_handle_t lisk_model_instanciate(
 void lisk_instance_remove(
         lisk_handle_t instance)
 {
-    struct model *model = nullptr;
     union lisk_handle_layout handle = { .full = instance };
 
-    model = static_data_model_of_instance(handle);
-
-    if (!model) {
-        return;
+    switch ((enum handle_flavor) handle.flavor) {
+        case HANDLE_IS_INVALID:
+            return;
+        case HANDLE_REPRESENTS_INSTANCE:
+            model_instance_remove(
+                    static_data_model_of_instance(handle), handle.internal);
+            return;
+        case HANDLE_REPRESENTS_LIGHT_DIREC:
+            scene_light_direc_remove(&static_data.world.scene, handle.internal);
+            return;
     }
-
-    model_instance_remove(model, handle.internal);
 }
 
 /**
@@ -302,23 +333,29 @@ void lisk_instance_set_position(
  * @param instance
  * @param pos
  */
-void lisk_instance_rotate(
+void lisk_instance_set_rotation(
         lisk_handle_t instance,
         float (*axis)[3],
         float angle_rad)
 {
-    struct model *model = nullptr;
     union lisk_handle_layout handle = { .full = instance };
-    struct vector3 axis_vec = { (*axis)[0], (*axis)[1], (*axis)[2] };
+    struct quaternion q = quaternion_from_axis_and_angle(
+            (struct vector3) { (*axis)[0], (*axis)[1], (*axis)[2] },
+            angle_rad);
 
-    model = static_data_model_of_instance(handle);
-
-    if (!model) {
-        return;
+    switch ((enum handle_flavor) handle.flavor) {
+        case HANDLE_IS_INVALID:
+            return;
+        case HANDLE_REPRESENTS_INSTANCE:
+            model_instance_rotation(static_data_model_of_instance(handle),
+                    handle.internal, q);
+            return;
+        case HANDLE_REPRESENTS_LIGHT_DIREC:
+            scene_light_direc_orientation(&static_data.world.scene,
+                    handle.internal,
+                    vector3_rotate_by_quaternion(VECTOR3_Y_POSITIVE, q));
+            return;
     }
-
-    model_instance_rotation(model, handle.internal,
-            quaternion_from_axis_and_angle(axis_vec, angle_rad));
 }
 
 /**
