@@ -18,27 +18,17 @@ int main(int argc, const char *argv[])
             "images/star_shower/back.png",
     });
 
-    lisk_model_show("shroom");
     lisk_model_geometry("shroom", "models/mushroom/mushroom.obj");
-    lisk_model_ambient_color("shroom",  &(float[4]) { 1, 1, 1, .1 });
-    lisk_model_diffuse_color("shroom",  &(float[4]) { 1, 1, 1, .8 });
-    lisk_model_specular_color("shroom",  &(float[4]) { 1, 1, 1, 1 }, 16.);
-    lisk_model_specular_mask("shroom", "models/mushroom/SpecularMap.png");
+    lisk_model_ambient_color("shroom", &(float [4]) { 1, 1, 1, .1 });
+    lisk_model_diffuse_color("shroom", &(float [4]) { 1, 1, 1, .8 });
+    lisk_model_specular_color("shroom", &(float [4]) { 1, 1, 1, .8 }, 64);
     lisk_model_base_texture("shroom", "models/mushroom/ShroomBase.png");
 
-    lisk_handle_t shroom1 = lisk_model_instanciate("shroom",
-            &(float[3]) { -1, 0, 0 });
-    lisk_handle_t shroom2 = lisk_model_instanciate("shroom",
-            &(float[3]) {  0, 0, 0 });
-    lisk_handle_t shroom3 = lisk_model_instanciate("shroom",
-            &(float[3]) {  1, 0, 0 });
+    lisk_model_show("shroom");
 
-    lisk_instance_set_scale(shroom1, .1);
-    lisk_instance_set_rotation(shroom1, &(float[3]) { 0, 0, 1 }, 1.6);
-    lisk_instance_set_scale(shroom2, .2);
-    lisk_instance_set_rotation(shroom2, &(float[3]) { 0, 1, 0 }, 1.6);
-    lisk_instance_set_scale(shroom3, .3);
-    lisk_instance_set_rotation(shroom3, &(float[3]) { 1, 0, 0 }, 1.6);
+    lisk_handle_t shroom = lisk_model_instanciate("shroom",
+            &(float[3]) {  0, 0, 0 });
+    lisk_instance_set_scale(shroom, .2);
 
     lisk_directional_light_add(&(float[3]) { -1, 0, 0 },
             &(float[4]) { 1, 1, 1, 1 });

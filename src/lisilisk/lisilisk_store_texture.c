@@ -78,6 +78,8 @@ struct texture *lisilisk_store_texture_cache(
     }
 
     new_texture = alloc.malloc(alloc, sizeof(*new_texture));
+    *new_texture = (struct texture) { 0 };
+
     texture_2D_file(new_texture, image);
 
     if (new_texture->specific.image_for_2D) {
@@ -121,6 +123,8 @@ struct texture *lisilisk_store_texture_cubemap_cache(
     }
 
     new_texture = alloc.malloc(alloc, sizeof(*new_texture));
+    *new_texture = (struct texture) { 0 };
+
     for (size_t i = 0 ; i < CUBEMAP_FACES_NUMBER ; i++) {
         texture_cubemap_file(new_texture, i, (*images)[i]);
     }

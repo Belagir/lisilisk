@@ -81,6 +81,8 @@ struct geometry *lisilisk_store_geometry_cache(
 
     // create geometry from file
     new_geometry = alloc.malloc(alloc, sizeof(*new_geometry));
+    *new_geometry = (struct geometry) { 0 };
+
     geometry_create(new_geometry);
     geometry_wavobj(new_geometry, obj_path);
 
