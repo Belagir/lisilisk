@@ -74,7 +74,8 @@ void lisk_model_specular_mask(
 // Instanciate a model at some point in the world.
 lisk_handle_t lisk_model_instanciate(
         const char *model_name,
-        float (*pos)[3]);
+        float (*pos)[3],
+        float scale);
 
 // Creates a directional light to illuminate the scene.
 lisk_handle_t lisk_directional_light_add(
@@ -127,5 +128,9 @@ void lisk_skybox_set(
 
 // Shows the window and the scene.
 void lisk_show(void);
+
+void lisk_draw(void);
+
+void lisk_hide(void);
 
 #endif

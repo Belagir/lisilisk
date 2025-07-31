@@ -30,14 +30,14 @@ struct lisilisk_store_material lisilisk_store_material_create(
     material_ambient_mask(new_store.default_material,
             new_store.texture_store->default_texture);
 
-    material_diffuse(new_store.default_material, (f32[3]) { 1, 1, 1 }, .8 );
+    material_diffuse(new_store.default_material, (f32[3]) { 1, 1, 1 }, 1.2 );
     material_diffuse_mask(new_store.default_material,
             new_store.texture_store->default_texture);
 
-    material_specular(new_store.default_material, (f32[3]) { 1, 1, 1 }, .8 );
+    material_specular(new_store.default_material, (f32[3]) { 1, 1, 1 }, .6 );
     material_specular_mask(new_store.default_material,
             new_store.texture_store->default_texture);
-    material_shininess(new_store.default_material, 16);
+    material_shininess(new_store.default_material, 128);
 
     material_emissive(new_store.default_material, (f32[3]) { 1, 1, 1 }, 0 );
     material_emissive_mask(new_store.default_material,

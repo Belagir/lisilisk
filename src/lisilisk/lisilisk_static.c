@@ -343,11 +343,13 @@ void lisk_model_specular_mask(
  * @param[in] name String containing the name of a previously registered
  * model.
  * @param[in] pos 3D position of the new instance.
+ * @param[in] scale scale of the model.
  * @return lisk_handle_t
  */
 lisk_handle_t lisk_model_instanciate(
         const char *name,
-        float (*pos)[3])
+        float (*pos)[3],
+        float scale)
 {
     struct model *model = nullptr;
     u32 model_hash = 0;
@@ -362,7 +364,7 @@ lisk_handle_t lisk_model_instanciate(
     model_instantiate(model, &in_handle);
     model_instance_position(model, in_handle,
         (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
-    model_instance_scale(model, in_handle, 1.);
+    model_instance_scale(model, in_handle, scale);
     model_instance_rotation(model, in_handle,
         quaternion_identity());
 
@@ -632,28 +634,40 @@ void lisk_skybox_set(
  */
 void lisk_show(void)
 {
-    SDL_Event event = { };
-
     if (!static_data.active) {
         return;
     }
 
     scene_load(&static_data.world.scene);
     SDL_ShowWindow(static_data.app.sdl_window);
+}
 
-    while (true) {
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) return;
-        }
+/**
+ * @brief
+ *
+ */
+void lisk_draw(void)
+{
+    if (!static_data.active) {
+        return;
+    }
 
-        scene_draw(&static_data.world.scene, 0);
+    scene_draw(&static_data.world.scene, 0);
+    SDL_GL_SwapWindow(static_data.app.sdl_window);
+}
 
-        SDL_GL_SwapWindow(static_data.app.sdl_window);
-
-        SDL_Delay(100);
+/**
+ * @brief
+ *
+ */
+void lisk_hide(void)
+{
+    if (!static_data.active) {
+        return;
     }
 
     scene_unload(&static_data.world.scene);
+    SDL_HideWindow(static_data.app.sdl_window);
 }
 
 // -----------------------------------------------------------------------------
