@@ -18,7 +18,7 @@ void lisilisk_setup_environment(
     *env = (struct environment) { 0 };
 
     environment_bg(env, (f32[3]) { .2, .2, .2 });
-    environment_fog(env, (f32[3]) { .0, .0, .0 }, 2048.);
+    environment_fog(env, (f32[3]) { 1., .5, 1. }, 1500.);
     environment_ambient(env, (struct light) { { .3, .3, .3, 1. } });
     environment_shader(env, sky_shader);
     environment_geometry(env, sky_shape);

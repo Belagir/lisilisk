@@ -20,16 +20,17 @@ int main(int argc, const char *argv[])
             "images/star_shower/back.png",
     });
 
-    lisk_model_geometry("rock", "models/stele/Stele.obj");
-    lisk_model_base_texture("rock", "models/stele/SteleBase.png");
-    lisk_model_emission_color("rock", &(float[4]) { 1, 1, 1, 1 });
-    lisk_model_emission_mask("rock", "models/stele/SteleEmission.png");
-    lisk_model_show("rock");
+    lisk_model_geometry("terrain", "models/test_terrain.obj");
+    lisk_model_show("terrain");
 
-    lisk_model_instanciate("rock", &(float[3]) {  0, 0, 0 }, .2);
+    lisk_model_instanciate("terrain", &(float[3]) {  0, 10, 0 }, 10);
 
     lisk_directional_light_add(&(float[3]) { 0, 0, -1 },
             &(float[4]) { .3, .3, .3, 1 });
+    lisk_directional_light_add(&(float[3]) { 0, .5, 1 },
+            &(float[4]) { .3, .3, 0, 1 });
+
+    lisk_instance_camera_set_fov(lisk_camera(), 65.);
 
     lisk_show();
 

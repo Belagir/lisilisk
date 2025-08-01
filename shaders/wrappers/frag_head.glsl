@@ -179,9 +179,9 @@ vec4 light_directional_contribution(LightDirectional l)
 vec4 fog_contribution()
 {
     float dist = length(CAMERA_POS - FragPos);
-    float tmp = dist/FOG_DISTANCE;
+    float tmp = min(dist/FOG_DISTANCE, 1.);
 
-    return vec4(FOG_COLOR, 1.) * (tmp*tmp);
+    return vec4(FOG_COLOR, 1.) * tmp;
 }
 
 vec4 emissive_contribution()
