@@ -1,6 +1,11 @@
 
 #include "lisilisk_internals.h"
 
+#include <ustd/res.h>
+
+DECLARE_RES(default_fragment, "res_shaders_default_material_frag")
+DECLARE_RES(default_vertex,   "res_shaders_default_material_vert")
+
 /**
  * @brief
  *
@@ -65,8 +70,10 @@ void lisilisk_create_default_material_shader(
         return;
     }
 
-    shader_material_frag(shader, "shaders/user_shaders/material.frag");
-    shader_material_vert(shader, "shaders/user_shaders/material.vert");
+    shader_material_frag_mem(shader, default_fragment_start,
+            (size_t) &default_fragment_size);
+    shader_material_vert_mem(shader, default_vertex_start,
+            (size_t) &default_vertex_size);
 
     shader_link(shader);
 }

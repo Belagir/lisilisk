@@ -344,13 +344,17 @@ void application_destroy(struct application *target);
 // -----------------------------------------------------------------------------
 // SHADERS ---------------------------------------------------------------------
 
-void shader_material_vert_mem(struct shader *shader, const ARRAY(byte) source);
 void shader_material_vert(struct shader *shader, const char *path);
-void shader_material_frag_mem(struct shader *shader, const ARRAY(byte) source);
+void shader_material_vert_mem(struct shader *shader, const byte *source,
+        size_t length);
 void shader_material_frag(struct shader *shader, const char *path);
+void shader_material_frag_mem(struct shader *shader, const byte *source,
+        size_t length);
 
+// TODO : array out !
 void shader_vert_mem(struct shader *shader, const ARRAY(byte) source);
 void shader_vert(struct shader *shader, const char *path);
+// TODO : array out !
 void shader_frag_mem(struct shader *shader, const ARRAY(byte) source);
 void shader_frag(struct shader *shader, const char *path);
 
@@ -365,6 +369,7 @@ void geometry_create(struct geometry *geometry);
 void geometry_delete(struct geometry *geometry);
 
 void geometry_wavobj(struct geometry *geometry, const char *path);
+// TODO : array out !
 void geometry_wavobj_mem(struct geometry *geometry, const ARRAY(byte) obj);
 
 // -----------------------------------------------------------------------------
@@ -373,10 +378,12 @@ void geometry_wavobj_mem(struct geometry *geometry, const ARRAY(byte) obj);
 
 void texture_2D_default(struct texture *texture);
 void texture_2D_file(struct texture *texture, const char *path);
+// TODO : array out !
 void texture_2D_file_mem(struct texture *texture,
         const ARRAY(byte) image);
 void texture_cubemap_file(struct texture *texture, enum cubemap_face face,
         const char *path);
+// TODO : array out !
 void texture_cubemap_file_mem(struct texture *texture, enum cubemap_face face,
         const ARRAY(byte) image);
 void texture_delete(struct texture *texture);

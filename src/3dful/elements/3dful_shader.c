@@ -12,25 +12,16 @@
 #include "3dful_core.h"
 
 #include <ustd/array.h>
+#include <ustd/res.h>
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-#define SHADER_VERTEX_HEAD "shaders/wrappers/vert_head.glsl"
-#define SHADER_VERTEX_TAIL "shaders/wrappers/vert_tail.glsl"
+DECLARE_RES(vertex_head, "res_shaders_wrapper_vert_head_glsl")
+DECLARE_RES(vertex_tail, "res_shaders_wrapper_vert_tail_glsl")
 
-#define SHADER_FRAGMENT_HEAD "shaders/wrappers/frag_head.glsl"
-#define SHADER_FRAGMENT_TAIL "shaders/wrappers/frag_tail.glsl"
-
-/**
- * @brief Kinds of wrapping around shaders the backend supports.
- * Wrapping adds predetermined inputs/outputs, and an expected function that
- * needs to be user-defined so it can be called in an appended main().
- */
-enum shader_wrapping {
-    SHADER_WRAPPING_NONE,
-    SHADER_WRAPPING_MATERIAL,
-};
+DECLARE_RES(fragment_head, "res_shaders_wrapper_frag_head_glsl")
+DECLARE_RES(fragment_tail, "res_shaders_wrapper_frag_tail_glsl")
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -44,10 +35,10 @@ static char static_shader_diagnostic_buffer[SHADER_DIAGNOSTIC_MAX_LENGTH] =
 
 static i32 check_shader_compilation(GLuint name);
 static i32 check_shader_linking(GLuint program);
-static GLuint shader_compile_file(const char *path, GLenum kind,
-        enum shader_wrapping wrapping);
+static GLuint shader_compile_file(const char *path, GLenum kind);
 static GLuint shader_compile(const ARRAY(byte) shader_source, GLenum kind);
-static GLuint shader_wrap_compile(const ARRAY(byte) shader_source, GLenum kind);
+static GLuint shader_material_compile(const byte *shader_source, size_t length,
+        GLenum kind);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -61,9 +52,11 @@ static GLuint shader_wrap_compile(const ARRAY(byte) shader_source, GLenum kind);
  * @param[inout] shader Shader object to receive the compiled vertex shader.
  * @param[in] source Source as an array of bytes (created with ustd/array.h).
  */
-void shader_material_vert_mem(struct shader *shader, const ARRAY(byte) source)
+void shader_material_vert_mem(struct shader *shader, const byte *source,
+        size_t length)
 {
-    shader->vert_shader = shader_wrap_compile(source, GL_VERTEX_SHADER);
+    shader->vert_shader = shader_material_compile(source, length,
+            GL_VERTEX_SHADER);
 }
 
 /**
@@ -75,9 +68,11 @@ void shader_material_vert_mem(struct shader *shader, const ARRAY(byte) source)
  * @param[inout] shader Shader object to receive the compiled fragment shader.
  * @param[in] source Source as an array of bytes (created with ustd/array.h).
  */
-void shader_material_frag_mem(struct shader *shader, const ARRAY(byte) source)
+void shader_material_frag_mem(struct shader *shader, const byte *source,
+        size_t length)
 {
-    shader->frag_shader = shader_wrap_compile(source, GL_FRAGMENT_SHADER);
+    shader->frag_shader = shader_material_compile(source, length,
+            GL_FRAGMENT_SHADER);
 }
 
 /**
@@ -86,13 +81,14 @@ void shader_material_frag_mem(struct shader *shader, const ARRAY(byte) source)
  * The shader source passed will be wrapped with material shader head and tail
  * source code to skip the boilerplate.
  *
+ * @warning DO NOT USE
+ *
  * @param[inout] shader Shader object to receive the compiled vertex shader.
  * @param[in] path Path to the source of a material vertex shader.
  */
 void shader_material_vert(struct shader *shader, const char *path)
 {
-    shader->vert_shader = shader_compile_file(path, GL_VERTEX_SHADER,
-            SHADER_WRAPPING_MATERIAL);
+    shader->vert_shader = shader_compile_file(path, GL_VERTEX_SHADER);
 
     if (shader->vert_shader == 0) {
         printf("compilation of material shader file %s failed.\n", path);
@@ -105,13 +101,14 @@ void shader_material_vert(struct shader *shader, const char *path)
  * The shader source passed will be wrapped with material shader head and tail
  * source code to skip the boilerplate.
  *
+ * @warning DO NOT USE
+ *
  * @param[inout] shader Shader object to receive the compiled fragment shader.
  * @param[in] path Path to the source of a material fragment shader.
  */
 void shader_material_frag(struct shader *shader, const char *path)
 {
-    shader->frag_shader = shader_compile_file(path, GL_FRAGMENT_SHADER,
-            SHADER_WRAPPING_MATERIAL);
+    shader->frag_shader = shader_compile_file(path, GL_FRAGMENT_SHADER);
 
     if (shader->frag_shader == 0) {
         printf("compilation of material shader file %s failed.\n", path);
@@ -148,8 +145,7 @@ void shader_frag_mem(struct shader *shader, const ARRAY(byte) source)
  */
 void shader_vert(struct shader *shader, const char *path)
 {
-    shader->vert_shader = shader_compile_file(path, GL_VERTEX_SHADER,
-            SHADER_WRAPPING_NONE);
+    shader->vert_shader = shader_compile_file(path, GL_VERTEX_SHADER);
 
     if (shader->vert_shader == 0) {
         printf("compilation of file shader %s failed.\n", path);
@@ -164,8 +160,7 @@ void shader_vert(struct shader *shader, const char *path)
  */
 void shader_frag(struct shader *shader, const char *path)
 {
-    shader->frag_shader = shader_compile_file(path, GL_FRAGMENT_SHADER,
-            SHADER_WRAPPING_NONE);
+    shader->frag_shader = shader_compile_file(path, GL_FRAGMENT_SHADER);
 
     if (shader->frag_shader == 0) {
         printf("compilation of file shader %s failed.\n", path);
@@ -244,8 +239,7 @@ static i32 check_shader_linking(GLuint program)
  * @param[in] wrapping
  * @return GLuint
  */
-static GLuint shader_compile_file(const char *path, GLenum kind,
-        enum shader_wrapping wrapping)
+static GLuint shader_compile_file(const char *path, GLenum kind)
 {
     size_t nb_bytes = file_length(path);
     byte *buffer = nullptr;
@@ -264,14 +258,7 @@ static GLuint shader_compile_file(const char *path, GLenum kind,
         return 0;
     }
 
-    switch (wrapping) {
-        case SHADER_WRAPPING_NONE:
-            shader_out = shader_compile(buffer, kind);
-            break;
-        case SHADER_WRAPPING_MATERIAL:
-            shader_out = shader_wrap_compile(buffer, kind);
-            break;
-    }
+    shader_out = shader_compile(buffer, kind);
 
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &buffer);
 
@@ -333,49 +320,58 @@ static GLuint shader_compile(const ARRAY(byte) shader_source, GLenum kind)
  * @param kind
  * @return GLuint
  */
-static GLuint shader_wrap_compile(const ARRAY(byte) shader_source, GLenum kind)
+static GLuint shader_material_compile(const byte *shader_source, size_t length,
+        GLenum kind)
 {
-    byte *source_head = nullptr;
-    byte *source_tail = nullptr;
-    byte *full_source = nullptr;
     GLuint out_shader = 0;
+    struct allocator alloc = make_system_allocator();
+
+    ARRAY(byte) full_source = nullptr;
+    size_t full_source_length = 0;
 
     switch (kind) {
         case GL_VERTEX_SHADER:
-            source_head = array_create(make_system_allocator(),
-                    sizeof(*source_head), file_length(SHADER_VERTEX_HEAD));
-            file_read_to_array(SHADER_VERTEX_HEAD, source_head);
-            source_tail = array_create(make_system_allocator(),
-                    sizeof(*source_tail), file_length(SHADER_VERTEX_TAIL));
-            file_read_to_array(SHADER_VERTEX_TAIL, source_tail);
+            full_source_length =
+                    (size_t)&vertex_head_size
+                    + length
+                    + (size_t)&vertex_tail_size;
             break;
         case GL_FRAGMENT_SHADER:
-            source_head = array_create(make_system_allocator(),
-                    sizeof(*source_head), file_length(SHADER_FRAGMENT_HEAD));
-            file_read_to_array(SHADER_FRAGMENT_HEAD, source_head);
-            source_tail = array_create(make_system_allocator(),
-                    sizeof(*source_tail), file_length(SHADER_FRAGMENT_TAIL));
-            file_read_to_array(SHADER_FRAGMENT_TAIL, source_tail);
+            full_source_length =
+                    (size_t)&fragment_head_size
+                    + length
+                    + (size_t)&fragment_tail_size;
             break;
-
         default:
-            return 0;
+            break;
     }
 
-    full_source = array_create(make_system_allocator(), sizeof(*full_source),
-            array_capacity(source_head)
-            + array_capacity(shader_source)
-            + array_capacity(source_tail));
+    full_source = array_create(alloc, sizeof(*full_source), full_source_length);
 
-    array_append(full_source, (ARRAY_ANY) source_head);
-    array_append(full_source, (ARRAY_ANY) shader_source);
-    array_append(full_source, (ARRAY_ANY) source_tail);
+    switch (kind) {
+        case GL_VERTEX_SHADER:
+            array_append_mem(full_source,
+                    vertex_head_start, (size_t)&vertex_head_size);
+            array_append_mem(full_source,
+                    shader_source, length);
+            array_append_mem(full_source,
+                    vertex_tail_start, (size_t)&vertex_tail_size);
+            break;
+        case GL_FRAGMENT_SHADER:
+            array_append_mem(full_source,
+                    fragment_head_start, (size_t)&fragment_head_size);
+            array_append_mem(full_source,
+                    shader_source, length);
+            array_append_mem(full_source,
+                    fragment_tail_start, (size_t)&fragment_tail_size);
+            break;
+        default:
+            break;
+    }
 
     out_shader = shader_compile(full_source, kind);
 
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &source_head);
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &source_tail);
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &full_source);
+    array_destroy(alloc, (ARRAY_ANY *) &full_source);
 
     return out_shader;
 }

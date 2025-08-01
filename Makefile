@@ -16,9 +16,13 @@ INC_DIR = inc unstandard/inc
 OBJ_DIR = build
 ## Executable directory. Contains the final binary file.
 EXC_DIR = bin
+## resources directory
+RES_DIR = res
 
 ## compiler
 CC = gcc
+## resource packer
+RESPACKER = ld
 
 ## compilation flags
 CFLAGS += -Wall -Wextra -Wpedantic -fanalyzer  -Werror
@@ -32,8 +36,11 @@ LFLAGS += -lGL `sdl2-config --libs`
 LFLAGS += -lSDL2_image
 LFLAGS += -lm
 
-# additional flags for defines
+## additional flags for defines
 DFLAGS +=
+
+## resource packing flags
+RESFLAGS = -r -b binary -z noexecstack
 
 # --------------- Internal variables -------------------------------------------
 
@@ -46,6 +53,11 @@ DUPL_SRC := $(strip $(shell echo $(SRC) | tr ' ' '\n' | sort | uniq -d))
 ## list of all target object files with their path
 OBJ := $(addprefix $(OBJ_DIR)/, $(patsubst %.c, %.o, $(SRC)))
 
+## list of all resources files without their directory
+RES := $(notdir $(shell find $(RES_DIR)/ -type f))
+## list of all target binaries resource files to include in the binary
+RES_BIN := $(addprefix $(OBJ_DIR)/, $(addsuffix .resbin, $(RES)))
+
 ## makefile-managed directories
 BUILD_DIRS = $(EXC_DIR) $(OBJ_DIR)
 
@@ -57,6 +69,7 @@ ARGS_INCL = $(addprefix -I, $(INC_DIR))
 ## where to find c files : all unique directories in SRC_DIR which contain a c
 ## file
 vpath %.c $(sort $(dir $(shell find $(SRC_DIR) -name *.c)))
+vpath % $(sort $(dir $(shell find $(RES_DIR)/ -type f)))
 
 # --------------- Rules --------------------------------------------------------
 
@@ -66,11 +79,14 @@ vpath %.c $(sort $(dir $(shell find $(SRC_DIR) -name *.c)))
 
 all: check $(BUILD_DIRS) $(TARGET) | count_lines
 
-$(TARGET): $(OBJ)
+$(TARGET): $(OBJ) $(RES_BIN)
 	$(CC) $^ -o $@ $(LFLAGS)
 
 $(OBJ_DIR)/%.o: %.c
 	$(CC) -c $? -o $@ $(ARGS_INCL) $(CFLAGS) $(DFLAGS)
+
+$(OBJ_DIR)/%.resbin: %
+	$(RESPACKER) $(RESFLAGS) $? -o $@
 
 # -------- dir spawning ----------------
 
