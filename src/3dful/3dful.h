@@ -366,7 +366,8 @@ void geometry_delete(struct geometry *geometry);
 
 void geometry_wavobj(struct geometry *geometry, const char *path);
 // TODO : array out !
-void geometry_wavobj_mem(struct geometry *geometry, const ARRAY(byte) obj);
+void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer,
+        size_t length);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

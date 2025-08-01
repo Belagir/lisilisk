@@ -83,7 +83,6 @@ void lisk_init(void)
             static_data.stores.geometry_store.sphere,
             &static_data.sky_shader);
 
-
     scene_create(&static_data.world.scene);
     scene_camera(&static_data.world.scene, &static_data.world.camera);
     scene_environment(&static_data.world.scene, &static_data.world.environment);

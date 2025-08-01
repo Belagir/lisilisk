@@ -1,6 +1,10 @@
 
 #include "lisilisk_internals.h"
 
+#include <ustd/res.h>
+
+DECLARE_RES(sphere_object, "res_models_sphere_obj")
+
 /**
  * @brief
  *
@@ -21,7 +25,8 @@ struct lisilisk_store_geometry lisilisk_store_geometry_create(void)
 
     *new_store.sphere = (struct geometry) { 0 };
     geometry_create(new_store.sphere);
-    geometry_wavobj(new_store.sphere, "models/sphere.obj");
+    geometry_wavobj_mem(new_store.sphere, sphere_object_start,
+            (size_t) &sphere_object_size);
 
     return new_store;
 }
