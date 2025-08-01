@@ -1,8 +1,13 @@
 
 #include <lisilisk.h>
 
+#include <ustd/res.h>
+
 #include "../3dful/3dful.h"
 #include "lisilisk_internals.h"
+
+DECLARE_RES(skybox_vert, "res_shaders_environment_skybox_vert_glsl")
+DECLARE_RES(skybox_frag, "res_shaders_environment_skybox_frag_glsl")
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -68,15 +73,16 @@ void lisk_init(void)
     lisilisk_setup_camera(&static_data.world.camera,
             static_data.app.sdl_window);
 
+    shader_vert_mem(&static_data.sky_shader, skybox_vert_start,
+            (size_t)&skybox_vert_size);
+    shader_frag_mem(&static_data.sky_shader, skybox_frag_start,
+            (size_t)&skybox_frag_size);
+    shader_link(&static_data.sky_shader);
+
     lisilisk_setup_environment(&static_data.world.environment,
             static_data.stores.geometry_store.sphere,
             &static_data.sky_shader);
 
-    shader_frag(&static_data.sky_shader,
-            "shaders/3dful_shaders/skybox_frag.glsl");
-    shader_vert(&static_data.sky_shader,
-            "shaders/3dful_shaders/skybox_vert.glsl");
-    shader_link(&static_data.sky_shader);
 
     scene_create(&static_data.world.scene);
     scene_camera(&static_data.world.scene, &static_data.world.camera);

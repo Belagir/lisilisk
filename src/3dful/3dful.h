@@ -344,19 +344,15 @@ void application_destroy(struct application *target);
 // -----------------------------------------------------------------------------
 // SHADERS ---------------------------------------------------------------------
 
-void shader_material_vert(struct shader *shader, const char *path);
 void shader_material_vert_mem(struct shader *shader, const byte *source,
         size_t length);
-void shader_material_frag(struct shader *shader, const char *path);
 void shader_material_frag_mem(struct shader *shader, const byte *source,
         size_t length);
 
-// TODO : array out !
-void shader_vert_mem(struct shader *shader, const ARRAY(byte) source);
-void shader_vert(struct shader *shader, const char *path);
-// TODO : array out !
-void shader_frag_mem(struct shader *shader, const ARRAY(byte) source);
-void shader_frag(struct shader *shader, const char *path);
+void shader_vert_mem(struct shader *shader, const byte *source,
+        size_t length);
+void shader_frag_mem(struct shader *shader, const byte *source,
+        size_t length);
 
 void shader_link(struct shader *shader);
 void shader_delete(struct shader *shader);

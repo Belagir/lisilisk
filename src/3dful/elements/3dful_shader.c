@@ -28,15 +28,15 @@ DECLARE_RES(fragment_tail, "res_shaders_wrapper_frag_tail_glsl")
 
 #define SHADER_DIAGNOSTIC_MAX_LENGTH (2048)
 static char static_shader_diagnostic_buffer[SHADER_DIAGNOSTIC_MAX_LENGTH] =
-    { 0 };
+        { 0 };
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
 static i32 check_shader_compilation(GLuint name);
 static i32 check_shader_linking(GLuint program);
-static GLuint shader_compile_file(const char *path, GLenum kind);
-static GLuint shader_compile(const ARRAY(byte) shader_source, GLenum kind);
+static GLuint shader_compile(const byte *shader_source, size_t length,
+        GLenum kind);
 static GLuint shader_material_compile(const byte *shader_source, size_t length,
         GLenum kind);
 
@@ -76,54 +76,15 @@ void shader_material_frag_mem(struct shader *shader, const byte *source,
 }
 
 /**
- * @brief Compiles a material shader's vertex from its source found in
- * a file.
- * The shader source passed will be wrapped with material shader head and tail
- * source code to skip the boilerplate.
- *
- * @warning DO NOT USE
- *
- * @param[inout] shader Shader object to receive the compiled vertex shader.
- * @param[in] path Path to the source of a material vertex shader.
- */
-void shader_material_vert(struct shader *shader, const char *path)
-{
-    shader->vert_shader = shader_compile_file(path, GL_VERTEX_SHADER);
-
-    if (shader->vert_shader == 0) {
-        printf("compilation of material shader file %s failed.\n", path);
-    }
-}
-
-/**
- * @brief Compiles a material shader's fragment from its source found in
- * a file.
- * The shader source passed will be wrapped with material shader head and tail
- * source code to skip the boilerplate.
- *
- * @warning DO NOT USE
- *
- * @param[inout] shader Shader object to receive the compiled fragment shader.
- * @param[in] path Path to the source of a material fragment shader.
- */
-void shader_material_frag(struct shader *shader, const char *path)
-{
-    shader->frag_shader = shader_compile_file(path, GL_FRAGMENT_SHADER);
-
-    if (shader->frag_shader == 0) {
-        printf("compilation of material shader file %s failed.\n", path);
-    }
-}
-
-/**
  * @brief Compiles a vertex shader source found in a buffer.
  *
  * @param[inout] shader Shader object to receive the compiled vertex shader.
  * @param[in] source Buffer containing the shader's source.
  */
-void shader_vert_mem(struct shader *shader, const ARRAY(byte) source)
+void shader_vert_mem(struct shader *shader, const byte *source,
+        size_t length)
 {
-    shader->vert_shader = shader_compile(source, GL_VERTEX_SHADER);
+    shader->vert_shader = shader_compile(source, length, GL_VERTEX_SHADER);
 }
 
 /**
@@ -132,39 +93,10 @@ void shader_vert_mem(struct shader *shader, const ARRAY(byte) source)
  * @param[inout] shader Shader object to receive the compiled fragment shader.
  * @param[in] source Buffer containing the shader's source.
  */
-void shader_frag_mem(struct shader *shader, const ARRAY(byte) source)
+void shader_frag_mem(struct shader *shader, const byte *source,
+        size_t length)
 {
-    shader->frag_shader = shader_compile(source, GL_FRAGMENT_SHADER);
-}
-
-/**
- * @brief Compiles a vertex shader source found in a file.
- *
- * @param[inout] shader Shader object to receive the compiled vertex shader.
- * @param[in] path Path to the shader source file.
- */
-void shader_vert(struct shader *shader, const char *path)
-{
-    shader->vert_shader = shader_compile_file(path, GL_VERTEX_SHADER);
-
-    if (shader->vert_shader == 0) {
-        printf("compilation of file shader %s failed.\n", path);
-    }
-}
-
-/**
- * @brief Compiles a fragment shader source found in a file.
- *
- * @param[inout] shader Shader object to receive the compiled fragment shader.
- * @param[in] path Path to the shader source file.
- */
-void shader_frag(struct shader *shader, const char *path)
-{
-    shader->frag_shader = shader_compile_file(path, GL_FRAGMENT_SHADER);
-
-    if (shader->frag_shader == 0) {
-        printf("compilation of file shader %s failed.\n", path);
-    }
+    shader->frag_shader = shader_compile(source, length, GL_FRAGMENT_SHADER);
 }
 
 /**
@@ -231,41 +163,6 @@ static i32 check_shader_linking(GLuint program)
 }
 
 /**
- * @brief Compiles a shader of some kind, from a file, executing some wrapping
- * if needed.
- *
- * @param[in] path
- * @param[in] kind
- * @param[in] wrapping
- * @return GLuint
- */
-static GLuint shader_compile_file(const char *path, GLenum kind)
-{
-    size_t nb_bytes = file_length(path);
-    byte *buffer = nullptr;
-    GLuint shader_out = 0;
-
-    if (nb_bytes == 0) {
-        fprintf(stderr, "failed to read file `%s`\n", path);
-        return 0;
-    }
-
-    buffer = array_create(make_system_allocator(), sizeof(*buffer), nb_bytes);
-
-    if (file_read_to_array(path, buffer) != 0) {
-        fprintf(stderr, "failed to read file `%s`\n", path);
-        array_destroy(make_system_allocator(), (ARRAY_ANY *) &buffer);
-        return 0;
-    }
-
-    shader_out = shader_compile(buffer, kind);
-
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &buffer);
-
-    return shader_out;
-}
-
-/**
  * @brief Checks wether or not a shader program correctly compiled, and report a
  * status on stderr if not.
  *
@@ -296,12 +193,13 @@ static i32 check_shader_compilation(GLuint name)
  * @param[in] kind
  * @return GLuint
  */
-static GLuint shader_compile(const ARRAY(byte) shader_source, GLenum kind)
+static GLuint shader_compile(const byte *shader_source, size_t length,
+        GLenum kind)
 {
     GLuint shader = glCreateShader(kind);
-    GLint length = array_length(shader_source);
+    const GLint gl_length = (GLint) length;
 
-    glShaderSource(shader, 1, (const char *const *) &shader_source, &length);
+    glShaderSource(shader, 1, (const char *const *) &shader_source, &gl_length);
     glCompileShader(shader);
 
     if (!check_shader_compilation(shader)) {
@@ -369,7 +267,7 @@ static GLuint shader_material_compile(const byte *shader_source, size_t length,
             break;
     }
 
-    out_shader = shader_compile(full_source, kind);
+    out_shader = shader_compile(full_source, array_length(full_source), kind);
 
     array_destroy(alloc, (ARRAY_ANY *) &full_source);
 
