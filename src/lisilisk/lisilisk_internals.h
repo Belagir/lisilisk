@@ -13,7 +13,7 @@
 #define LISILISK_INTERNALS_H__
 
 #include <lisilisk.h>
-#include <hashmap.h>
+#include <ustd/hashmap.h>
 
 #include "../3dful/3dful.h"
 
