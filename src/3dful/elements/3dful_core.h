@@ -27,12 +27,6 @@
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-#define GEOMETRY_RENDER_FLAG_NONE   0x0
-#define GEOMETRY_RENDER_FLAG_SMOOTH 0x1
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
 /**
  * @brief Assigns integer values to semantic names for Uniform Buffer Objects
  * binding indices.
@@ -80,8 +74,6 @@ void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos);
 void geometry_vertex_normal(struct geometry *geometry, size_t idx,
         vector3 normal);
 void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv);
-
-void geometry_set_smoothing(struct geometry *geometry, bool smooth);
 
 void geometry_push_face(struct geometry *geometry, u32 *out_idx);
 void geometry_face_indices(struct geometry *geometry, size_t idx,

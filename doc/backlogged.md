@@ -5,12 +5,13 @@ Important stuff
 - [x] documentation of the 3dful module
 - [ ] more documentation ! for the lisilisk interface & internals !
 - [x] Detect channels (rgb / rgba) set in surfaces to set the correct value when we load the texture on GPU
-- [ ] Include the engine-specific resources within the executable
+- [x] Include the engine-specific resources within the executable
 
 Half implemented
 
 - [ ] Lights are expressed with vec4. Make the last componenent the strength of the light.
-- [ ] Add flags to the geometry to decide how it is rendered : culling, smooth, etc
+- [ ] Make the fog have an alpha component, and make it interfere with the sky.
+- [x] Add flags to the geometry to decide how it is rendered : culling, smooth, etc
 - [ ] Implement custom textures passing to material shader
 - [x] Fog has been deactivated, reactivate it
 - [ ] Allow the user to set custom shaders on a model

@@ -24,6 +24,7 @@
 void geometry_create(struct geometry *geometry)
 {
     *geometry = (struct geometry) {
+        .render_flags = { .smooth = 0, .culling = GEOMETRY_CULL_BACK },
         .vertices = array_create(make_system_allocator(),
                 sizeof(*geometry->vertices), 2),
         .faces    = array_create(make_system_allocator(),
@@ -204,11 +205,19 @@ void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv)
  */
 void geometry_set_smoothing(struct geometry *geometry, bool smooth)
 {
-    if (smooth) {
-        geometry->render_flags |= GEOMETRY_RENDER_FLAG_SMOOTH;
-    } else {
-        geometry->render_flags &= ~GEOMETRY_RENDER_FLAG_SMOOTH;
-    }
+    geometry->render_flags.smooth = smooth & 0x1;
+}
+
+/**
+ * @brief
+ *
+ * @param geometry
+ * @param cull
+ */
+void geometry_set_culling(struct geometry *geometry,
+        enum geometry_culling cull)
+{
+    geometry->render_flags.culling = cull & 0x3;
 }
 
 /**

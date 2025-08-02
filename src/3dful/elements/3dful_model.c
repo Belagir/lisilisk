@@ -289,6 +289,20 @@ void model_draw(struct model *model)
         material_bind_textures(model->material, model->shader);
     }
 
+    switch ((enum geometry_culling) model->geometry->render_flags.culling) {
+        case GEOMETRY_CULL_NONE:
+            glCullFace(GL_NONE);
+            break;
+
+        case GEOMETRY_CULL_FRONT:
+            glCullFace(GL_FRONT);
+            break;
+
+        case GEOMETRY_CULL_BACK:
+            glCullFace(GL_BACK);
+            break;
+    }
+
     glUseProgram(model->shader->program);
     glBindVertexArray(model->gpu_side.vao);
     if (model->geometry) {

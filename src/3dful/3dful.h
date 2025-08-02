@@ -22,6 +22,9 @@
 
 #include "dynamic_data/3dful_dynamic_data.h"
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 /**
  * @brief
  * Matches OpenGL's GL_TEXTURE_CUBE_MAP_[POSITIVE,NEGATIVE]_[X,Y,Z] order of
@@ -40,6 +43,13 @@ enum cubemap_face {
 
 // -----------------------------------------------------------------------------
 
+enum geometry_culling {
+    GEOMETRY_CULL_NONE,
+    GEOMETRY_CULL_FRONT,
+    GEOMETRY_CULL_BACK,
+};
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
 /**
@@ -74,7 +84,7 @@ struct face { u32 idx_vert[3u]; };
 struct geometry {
     struct loadable load_state;
 
-    u32 render_flags;
+    struct { u32 culling:2, smooth:1, padding:29; } render_flags;
 
     ARRAY(struct vertex) vertices;
     ARRAY(struct face) faces;
@@ -368,6 +378,10 @@ void geometry_wavobj(struct geometry *geometry, const char *path);
 // TODO : array out !
 void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer,
         size_t length);
+
+void geometry_set_smoothing(struct geometry *geometry, bool smooth);
+void geometry_set_culling(struct geometry *geometry,
+        enum geometry_culling cull);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

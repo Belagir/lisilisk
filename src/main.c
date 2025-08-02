@@ -20,10 +20,11 @@ int main(int argc, const char *argv[])
             "images/star_shower/back.png",
     });
 
-    lisk_model_geometry("terrain", "models/test_terrain.obj");
-    lisk_model_show("terrain");
+    lisk_model_geometry("shroom", "models/mushroom/mushroom.obj");
+    lisk_model_base_texture("shroom", "models/mushroom/ShroomBase.png");
+    lisk_model_show("shroom");
 
-    lisk_model_instanciate("terrain", &(float[3]) {  0, 10, 0 }, 10);
+    lisk_model_instanciate("shroom", &(float[3]) {  0, 0, 0 }, .2);
 
     lisk_directional_light_add(&(float[3]) { 0, 0, -1 },
             &(float[4]) { .3, .3, .3, 1 });
@@ -36,16 +37,11 @@ int main(int argc, const char *argv[])
 
     SDL_Event event = { };
     int quit = 0;
-    float cam_r = 0;
 
     while (!quit) {
         while (SDL_PollEvent(&event)) {
             quit = quit || (event.type == SDL_QUIT);
         }
-
-        lisk_instance_set_rotation(lisk_camera(),
-                &(float[3]) { 0, 1, 0 }, cam_r);
-        cam_r = fmodf(cam_r+.02, 6.3);
 
         lisk_draw();
     }
