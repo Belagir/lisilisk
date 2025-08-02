@@ -18,6 +18,7 @@ Half implemented
 
 Refactor ideas
 
+- [ ] Set the handle id counter to be model-stored rather than static
 - [x] Add more coherence for when we pass pointers vs. when we pass values
 - [x] Add null-detection when the state of the data passed is acceptable (e.g. a scene without environment)
 - [x] change skybox shape from cube to ~~icosphere~~ UV sphere

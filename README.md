@@ -77,7 +77,7 @@ Data objects that send data to the GPU do so only on `load()`. When their data c
 
 > Done with the `struct handle_buffer array` which manages stuff that are both on cpu memory and gpu memory.
 
-### Link TIME uniform to actual time
+### ~~Link TIME uniform to actual time~~
 
 Everything in the title.
 
@@ -110,7 +110,13 @@ lisk_load("some_scene_identifier");
 
 Basically, the interface should initialize a static global instance of the backend, and register data objects to string names when the user needs to. Those objects are created when the user needs them and load dynamically depending on what is needed.
 
-### Freestanding instance objects
+> Not everything is here, but it's buiding nicely.
+
+#### Integrate the programadata module from another project.
+
+#### Integrate the widgetful module from another project.
+
+### ~~Freestanding instance objects~~
 
 When instancing a model, creating a light or a camera, the user should be given an instance handle that can act on the corresponding data (transforms, colors etc.) through a dedicated set of functions.
 

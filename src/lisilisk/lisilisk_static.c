@@ -1,4 +1,6 @@
 
+#include <sys/time.h>
+
 #include <lisilisk.h>
 
 #include <ustd/res.h>
@@ -820,12 +822,23 @@ void lisk_show(void)
  */
 void lisk_draw(void)
 {
+    static struct timeval last_call = { 0 };
+
+    struct timeval this_call = { 0 };
+    f32 seconds_elapsed = 0.;
+
     if (!static_data.active) {
         return;
     }
 
-    scene_draw(&static_data.world.scene, 0);
+    gettimeofday(&this_call, NULL);
+    seconds_elapsed = (this_call.tv_sec - last_call.tv_sec)
+                        + ((this_call.tv_usec - last_call.tv_usec) / 1000000.);
+
+    scene_draw(&static_data.world.scene, seconds_elapsed);
     SDL_GL_SwapWindow(static_data.app.sdl_window);
+
+    last_call = this_call;
 }
 
 /**
