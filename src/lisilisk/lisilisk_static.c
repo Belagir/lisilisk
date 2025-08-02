@@ -6,6 +6,8 @@
 #include <ustd/res.h>
 
 #include "../3dful/3dful.h"
+#include "../resourceful/resourceful.h"
+
 #include "lisilisk_internals.h"
 
 DECLARE_RES(skybox_vert, "res_shaders_environment_skybox_vert_glsl")
@@ -32,6 +34,8 @@ static struct {
     bool active;
 
     struct application app;
+    struct resource_manager *res_manager;
+
     struct {
         struct scene scene;
         struct camera camera;
@@ -63,6 +67,7 @@ void lisk_init(void)
     }
 
     static_data.app = application_create("Lisilisk", 1200, 800);
+    static_data.res_manager = resource_manager_create(make_system_allocator());
 
     static_data.stores.texture_store = lisilisk_store_texture_create();
     static_data.stores.geometry_store = lisilisk_store_geometry_create();
@@ -110,6 +115,8 @@ void lisk_deinit(void)
     lisilisk_store_texture_delete(&static_data.stores.texture_store);
 
     scene_delete(&static_data.world.scene);
+
+    resource_manager_destroy(&static_data.res_manager, make_system_allocator());
     application_destroy(&static_data.app);
 
     static_data.active = false;
@@ -593,18 +600,18 @@ void lisk_instance_set_position(
         case HANDLE_REPRESENTS_INSTANCE:
             model_instance_position(static_data_model_of_instance(handle),
                     handle.internal,
-                    (struct vector3) { (*pos)[0], (*pos)[2], (*pos)[3] });
+                    (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
             return;
         case HANDLE_REPRESENTS_LIGHT_DIREC:
             return;
         case HANDLE_REPRESENTS_LIGHT_POINT:
             scene_light_point_position(&static_data.world.scene,
                     handle.internal,
-                    (struct vector3) { (*pos)[0], (*pos)[2], (*pos)[3] });
+                    (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
             return;
         case HANDLE_REPRESENTS_CAMERA:
             camera_position(&static_data.world.camera,
-                    (struct vector3) { (*pos)[0], (*pos)[2], (*pos)[3] });
+                    (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
             return;
     }
 }
@@ -756,7 +763,7 @@ void lisk_instance_camera_set_target(
             return;
         case HANDLE_REPRESENTS_CAMERA:
             camera_target(&static_data.world.camera,
-                    (struct vector3) { (*point)[0], (*point)[2], (*point)[3] });
+                    (struct vector3) { (*point)[0], (*point)[1], (*point)[2] });
             return;
     }
 }

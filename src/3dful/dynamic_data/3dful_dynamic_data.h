@@ -61,6 +61,8 @@ struct handle_buffer_array {
     /** Data about the array load status on the GPU. */
     struct loadable load_state;
 
+    u32 id_counter;
+
     /** Foreign-owned data. MUST be an array as defined in ustd/array.h. */
     ARRAY_ANY data_array;
     /** Owned handle array. MUST be an array as defined in ustd/array.h. */

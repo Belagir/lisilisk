@@ -42,6 +42,7 @@ void handle_buffer_array_create(struct handle_buffer_array *hb_array)
 {
     *hb_array = (struct handle_buffer_array) {
             .load_state = { 0 },
+            .id_counter = 1,
 
             .data_array = nullptr,
             .handles = array_create(make_system_allocator(),
@@ -95,17 +96,16 @@ void handle_buffer_array_bind(struct handle_buffer_array *hb_array,
 void handle_buffer_array_push(struct handle_buffer_array *hb_array,
         handle_t *out_handle)
 {
-    static handle_t static_id_counter = 1;
 
     struct array_impl *target = array_impl_of(hb_array->data_array);
 
-    if (static_id_counter == HANDLE_MAX) {
+    if (hb_array->id_counter == HANDLE_MAX) {
         *out_handle = 0;
         return;
     }
 
-    *out_handle = static_id_counter;
-    static_id_counter += 1;
+    *out_handle = hb_array->id_counter;
+    hb_array->id_counter += 1;
 
     array_ensure_capacity(make_system_allocator(),
             (ARRAY_ANY *) &hb_array->handles, 1);
