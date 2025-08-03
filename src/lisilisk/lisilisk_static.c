@@ -60,14 +60,16 @@ static struct {
  * engine data into a blank state, ready to receive models and modifications.
  * Once this is done, the window can be shown with lisk_show().
  */
-void lisk_init(void)
+void lisk_init(const char *name, const char *resources_folder)
 {
     if (static_data.active) {
         return;
     }
 
-    static_data.app = application_create("Lisilisk", 1200, 800);
+    static_data.app = application_create(name, 1200, 800);
     static_data.res_manager = resource_manager_create(make_system_allocator());
+
+    lisilisk_populate_resources(resources_folder, static_data.res_manager);
 
     static_data.stores.texture_store = lisilisk_store_texture_create();
     static_data.stores.geometry_store = lisilisk_store_geometry_create();

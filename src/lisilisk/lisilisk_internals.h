@@ -16,6 +16,7 @@
 #include <ustd/hashmap.h>
 
 #include "../3dful/3dful.h"
+#include "../resourceful/resourceful.h"
 
 enum handle_flavor {
     HANDLE_IS_INVALID,
@@ -77,6 +78,12 @@ struct lisilisk_store_shader {
 };
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+void lisilisk_populate_resources(
+        const char *folder,
+        struct resource_manager *res_manager);
+
 // -----------------------------------------------------------------------------
 
 struct lisilisk_store_texture lisilisk_store_texture_create(void);

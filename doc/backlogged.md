@@ -24,5 +24,7 @@ Refactor ideas
 - [x] change skybox shape from cube to ~~icosphere~~ UV sphere
 - [ ] Separate light procedures in material fragment shader to clean up the clutter
 - [ ] The shader_material_*() interface is as coupled to the material struct as the model struct. Find a way to express it
+- [ ] Resourceful module should use the same IO functions as the rest of the codebase
+- [ ] Resourceful top level struct has no need to be opaque
 
 - [ ] Explain in the file headers the principles of design behind the data structures/interfaces

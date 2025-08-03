@@ -21,7 +21,7 @@
 typedef uint64_t lisk_handle_t;
 
 // Sets the engine ready to be used.
-void lisk_init(void);
+void lisk_init(const char *name, const char *resources_folder);
 // Make the engine shut down and release all memory.
 void lisk_deinit(void);
 

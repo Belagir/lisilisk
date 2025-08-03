@@ -8,8 +8,7 @@ int main(int argc, const char *argv[])
     (void) argc;
     (void) argv;
 
-    lisk_init();
-    lisk_rename("in nowhere");
+    lisk_init("Nowhere", "assets/");
 
     lisk_skybox_set(&(const char *[6]) {
             "images/star_shower/right.png",
@@ -26,9 +25,9 @@ int main(int argc, const char *argv[])
 
     lisk_model_instanciate("shroom", &(float[3]) {  0, 0, 0 }, .2);
 
-    lisk_directional_light_add(&(float[3]) { 0, 0, -1 },
+    lisk_directional_light_add(&(float[3]) { .5, 0, -1 },
             &(float[4]) { .3, .3, .3, 1 });
-    lisk_directional_light_add(&(float[3]) { 0, .5, 1 },
+    lisk_directional_light_add(&(float[3]) { 0, -.5, 1 },
             &(float[4]) { .3, .3, 0, 1 });
 
     lisk_instance_camera_set_fov(lisk_camera(), 65.);
