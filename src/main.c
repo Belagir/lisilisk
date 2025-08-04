@@ -11,12 +11,12 @@ int main(int argc, const char *argv[])
     lisk_init("Nowhere", "assets/");
 
     lisk_skybox_set(&(const char *[6]) {
-            "images/star_shower/right.png",
-            "images/star_shower/left.png",
-            "images/star_shower/top.png",
-            "images/star_shower/bottom.png",
-            "images/star_shower/front.png",
-            "images/star_shower/back.png",
+            "assets/images/star_shower/right.png",
+            "assets/images/star_shower/left.png",
+            "assets/images/star_shower/top.png",
+            "assets/images/star_shower/bottom.png",
+            "assets/images/star_shower/front.png",
+            "assets/images/star_shower/back.png",
     });
 
     lisk_model_geometry("shroom", "assets/models/mushroom/mushroom.obj");

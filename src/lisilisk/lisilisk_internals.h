@@ -96,6 +96,7 @@ struct texture *lisilisk_store_texture_cache(
         const char *image);
 struct texture *lisilisk_store_texture_cubemap_cache(
         struct lisilisk_store_texture *store,
+        struct resource_manager *res_manager,
         const char *(*images)[6]);
 
 // -----------------------------------------------------------------------------

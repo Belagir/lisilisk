@@ -96,11 +96,11 @@ void texture_cubemap_file(struct texture *texture, enum cubemap_face face,
  * @param[in] image Buffer containing a read image file.
  */
 void texture_cubemap_file_mem(struct texture *texture, enum cubemap_face face,
-        const ARRAY(byte) image_array)
+        const byte *image_buffer, size_t length)
 {
     texture->flavor = TEXTURE_FLAVOR_CUBEMAP;
     texture->specific.images_for_cubemap[face] = IMG_Load_RW(
-            SDL_RWFromMem((void *) image_array, array_length(image_array)), 0);
+            SDL_RWFromMem((void *) image_buffer, length), 0);
 
     texture_reload(texture);
 }

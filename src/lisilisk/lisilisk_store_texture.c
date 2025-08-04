@@ -118,11 +118,14 @@ cleanup:
  */
 struct texture *lisilisk_store_texture_cubemap_cache(
         struct lisilisk_store_texture *store,
+        struct resource_manager *res_manager,
         const char *(*images)[6])
 {
     struct allocator alloc = make_system_allocator();
     size_t pos = 0;
     struct texture *new_texture = nullptr;
+    const byte *obj_contents = nullptr;
+    size_t obj_contents_length = 0;
 
     if (!store) {
         return nullptr;
@@ -138,7 +141,13 @@ struct texture *lisilisk_store_texture_cubemap_cache(
     *new_texture = (struct texture) { 0 };
 
     for (size_t i = 0 ; i < CUBEMAP_FACES_NUMBER ; i++) {
-        texture_cubemap_file(new_texture, i, (*images)[i]);
+        obj_contents = resource_manager_fetch(res_manager, "lisilisk",
+                (*images)[i], &obj_contents_length);
+        if (!obj_contents) {
+            continue;
+        }
+        texture_cubemap_file_mem(new_texture, i, obj_contents,
+                obj_contents_length);
     }
 
     if (new_texture->specific.image_for_2D) {

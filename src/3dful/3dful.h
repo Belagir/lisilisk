@@ -395,7 +395,7 @@ void texture_cubemap_file(struct texture *texture, enum cubemap_face face,
         const char *path);
 // TODO : array out !
 void texture_cubemap_file_mem(struct texture *texture, enum cubemap_face face,
-        const ARRAY(byte) image);
+        const byte *image_buffer, size_t length);
 void texture_delete(struct texture *texture);
 
 // -----------------------------------------------------------------------------

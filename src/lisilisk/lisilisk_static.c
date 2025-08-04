@@ -813,7 +813,8 @@ void lisk_skybox_set(
     }
 
     texture = lisilisk_store_texture_cubemap_cache(
-            &static_data.stores.texture_store, cubemap);
+            &static_data.stores.texture_store,
+            static_data.res_manager, cubemap);
     environment_skybox(&static_data.world.environment, texture);
 }
 
