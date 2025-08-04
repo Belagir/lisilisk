@@ -6,6 +6,7 @@ Important stuff
 - [ ] more documentation ! for the lisilisk interface & internals !
 - [x] Detect channels (rgb / rgba) set in surfaces to set the correct value when we load the texture on GPU
 - [x] Include the engine-specific resources within the executable
+- [ ] The engine should have some error procedure that fires when the user provides incorrect arguments
 
 Half implemented
 
@@ -18,7 +19,7 @@ Half implemented
 
 Refactor ideas
 
-- [ ] Set the handle id counter to be model-stored rather than static
+- [x] Set the handle id counter to be model-stored rather than static
 - [x] Add more coherence for when we pass pointers vs. when we pass values
 - [x] Add null-detection when the state of the data passed is acceptable (e.g. a scene without environment)
 - [x] change skybox shape from cube to ~~icosphere~~ UV sphere

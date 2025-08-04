@@ -26,6 +26,8 @@ void lisilisk_populate_resources(
         }
     }
 
+    resource_manager_touch(res_manager, "lisilisk", nullptr,
+                    make_system_allocator());
     resource_manager_add_supplicant(res_manager, "lisilisk", 0,
             make_system_allocator());
 }

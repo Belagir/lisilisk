@@ -112,7 +112,7 @@ Basically, the interface should initialize a static global instance of the backe
 
 > Not everything is here, but it's buiding nicely.
 
-#### Integrate the programadata module from another project.
+#### ~~Integrate the programadata module from another project.~~
 
 #### Integrate the widgetful module from another project.
 
