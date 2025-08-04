@@ -190,6 +190,7 @@ void lisk_model_geometry(
 
     // Create the geometry from the file and registers it in a map
     geometry = lisilisk_store_geometry_cache(&static_data.stores.geometry_store,
+            static_data.res_manager,
             obj_file);
 
     if (!geometry) {
@@ -218,7 +219,8 @@ void lisk_model_base_texture(
     }
 
     base = lisilisk_store_texture_cache(
-            &static_data.stores.texture_store, texture);
+            &static_data.stores.texture_store,
+            static_data.res_manager, texture);
     material_texture(model->material, base);
 }
 
@@ -261,7 +263,8 @@ void lisk_model_ambient_mask(
     }
 
     mask = lisilisk_store_texture_cache(
-            &static_data.stores.texture_store, texture_mask);
+            &static_data.stores.texture_store,
+            static_data.res_manager, texture_mask);
     material_ambient_mask(model->material, mask);
 }
 
@@ -303,7 +306,8 @@ void lisk_model_diffuse_mask(
     }
 
     mask = lisilisk_store_texture_cache(
-            &static_data.stores.texture_store, texture_mask);
+            &static_data.stores.texture_store,
+            static_data.res_manager, texture_mask);
     material_diffuse_mask(model->material, mask);
 }
 
@@ -348,7 +352,8 @@ void lisk_model_specular_mask(
     }
 
     mask = lisilisk_store_texture_cache(
-            &static_data.stores.texture_store, texture_mask);
+            &static_data.stores.texture_store,
+            static_data.res_manager, texture_mask);
     material_specular_mask(model->material, mask);
 }
 
@@ -391,7 +396,8 @@ void lisk_model_emission_mask(
     }
 
     mask = lisilisk_store_texture_cache(
-            &static_data.stores.texture_store, texture_mask);
+            &static_data.stores.texture_store,
+            static_data.res_manager, texture_mask);
     material_emissive_mask(model->material, mask);
 }
 

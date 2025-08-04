@@ -68,11 +68,14 @@ void lisilisk_store_geometry_delete(
  */
 struct geometry *lisilisk_store_geometry_cache(
         struct lisilisk_store_geometry *store,
+        struct resource_manager *res_manager,
         const char *obj_path)
 {
     struct allocator alloc = make_system_allocator();
     size_t pos = 0;
     struct geometry *new_geometry = nullptr;
+    const byte *obj_contents = nullptr;
+    size_t obj_contents_length = 0;
 
     if (!store) {
         return nullptr;
@@ -87,20 +90,30 @@ struct geometry *lisilisk_store_geometry_cache(
     // create geometry from file
     new_geometry = alloc.malloc(alloc, sizeof(*new_geometry));
     *new_geometry = (struct geometry) { 0 };
-
     geometry_create(new_geometry);
-    geometry_wavobj(new_geometry, obj_path);
 
-    // if successful, allocate a new geometry and copy the valid geometry to it
-    if (array_length(new_geometry->faces)) {
-        hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->geometries, 1);
-        pos = hashmap_set(store->geometries, obj_path, &new_geometry);
+    obj_contents = resource_manager_fetch(res_manager, "lisilisk",
+            obj_path, &obj_contents_length);
 
-        store->geometries[pos] = new_geometry;
-
-        return store->geometries[pos];
+    if (!obj_contents) {
+        goto cleanup;
     }
 
+    geometry_wavobj_mem(new_geometry, obj_contents, obj_contents_length);
+
+    // if successful, allocate a new geometry and copy the valid geometry to it
+    if (array_length(new_geometry->faces) == 0) {
+        goto cleanup;
+    }
+
+    hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->geometries, 1);
+    pos = hashmap_set(store->geometries, obj_path, &new_geometry);
+
+    store->geometries[pos] = new_geometry;
+
+    return store->geometries[pos];
+
+cleanup:
     geometry_delete(new_geometry);
     alloc.free(alloc, new_geometry);
     return nullptr;

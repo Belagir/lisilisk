@@ -60,11 +60,12 @@ void texture_2D_file(struct texture *texture, const char *path)
  * @param[out] texture Object receiving the texture.
  * @param[in] image Buffer containing a read image file.
  */
-void texture_2D_file_mem(struct texture *texture, const ARRAY(byte) image_array)
+void texture_2D_file_mem(struct texture *texture, const byte *image_buffer,
+     size_t length)
 {
     texture->flavor = TEXTURE_FLAVOR_2D;
     texture->specific.image_for_2D = IMG_Load_RW(
-            SDL_RWFromMem((void *) image_array, array_length(image_array)), 0);
+            SDL_RWFromMem((void *) image_buffer, length), 0);
 
     texture_reload(texture);
 }

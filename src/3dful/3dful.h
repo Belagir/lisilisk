@@ -375,7 +375,6 @@ void geometry_create(struct geometry *geometry);
 void geometry_delete(struct geometry *geometry);
 
 void geometry_wavobj(struct geometry *geometry, const char *path);
-// TODO : array out !
 void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer,
         size_t length);
 
@@ -391,7 +390,7 @@ void texture_2D_default(struct texture *texture);
 void texture_2D_file(struct texture *texture, const char *path);
 // TODO : array out !
 void texture_2D_file_mem(struct texture *texture,
-        const ARRAY(byte) image);
+        const byte *image_buffer, size_t length);
 void texture_cubemap_file(struct texture *texture, enum cubemap_face face,
         const char *path);
 // TODO : array out !

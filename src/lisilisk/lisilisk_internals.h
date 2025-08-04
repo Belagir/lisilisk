@@ -92,6 +92,7 @@ void lisilisk_store_texture_delete(
 
 struct texture *lisilisk_store_texture_cache(
         struct lisilisk_store_texture *store,
+        struct resource_manager *res_manager,
         const char *image);
 struct texture *lisilisk_store_texture_cubemap_cache(
         struct lisilisk_store_texture *store,
@@ -105,6 +106,7 @@ void lisilisk_store_geometry_delete(
 
 struct geometry *lisilisk_store_geometry_cache(
         struct lisilisk_store_geometry *store,
+        struct resource_manager *res_manager,
         const char *obj_path);
 
 // -----------------------------------------------------------------------------

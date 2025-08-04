@@ -19,8 +19,8 @@ int main(int argc, const char *argv[])
             "images/star_shower/back.png",
     });
 
-    lisk_model_geometry("shroom", "models/mushroom/mushroom.obj");
-    lisk_model_base_texture("shroom", "models/mushroom/ShroomBase.png");
+    lisk_model_geometry("shroom", "assets/models/mushroom/mushroom.obj");
+    lisk_model_base_texture("shroom", "assets/models/mushroom/ShroomBase.png");
     lisk_model_show("shroom");
 
     lisk_model_instanciate("shroom", &(float[3]) {  0, 0, 0 }, .2);

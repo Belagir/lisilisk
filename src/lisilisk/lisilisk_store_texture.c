@@ -61,11 +61,14 @@ void lisilisk_store_texture_delete(
  */
 struct texture *lisilisk_store_texture_cache(
         struct lisilisk_store_texture *store,
+        struct resource_manager *res_manager,
         const char *image)
 {
     struct allocator alloc = make_system_allocator();
     size_t pos = 0;
     struct texture *new_texture = nullptr;
+    const byte *obj_contents = nullptr;
+    size_t obj_contents_length = 0;
 
     if (!store) {
         return nullptr;
@@ -80,17 +83,26 @@ struct texture *lisilisk_store_texture_cache(
     new_texture = alloc.malloc(alloc, sizeof(*new_texture));
     *new_texture = (struct texture) { 0 };
 
-    texture_2D_file(new_texture, image);
+    obj_contents = resource_manager_fetch(res_manager, "lisilisk",
+            image, &obj_contents_length);
 
-    if (new_texture->specific.image_for_2D) {
-        hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->textures, 1);
-        pos = hashmap_set(store->textures, image, &new_texture);
-
-        store->textures[pos] = new_texture;
-
-        return store->textures[pos];
+    if (!obj_contents) {
+        goto cleanup;
     }
 
+    texture_2D_file_mem(new_texture, obj_contents, obj_contents_length);
+
+    if (!new_texture->specific.image_for_2D) {
+        goto cleanup;
+    }
+    hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->textures, 1);
+    pos = hashmap_set(store->textures, image, &new_texture);
+
+    store->textures[pos] = new_texture;
+
+    return store->textures[pos];
+
+cleanup:
     texture_delete(new_texture);
     alloc.free(alloc, new_texture);
 
