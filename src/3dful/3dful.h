@@ -267,20 +267,6 @@ struct environment {
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Links to the window and opengl context. We let SDL manage the
- * OS-related stuff while we stand back in our  comfy chairs.
- *
- */
-struct application {
-    SDL_Window *sdl_window;
-    SDL_GLContext *ogl_context;
-
-    struct logger *log;
-};
-
-// -----------------------------------------------------------------------------
-
-/**
  * @brief Holds data about a scene. Models, lights, environment, and camera :
  * all that is needed to compose and render a scene of models to an opengl
  * context.
@@ -345,9 +331,10 @@ void scene_unload(struct scene *scene);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-
+#if 0
 struct application application_create(const char *name, u32 width, u32 height);
 void application_destroy(struct application *target);
+#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

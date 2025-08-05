@@ -80,6 +80,20 @@ struct lisilisk_store_shader {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+void lisilisk_init_context(
+        struct SDL_Window **window,
+        SDL_GLContext **context,
+        struct resource_manager **res_manager,
+        const char *name,
+        u32 width, u32 height);
+
+void lisilisk_deinit_context(
+        struct SDL_Window **window,
+        SDL_GLContext **context,
+        struct resource_manager **res_manager);
+
+// -----------------------------------------------------------------------------
+
 void lisilisk_populate_resources(
         const char *folder,
         struct resource_manager *res_manager);
