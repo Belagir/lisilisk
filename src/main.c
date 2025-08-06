@@ -8,7 +8,7 @@ int main(int argc, const char *argv[])
     (void) argc;
     (void) argv;
 
-    lisk_init(NULL, NULL);
+    lisk_init(NULL, "assets");
 
     lisk_skybox_set(&(const char *[6]) {
             "assets/images/star_shower/right.png",

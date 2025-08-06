@@ -9,6 +9,7 @@
  * @copyright Copyright (c) 2025
  *
  */
+
 #include "3dful_dynamic_data.h"
 
 #include <ustd_impl/array_impl.h>
