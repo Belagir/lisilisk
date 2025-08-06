@@ -19,11 +19,11 @@ int main(int argc, const char *argv[])
             "assets/images/star_shower/back.png",
     });
 
-    lisk_model_geometry("shroom", "assets/models/mushroom/mushroom.obj");
+    lisk_model_instanciate("shroom", &(float[3]) {  0, 0, 0 }, .2);
+
     lisk_model_base_texture("shroom", "assets/models/mushroom/ShroomBase.png");
     lisk_model_show("shroom");
-
-    lisk_model_instanciate("shroom", &(float[3]) {  0, 0, 0 }, .2);
+    lisk_model_geometry("shroom", "assets/models/mushroom/mushroom.obj");
 
     lisk_directional_light_add(&(float[3]) { .5, 0, -1 },
             &(float[4]) { .3, .3, .3, 1 });

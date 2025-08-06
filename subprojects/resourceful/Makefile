@@ -12,7 +12,7 @@ SRC_DIR = src
 SUBPROJECTS =
 ## Root include directory. Contains the c header files. Passed with -I to
 ## the compiler.
-INC_DIR = ../../unstandard/inc ../../inc
+INC_DIR = inc  ../../unstandard/inc ../../inc
 ## Build diectory. Will contain object and binary files linked in the final
 ## executable
 OBJ_DIR = build

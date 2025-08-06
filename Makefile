@@ -12,7 +12,7 @@ SRC_DIR = src
 SUBPROJECTS = subprojects/3dful subprojects/resourceful
 ## Root include directory. Contains the c header files. Passed with -I to
 ## the compiler.
-INC_DIR = inc unstandard/inc
+INC_DIR = inc unstandard/inc subprojects/resourceful/inc subprojects/3dful/inc
 ## Build diectory. Will contain object and binary files linked in the final
 ## executable
 OBJ_DIR = build
@@ -27,9 +27,8 @@ CC = gcc
 RESPACKER = ld
 
 ## compilation flags
-CFLAGS += -Wall -Wextra -Wpedantic -fanalyzer  -Werror
+CFLAGS += -Wall -Wextra -Wpedantic -Werror
 CFLAGS += -Wno-error=unused-function
-CFLAGS += -lGL `sdl2-config --cflags`
 CFLAGS += -g -std=c2x
 
 ## linker flags
