@@ -5,8 +5,8 @@
 #include <lisilisk.h>
 #include <ustd/res.h>
 
-#include "../3dful/3dful.h"
-#include "../resourceful/resourceful.h"
+#include <3dful.h>
+#include <resourceful.h>
 
 #include "lisilisk_internals.h"
 

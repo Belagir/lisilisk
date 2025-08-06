@@ -11,7 +11,7 @@
 #include <ustd/sorting.h>
 #include <ustd/hashmap.h>
 
-#include "resourceful.h"
+#include <resourceful.h>
 
 #include "resource_storage/resourceful_storage.h"
 

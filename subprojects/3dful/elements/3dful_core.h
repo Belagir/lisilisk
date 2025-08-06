@@ -20,7 +20,7 @@
 #include <ustd/math2d.h>
 #include <ustd/math3d.h>
 
-#include "../3dful.h"
+#include <3dful.h>
 #include "../inout/file_operations.h"
 
 // -----------------------------------------------------------------------------

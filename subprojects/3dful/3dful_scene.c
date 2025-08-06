@@ -9,10 +9,12 @@
  *
  */
 
-#include "3dful.h"
-#include "elements/3dful_core.h"
+#include <3dful.h>
 
 #include <ustd/array.h>
+
+#include "elements/3dful_core.h"
+#include "dynamic_data/3dful_dynamic_data.h"
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

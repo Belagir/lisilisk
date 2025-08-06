@@ -20,60 +20,9 @@
 #include <ustd/common.h>
 #include <ustd/array.h>
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-#define LOADABLE_FLAG_NONE   (0x0)  ///< Empty flag.
-#define LOADABLE_FLAG_LOADED (0x1)  ///< Notifies that the object is loaded.
+#include <3dful.h>
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-#define HANDLE_BREADTH 24       ///< Bit length of a handle.
-#define HANDLE_MAX 0xffffff     ///< Maximum value a handle can take.
-typedef u32 handle_t;           ///< Public handle, stored on a type big enough.
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-/**
- * @brief For data storing the load state of some object.
- * This structure only stores data about the load state of other data, and the
- * load procedure is entirely decoupled from functions taking this kind of data.
- * It is the responsability of the user to update this struct's data with
- * loadable_*() functions.
- */
-struct loadable {
-    /** @brief Load state flags. */
-    u16 flags;
-    /** @brief Number of times loadable_add_user() has been called. */
-    u16 nb_users;
-};
-
-// -----------------------------------------------------------------------------
-
-/**
- * @brief For contiguous data that can be loaded to an OpenGL buffer object.
- *
- */
-struct handle_buffer_array {
-    /** Data about the array load status on the GPU. */
-    struct loadable load_state;
-
-    u32 id_counter;
-
-    /** Foreign-owned data. MUST be an array as defined in ustd/array.h. */
-    ARRAY_ANY data_array;
-    /** Owned handle array. MUST be an array as defined in ustd/array.h. */
-    ARRAY(handle_t) handles;
-
-    /** OpenGL name for the buffer object. Valid when the data is loaded. */
-    GLuint buffer_name;
-    /** User-specified buffer object usage. */
-    GLenum buffer_usage;
-};
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
