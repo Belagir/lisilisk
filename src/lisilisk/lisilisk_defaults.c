@@ -21,10 +21,10 @@ void lisilisk_init_context(
         struct SDL_Window **window,
         SDL_GLContext **context,
         struct resource_manager **res_manager,
+        struct logger *log,
         const char *name,
         u32 width, u32 height)
 {
-    struct logger *log = logger_create(stderr, LOGGER_ON_DESTROY_DO_NOTHING);
 
     if (!context || !window) {
         logger_log(log, LOGGER_SEVERITY_ERRO,

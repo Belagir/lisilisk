@@ -32,6 +32,7 @@ static struct model * static_data_model_named(
  */
 static struct {
     bool active;
+    struct logger *log;
 
     struct {
         struct SDL_Window *window;
@@ -69,10 +70,19 @@ void lisk_init(const char *name, const char *resources_folder)
         return;
     }
 
+    static_data.log = logger_create(stderr, LOGGER_ON_DESTROY_DO_NOTHING);
+
+    if (!resources_folder) {
+        logger_log(static_data.log, LOGGER_SEVERITY_ERRO,
+                "No resource folder given. You will not be able to interact with the file system !\n");
+        return;
+    }
+
     lisilisk_init_context(
             &static_data.application.window,
             &static_data.application.context,
             &static_data.application.res_manager,
+            static_data.log,
             name, 1200, 800);
 
     lisilisk_populate_resources(resources_folder, static_data.application.res_manager);
