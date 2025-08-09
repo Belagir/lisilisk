@@ -62,6 +62,14 @@ enum geometry_culling {
 };
 
 // -----------------------------------------------------------------------------
+
+enum geometry_layering {
+    GEOMETRY_LAYER_NORMAL,
+    GEOMETRY_LAYER_FRONT,
+    GEOMETRY_LAYER_BACK,
+};
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
 /**
@@ -136,7 +144,7 @@ struct face { u32 idx_vert[3u]; };
 struct geometry {
     struct loadable load_state;
 
-    struct { u32 culling:2, smooth:1, padding:29; } render_flags;
+    struct { u32 culling:2, smooth:1, layering:2, padding:27; } render_flags;
 
     ARRAY(struct vertex) vertices;
     ARRAY(struct face) faces;
@@ -420,7 +428,8 @@ void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer,
 void geometry_set_smoothing(struct geometry *geometry, bool smooth);
 void geometry_set_culling(struct geometry *geometry,
         enum geometry_culling cull);
-
+void geometry_set_layering(struct geometry *geometry,
+        enum geometry_layering layering);
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // TEXTURE ---------------------------------------------------------------------

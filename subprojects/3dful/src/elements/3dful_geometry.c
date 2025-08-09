@@ -221,6 +221,18 @@ void geometry_set_culling(struct geometry *geometry,
 }
 
 /**
+ * @brief
+ *
+ * @param geometry
+ * @param layering
+ */
+void geometry_set_layering(struct geometry *geometry,
+        enum geometry_layering layering)
+{
+    geometry->render_flags.layering = layering & 0x3;
+}
+
+/**
  * @brief Adds an empty face to the geometry, filling an index used to
  * reference it.
  *

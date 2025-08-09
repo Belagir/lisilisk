@@ -292,7 +292,8 @@ void model_draw(struct model *model)
     }
 
     if (model->geometry) {
-        switch ((enum geometry_culling) model->geometry->render_flags.culling) {
+        switch ((enum geometry_culling)
+                model->geometry->render_flags.culling) {
             case GEOMETRY_CULL_NONE:
                 glCullFace(GL_NONE);
                 break;
@@ -304,6 +305,24 @@ void model_draw(struct model *model)
             case GEOMETRY_CULL_BACK:
                 glCullFace(GL_BACK);
                 break;
+        }
+
+        switch ((enum geometry_layering)
+                model->geometry->render_flags.layering) {
+            case GEOMETRY_LAYER_NORMAL:
+                glEnable(GL_DEPTH_TEST);
+                glDepthMask(GL_TRUE);
+                break;
+
+            case GEOMETRY_LAYER_FRONT:
+                glDisable(GL_DEPTH_TEST);
+                break;
+
+            case GEOMETRY_LAYER_BACK:
+                glEnable(GL_DEPTH_TEST);
+                glDepthMask(GL_FALSE);
+                break;
+
         }
     }
 

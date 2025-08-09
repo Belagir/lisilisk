@@ -42,6 +42,15 @@ void lisk_model_geometry(
         const char *name,
         const char *obj_file);
 
+void lisk_model_frontface_culling(
+        const char *name);
+
+void lisk_model_backface_culling(
+        const char *name);
+
+void lisk_model_show_in_back(
+        const char *name);
+
 void lisk_model_base_texture(
         const char *name,
         const char *texture);
@@ -121,6 +130,11 @@ void lisk_instance_set_rotation(
         float (*axis)[3],
         float angle_rad);
 
+// Changes the orientation of an instance or a directional light.
+void lisk_instance_set_rotation_quaternion(
+        lisk_handle_t instance,
+        float (*q)[4]);
+
 // Changes the attenuation properties of a light point.
 void lisk_instance_light_point_set_attenuation(
         lisk_handle_t instance,
@@ -148,6 +162,10 @@ void lisk_ambient_light_set(
 // Changes the skybox to a set of textures.
 void lisk_skybox_set(
         const char *(*cubemap)[6]);
+
+// Changes the background color, when there is no skybox.
+void lisk_bg_color_set(
+        float (*color)[3]);
 
 // Shows the window and the scene.
 void lisk_show(void);

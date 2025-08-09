@@ -28,7 +28,7 @@ RESPACKER = ld
 
 ## compilation flags
 CFLAGS += -Wall -Wextra -Wpedantic -Werror
-CFLAGS += -Wno-error=unused-function
+CFLAGS += -Wno-error=unused-function  -Wno-error=unused-variable
 CFLAGS += -g -std=c2x
 
 ## linker flags

@@ -223,6 +223,56 @@ void lisk_model_geometry(
  * @brief
  *
  * @param name
+ */
+void lisk_model_frontface_culling(
+        const char *name)
+{
+    struct model *model = nullptr;
+    model = static_data_model_named(name, nullptr);
+    if (!model) {
+        return;
+    }
+
+    geometry_set_culling(model->geometry, GEOMETRY_CULL_FRONT);
+}
+
+/**
+ * @brief
+ *
+ * @param name
+ */
+void lisk_model_backface_culling(
+        const char *name)
+{
+    struct model *model = nullptr;
+    model = static_data_model_named(name, nullptr);
+    if (!model) {
+        return;
+    }
+
+    geometry_set_culling(model->geometry, GEOMETRY_CULL_BACK);
+}
+
+/**
+ * @brief
+ *
+ */
+void lisk_model_show_in_back(
+        const char *name)
+{
+    struct model *model = nullptr;
+    model = static_data_model_named(name, nullptr);
+    if (!model) {
+        return;
+    }
+
+    geometry_set_layering(model->geometry, GEOMETRY_LAYER_BACK);
+}
+
+/**
+ * @brief
+ *
+ * @param name
  * @param texture
  */
 void lisk_model_base_texture(
@@ -654,29 +704,45 @@ void lisk_instance_set_rotation(
         float (*axis)[3],
         float angle_rad)
 {
-    union lisk_handle_layout handle = { .full = instance };
     struct quaternion q = quaternion_from_axis_and_angle(
             (struct vector3) { (*axis)[0], (*axis)[1], (*axis)[2] },
             angle_rad);
+
+    lisk_instance_set_rotation_quaternion(instance, (float (*)[4]) &q);
+}
+
+/**
+* @brief
+*
+* @param instance
+* @param q
+*/
+void lisk_instance_set_rotation_quaternion(
+        lisk_handle_t instance,
+        float (*q)[4])
+{
+    union lisk_handle_layout handle = { .full = instance };
 
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
             return;
         case HANDLE_REPRESENTS_INSTANCE:
             model_instance_rotation(static_data_model_of_instance(handle),
-                    handle.internal, q);
+                    handle.internal, *(struct quaternion *) q);
             return;
         case HANDLE_REPRESENTS_LIGHT_DIREC:
             scene_light_direc_orientation(&static_data.world.scene,
                     handle.internal,
-                    vector3_rotate_by_quaternion(VECTOR3_Y_POSITIVE, q));
+                    vector3_rotate_by_quaternion(VECTOR3_Y_POSITIVE,
+                            *(struct quaternion *) q));
             return;
         case HANDLE_REPRESENTS_LIGHT_POINT:
             return;
         case HANDLE_REPRESENTS_CAMERA:
             camera_target(&static_data.world.camera,
                     vector3_add(static_data.world.camera.pos,
-                    vector3_rotate_by_quaternion(VECTOR3_Z_NEGATIVE, q)));
+                    vector3_rotate_by_quaternion(VECTOR3_Z_NEGATIVE,
+                            *(struct quaternion *) q)));
             return;
     }
 }
@@ -835,6 +901,21 @@ void lisk_skybox_set(
             &static_data.stores.texture_store,
             static_data.application.res_manager, cubemap);
     environment_skybox(&static_data.world.environment, texture);
+}
+
+/**
+ * @brief
+ *
+ * @param color
+ */
+void lisk_bg_color_set(
+        float (*color)[3])
+{
+    if (!static_data.active) {
+        return;
+    }
+
+    environment_bg(&static_data.world.environment, *color);
 }
 
 /**
