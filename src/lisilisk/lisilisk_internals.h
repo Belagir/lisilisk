@@ -18,6 +18,9 @@
 #include <3dful.h>
 #include <resourceful.h>
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 enum handle_flavor {
     HANDLE_IS_INVALID,
     HANDLE_REPRESENTS_INSTANCE,
@@ -30,17 +33,6 @@ union lisk_handle_layout {
     lisk_handle_t full;
     struct { lisk_handle_t hash:32, internal:HANDLE_BREADTH, flavor:8; };
 };
-
-void lisilisk_setup_environment(
-        struct environment *env,
-        struct geometry *sky_shape,
-        struct shader *sky_shader);
-void lisilisk_setup_camera(
-        struct camera *camera,
-        struct SDL_Window *window);
-
-void lisilisk_create_default_material_shader(
-        struct shader *shader);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -80,24 +72,52 @@ struct lisilisk_store_shader {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-void lisilisk_init_context(
-        struct SDL_Window **window,
-        SDL_GLContext **context,
-        struct resource_manager **res_manager,
+struct lisilisk_context {
+        struct SDL_Window *window;
+        SDL_GLContext *opengl;
+        struct resource_manager *res_manager;
+};
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+void lisilisk_setup_environment(
+        struct environment *env,
+        struct geometry *sky_shape,
+        struct shader *sky_shader);
+void lisilisk_setup_camera(
+        struct camera *camera,
+        struct lisilisk_context *context);
+
+void lisilisk_create_default_material_shader(
+        struct shader *shader);
+
+// -----------------------------------------------------------------------------
+
+void lisilisk_context_init(
+        struct lisilisk_context *context,
         struct logger *log,
         const char *name,
         u32 width, u32 height);
 
-void lisilisk_deinit_context(
-        struct SDL_Window **window,
-        SDL_GLContext **context,
-        struct resource_manager **res_manager);
+void lisilisk_context_deinit(
+        struct lisilisk_context *context);
 
-// -----------------------------------------------------------------------------
+void lisilisk_context_window_set_size(
+        struct lisilisk_context *context,
+        u32 width, u32 height);
 
-void lisilisk_populate_resources(
-        const char *folder,
-        struct resource_manager *res_manager);
+void lisilisk_context_window_get_size(
+        struct lisilisk_context *context,
+        i32 *width, i32 *height);
+
+void lisilisk_context_window_set_name(
+        struct lisilisk_context *context,
+        const char *name);
+
+void lisilisk_context_integrate_resources(
+        struct lisilisk_context *context,
+        const char *folder);
 
 // -----------------------------------------------------------------------------
 

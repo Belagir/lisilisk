@@ -34,11 +34,7 @@ static struct {
     bool active;
     struct logger *log;
 
-    struct {
-        struct SDL_Window *window;
-        SDL_GLContext *context;
-        struct resource_manager *res_manager;
-    } application;
+    struct lisilisk_context context;
 
     struct {
         struct scene scene;
@@ -78,14 +74,13 @@ void lisk_init(const char *name, const char *resources_folder)
         return;
     }
 
-    lisilisk_init_context(
-            &static_data.application.window,
-            &static_data.application.context,
-            &static_data.application.res_manager,
+    lisilisk_context_init(
+            &static_data.context,
             static_data.log,
             name, 1200, 800);
 
-    lisilisk_populate_resources(resources_folder, static_data.application.res_manager);
+    lisilisk_context_integrate_resources(&static_data.context,
+            resources_folder);
 
     static_data.stores.texture_store = lisilisk_store_texture_create();
     static_data.stores.geometry_store = lisilisk_store_geometry_create();
@@ -95,8 +90,7 @@ void lisk_init(const char *name, const char *resources_folder)
     static_data.stores.model_store = lisilisk_store_model_create(
             &static_data.stores.material_store);
 
-    lisilisk_setup_camera(&static_data.world.camera,
-            static_data.application.window);
+    lisilisk_setup_camera(&static_data.world.camera, &static_data.context);
 
     shader_vert_mem(&static_data.sky_shader, skybox_vert_start,
             (size_t)&skybox_vert_size);
@@ -134,11 +128,7 @@ void lisk_deinit(void)
 
     scene_delete(&static_data.world.scene);
 
-    resource_manager_destroy(&static_data.application.res_manager, make_system_allocator());
-    lisilisk_deinit_context(
-            &static_data.application.window,
-            &static_data.application.context,
-            &static_data.application.res_manager);
+    lisilisk_context_deinit(&static_data.context);
 
     static_data.active = false;
 }
@@ -155,7 +145,7 @@ void lisk_resize(uint16_t width, uint16_t height)
         return;
     }
 
-    SDL_SetWindowSize(static_data.application.window, width, height);
+    lisilisk_context_window_set_size(&static_data.context, width, height);
 }
 
 /**
@@ -169,9 +159,14 @@ void lisk_rename(const char *window_name)
         return;
     }
 
-    SDL_SetWindowTitle(static_data.application.window, window_name);
+    lisilisk_context_window_set_name(&static_data.context, window_name);
 }
 
+/**
+ * @brief
+ *
+ * @param name
+ */
 void lisk_model_show(
         const char *name)
 {
@@ -209,7 +204,7 @@ void lisk_model_geometry(
 
     // Create the geometry from the file and registers it in a map
     geometry = lisilisk_store_geometry_cache(&static_data.stores.geometry_store,
-            static_data.application.res_manager,
+            static_data.context.res_manager,
             obj_file);
 
     if (!geometry) {
@@ -289,7 +284,7 @@ void lisk_model_base_texture(
 
     base = lisilisk_store_texture_cache(
             &static_data.stores.texture_store,
-            static_data.application.res_manager, texture);
+            static_data.context.res_manager, texture);
     material_texture(model->material, base);
 }
 
@@ -333,7 +328,7 @@ void lisk_model_ambient_mask(
 
     mask = lisilisk_store_texture_cache(
             &static_data.stores.texture_store,
-            static_data.application.res_manager, texture_mask);
+            static_data.context.res_manager, texture_mask);
     material_ambient_mask(model->material, mask);
 }
 
@@ -376,7 +371,7 @@ void lisk_model_diffuse_mask(
 
     mask = lisilisk_store_texture_cache(
             &static_data.stores.texture_store,
-            static_data.application.res_manager, texture_mask);
+            static_data.context.res_manager, texture_mask);
     material_diffuse_mask(model->material, mask);
 }
 
@@ -422,7 +417,7 @@ void lisk_model_specular_mask(
 
     mask = lisilisk_store_texture_cache(
             &static_data.stores.texture_store,
-            static_data.application.res_manager, texture_mask);
+            static_data.context.res_manager, texture_mask);
     material_specular_mask(model->material, mask);
 }
 
@@ -466,7 +461,7 @@ void lisk_model_emission_mask(
 
     mask = lisilisk_store_texture_cache(
             &static_data.stores.texture_store,
-            static_data.application.res_manager, texture_mask);
+            static_data.context.res_manager, texture_mask);
     material_emissive_mask(model->material, mask);
 }
 
@@ -899,7 +894,7 @@ void lisk_skybox_set(
 
     texture = lisilisk_store_texture_cubemap_cache(
             &static_data.stores.texture_store,
-            static_data.application.res_manager, cubemap);
+            static_data.context.res_manager, cubemap);
     environment_skybox(&static_data.world.environment, texture);
 }
 
@@ -929,7 +924,7 @@ void lisk_show(void)
     }
 
     scene_load(&static_data.world.scene);
-    SDL_ShowWindow(static_data.application.window);
+    SDL_ShowWindow(static_data.context.window);
 }
 
 /**
@@ -952,7 +947,7 @@ void lisk_draw(void)
                         + ((this_call.tv_usec - last_call.tv_usec) / 1000000.);
 
     scene_draw(&static_data.world.scene, seconds_elapsed);
-    SDL_GL_SwapWindow(static_data.application.window);
+    SDL_GL_SwapWindow(static_data.context.window);
 
     last_call = this_call;
 }
@@ -968,7 +963,7 @@ void lisk_hide(void)
     }
 
     scene_unload(&static_data.world.scene);
-    SDL_HideWindow(static_data.application.window);
+    SDL_HideWindow(static_data.context.window);
 }
 
 // -----------------------------------------------------------------------------
