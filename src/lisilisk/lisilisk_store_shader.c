@@ -103,7 +103,23 @@ struct shader *lisilisk_store_shader_cache(
     frag_source = resource_manager_fetch(res_manager, "lisilisk",
             frag, &frag_source_length);
 
-    if (!vert_source || !frag_source) {
+    if (!vert_source && !frag_source) {
+        goto cleanup;
+    }
+
+    if (!vert_source) {
+        vert_source = default_vertex_start;
+        vert_source_length = (size_t) &default_vertex_size;
+    } else if (!frag_source) {
+        frag_source = default_fragment_start;
+        frag_source_length = (size_t) &default_fragment_size;
+    }
+
+    shader_material_frag_mem(new_shader, frag_source, frag_source_length);
+    shader_material_vert_mem(new_shader, vert_source, vert_source_length);
+    shader_link(new_shader);
+
+    if (new_shader->program == 0) {
         goto cleanup;
     }
 

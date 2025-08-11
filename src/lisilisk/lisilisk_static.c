@@ -217,20 +217,34 @@ void lisk_model_geometry(
     model_geometry(model, geometry);
 }
 
-
-void lisk_model_shader(
+/**
+ * @brief
+ *
+ * @param name
+ * @param frag_shader
+ * @param vert_shader
+ */
+void lisk_model_material_shader(
         const char *name,
         const char *frag_shader,
         const char *vert_shader)
 {
     struct model *model = nullptr;
+    struct shader *shader = nullptr;
 
     model = static_data_model_named(name, nullptr);
-    if (!model || !frag_shader || !vert_shader) {
+    if (!model) {
         return;
     }
 
+    shader = lisilisk_store_shader_cache(&static_data.stores.shader_store,
+            static_data.context.res_manager, frag_shader, vert_shader);
 
+    if (!shader) {
+        return;
+    }
+
+    model_shader(model, shader);
 }
 
 /**

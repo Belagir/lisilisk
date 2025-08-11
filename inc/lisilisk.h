@@ -42,10 +42,11 @@ void lisk_model_geometry(
         const char *name,
         const char *obj_file);
 
-void lisk_model_shader(
+void lisk_model_material_shader(
         const char *name,
         const char *frag_shader,
         const char *vert_shader);
+
 
 void lisk_model_frontface_culling(
         const char *name);
