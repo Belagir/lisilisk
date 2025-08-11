@@ -98,8 +98,6 @@ struct texture *lisilisk_store_texture_cache(
     hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->textures, 1);
     pos = hashmap_set(store->textures, image, &new_texture);
 
-    store->textures[pos] = new_texture;
-
     return store->textures[pos];
 
 cleanup:

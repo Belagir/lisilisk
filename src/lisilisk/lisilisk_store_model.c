@@ -68,7 +68,7 @@ u32 lisilisk_store_model_register(
         return 0;
     }
 
-    model_hash = hashmap_hash_of(name);
+    model_hash = hashmap_hash_of(name, 0);
     stored = lisilisk_store_model_retrieve(store, model_hash);
 
     if (stored) {
