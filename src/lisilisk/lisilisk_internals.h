@@ -44,6 +44,8 @@ struct lisilisk_store_texture {
 
 struct lisilisk_store_geometry {
     struct geometry *sphere;
+    struct geometry *quad;
+
     HASHMAP(struct geometry *) geometries;
 };
 

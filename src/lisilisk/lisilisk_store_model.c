@@ -17,9 +17,7 @@ struct lisilisk_store_model lisilisk_store_model_create(
             .material_store = material_store,
             .shader_store = shader_store,
 
-            .models = hashmap_create(
-                    make_system_allocator(),
-                    sizeof(*new_store.models), 32),
+            .models = hashmap_create(alloc, sizeof(*new_store.models), 32),
     };
 
     return new_store;
