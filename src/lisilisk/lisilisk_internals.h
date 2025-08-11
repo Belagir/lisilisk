@@ -171,6 +171,10 @@ struct model *lisilisk_store_model_retrieve(
 struct lisilisk_store_shader lisilisk_store_shader_create(void);
 void lisilisk_store_shader_delete(
         struct lisilisk_store_shader *shader_store);
+struct shader *lisilisk_store_shader_material_cache(
+        struct lisilisk_store_shader *store,
+        struct resource_manager *res_manager,
+        const char *frag, const char *vert);
 struct shader *lisilisk_store_shader_cache(
         struct lisilisk_store_shader *store,
         struct resource_manager *res_manager,

@@ -47,6 +47,10 @@ void lisk_model_material_shader(
         const char *frag_shader,
         const char *vert_shader);
 
+void lisk_model_advanced_shader(
+        const char *name,
+        const char *frag_shader,
+        const char *vert_shader);
 
 void lisk_model_frontface_culling(
         const char *name);
