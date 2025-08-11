@@ -7,27 +7,20 @@
  * @return struct lisilisk_store_model
  */
 struct lisilisk_store_model lisilisk_store_model_create(
-        struct lisilisk_store_material *material_store)
+        struct lisilisk_store_material *material_store,
+        struct lisilisk_store_shader *shader_store)
 {
     struct allocator alloc = make_system_allocator();
     struct lisilisk_store_model new_store = { };
 
     new_store = (struct lisilisk_store_model) {
             .material_store = material_store,
+            .shader_store = shader_store,
 
             .models = hashmap_create(
                     make_system_allocator(),
                     sizeof(*new_store.models), 32),
-
-            .defaults = {
-                .material_shader = alloc.malloc(alloc,
-                        sizeof(*new_store.defaults.material_shader)),
-            },
     };
-
-    *new_store.defaults.material_shader = (struct shader) { 0 };
-    lisilisk_create_default_material_shader(
-            new_store.defaults.material_shader);
 
     return new_store;
 }
@@ -50,10 +43,6 @@ void lisilisk_store_model_delete(
         model_delete(store->models[i]);
         alloc.free(alloc, store->models[i]);
     }
-
-    shader_delete(store->defaults.material_shader);
-
-    alloc.free(alloc, store->defaults.material_shader),
 
     hashmap_destroy(alloc, (HASHMAP_ANY *) &store->models);
 
@@ -91,7 +80,7 @@ u32 lisilisk_store_model_register(
     model_create(stored);
     model_material(stored,
             lisilisk_store_material_cache(store->material_store, name));
-    model_shader(stored, store->defaults.material_shader);
+    model_shader(stored, store->shader_store->default_material_shader);
 
     hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->models, 1);
     hashmap_set_hashed(store->models, model_hash, &stored);

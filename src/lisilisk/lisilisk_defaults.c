@@ -5,9 +5,6 @@
 
 #include <ustd/res.h>
 
-DECLARE_RES(default_fragment, "res_shaders_default_material_frag")
-DECLARE_RES(default_vertex,   "res_shaders_default_material_vert")
-
 /**
  * @brief
  *
@@ -58,24 +55,4 @@ void lisilisk_setup_camera(
     camera_limits(camera, .1, 1000.);
     camera_position(camera, (struct vector3) { 0, 1, 2 });
     camera_target(camera, VECTOR3_ORIGIN);
-}
-
-/**
- * @brief
- *
- * @param shader
- */
-void lisilisk_create_default_material_shader(
-        struct shader *shader)
-{
-    if (!shader) {
-        return;
-    }
-
-    shader_material_frag_mem(shader, default_fragment_start,
-            (size_t) &default_fragment_size);
-    shader_material_vert_mem(shader, default_vertex_start,
-            (size_t) &default_vertex_size);
-
-    shader_link(shader);
 }

@@ -56,16 +56,14 @@ struct lisilisk_store_material {
 
 struct lisilisk_store_model {
     struct lisilisk_store_material *material_store;
+    struct lisilisk_store_shader *shader_store;
 
     HASHMAP(struct model *) models;
-
-    struct {
-        struct shader *material_shader;
-    } defaults;
 };
 
 struct lisilisk_store_shader {
     struct shader *default_material_shader;
+
     HASHMAP(struct shader *) shaders;
 };
 
@@ -88,9 +86,6 @@ void lisilisk_setup_environment(
 void lisilisk_setup_camera(
         struct camera *camera,
         struct lisilisk_context *context);
-
-void lisilisk_create_default_material_shader(
-        struct shader *shader);
 
 // -----------------------------------------------------------------------------
 
@@ -159,7 +154,8 @@ struct material *lisilisk_store_material_cache(
 // -----------------------------------------------------------------------------
 
 struct lisilisk_store_model lisilisk_store_model_create(
-        struct lisilisk_store_material *material_store);
+        struct lisilisk_store_material *material_store,
+        struct lisilisk_store_shader *shader_store);
 void lisilisk_store_model_delete(
         struct lisilisk_store_model *store);
 
@@ -169,5 +165,14 @@ u32 lisilisk_store_model_register(
 struct model *lisilisk_store_model_retrieve(
         struct lisilisk_store_model *store,
         u32 hash);
+
+// -----------------------------------------------------------------------------
+
+struct lisilisk_store_shader lisilisk_store_shader_create(void);
+void lisilisk_store_shader_delete(
+        struct lisilisk_store_shader *shader_store);
+struct shader *lisilisk_store_shader_cache(
+        struct lisilisk_store_shader *shader_store,
+        const char *frag, const char *vert);
 
 #endif

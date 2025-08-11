@@ -48,6 +48,7 @@ static struct {
         struct lisilisk_store_texture texture_store;
         struct lisilisk_store_geometry geometry_store;
         struct lisilisk_store_material material_store;
+        struct lisilisk_store_shader shader_store;
         struct lisilisk_store_model model_store;
     } stores;
 } static_data;
@@ -86,9 +87,11 @@ void lisk_init(const char *name, const char *resources_folder)
     static_data.stores.geometry_store = lisilisk_store_geometry_create();
     static_data.stores.material_store = lisilisk_store_material_create(
             &static_data.stores.texture_store);
+    static_data.stores.shader_store = lisilisk_store_shader_create();
 
     static_data.stores.model_store = lisilisk_store_model_create(
-            &static_data.stores.material_store);
+            &static_data.stores.material_store,
+            &static_data.stores.shader_store);
 
     lisilisk_setup_camera(&static_data.world.camera, &static_data.context);
 
@@ -212,6 +215,22 @@ void lisk_model_geometry(
     }
 
     model_geometry(model, geometry);
+}
+
+
+void lisk_model_shader(
+        const char *name,
+        const char *frag_shader,
+        const char *vert_shader)
+{
+    struct model *model = nullptr;
+
+    model = static_data_model_named(name, nullptr);
+    if (!model || !frag_shader || !vert_shader) {
+        return;
+    }
+
+
 }
 
 /**

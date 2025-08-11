@@ -14,6 +14,7 @@ struct lisilisk_store_material lisilisk_store_material_create(
 
     new_store = (struct lisilisk_store_material) {
             .texture_store = texture_store,
+
             .default_material = alloc.malloc(alloc,
                     sizeof(*new_store.default_material)),
             .materials = hashmap_create(
