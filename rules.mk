@@ -14,6 +14,8 @@ SRC := $(notdir $(shell find $(SRC_DIR) -name *.c))
 DUPL_SRC := $(strip $(shell echo $(SRC) | tr ' ' '\n' | sort | uniq -d))
 ## list of all target object files with their path
 OBJ := $(addprefix $(OBJ_DIR)/, $(patsubst %.c, %.o, $(SRC)))
+##
+LIB_OBJ := $(filter-out $(OBJ_DIR)/main.o, $(OBJ)) $(addsuffix /$(OBJ_DIR)/*.o, $(SUBPROJECTS))
 
 ## where to find c files : all unique directories in SRC_DIR which contain a c
 ## file
@@ -43,10 +45,10 @@ ARGS_INCL = $(addprefix -I, $(INC_DIR))
 
 all: check $(SUBPROJECTS) $(BUILD_DIRS) $(TARGET) | count_lines
 
-lib: check $(BUILD_DIRS) $(LIBRARY_ARCHIVE)
+lib: check $(SUBPROJECTS) $(BUILD_DIRS) $(LIBRARY_ARCHIVE)
 
-$(LIBRARY_ARCHIVE): $(OBJ) $(RES_BIN)
-	$(AR) $(ARFLAGS) $@ $(OBJ) $(RES_BIN)
+$(LIBRARY_ARCHIVE): $(LIB_OBJ) $(RES_BIN)
+	$(AR) $(ARFLAGS) $@ $^
 
 $(TARGET): $(OBJ) $(RES_BIN)
 	$(CC) $^ -o $@  $(TARGET_DEP_LOC) $(TARGET_DEP_LIB) $(LFLAGS)
