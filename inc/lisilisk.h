@@ -85,50 +85,34 @@ void lisk_model_draw_in_front(
         const char *name);
 
 //
-void lisk_model_base_texture(
+void lisk_model_material_base_texture(
         const char *name,
-        const char *texture);
+        lisk_handle_t texture);
 
 //
-void lisk_model_ambient_color(
+void lisk_model_material_ambient(
         const char *name,
-        float (*ambient)[4]);
+        float (*ambient)[4],
+        lisk_handle_t texture_mask);
 
 //
-void lisk_model_ambient_mask(
+void lisk_model_material_diffuse(
         const char *name,
-        const char *texture_mask);
+        float (*diffuse)[4],
+        lisk_handle_t texture_mask);
 
 //
-void lisk_model_diffuse_color(
-        const char *name,
-        float (*diffuse)[4]);
-
-//
-void lisk_model_diffuse_mask(
-        const char *name,
-        const char *texture_mask);
-
-//
-void lisk_model_specular_color(
+void lisk_model_material_specular(
         const char *name,
         float (*specular)[4],
-        float shininess);
+        float shininess,
+        lisk_handle_t texture_mask);
 
 //
-void lisk_model_specular_mask(
+void lisk_model_material_emission(
         const char *name,
-        const char *texture_mask);
-
-//
-void lisk_model_emission_color(
-        const char *name,
-        float (*emission)[4]);
-
-//
-void lisk_model_emission_mask(
-        const char *name,
-        const char *texture_mask);
+        float (*emission)[4],
+        lisk_handle_t texture_mask);
 
 // Instanciate a model at some point in the world.
 lisk_handle_t lisk_model_instanciate(

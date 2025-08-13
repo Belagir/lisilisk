@@ -74,6 +74,7 @@ u32 lisilisk_store_model_register(
     }
 
     stored = alloc.malloc(alloc, sizeof(*stored));
+    *stored = (struct model) { 0 };
 
     model_create(stored);
     model_material(stored,

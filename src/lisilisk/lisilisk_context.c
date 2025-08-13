@@ -154,6 +154,8 @@ void lisilisk_context_integrate_resources(
         }
     }
 
+    fts_close(hierarchy_stream);
+
     resource_manager_touch(context->res_manager, "lisilisk", nullptr,
                     make_system_allocator());
     resource_manager_add_supplicant(context->res_manager, "lisilisk", 0,

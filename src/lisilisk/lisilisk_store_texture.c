@@ -19,6 +19,7 @@ struct lisilisk_store_texture lisilisk_store_texture_create(void)
                     sizeof(*new_store.textures), 32),
     };
 
+    *new_store.default_texture = (struct texture) { 0 };
     texture_2D_default(new_store.default_texture);
 
     return new_store;
@@ -44,9 +45,7 @@ void lisilisk_store_texture_delete(
     for (size_t i = 0 ; i < array_length(store->textures) ; i++) {
         texture_delete(store->textures[i]);
         alloc.free(alloc, store->textures[i]);
-
     }
-
     hashmap_destroy(alloc, (HASHMAP_ANY *) &store->textures);
 
     *store = (struct lisilisk_store_texture) { };
@@ -187,6 +186,7 @@ u32 lisilisk_store_texture_register(
 
     if (!texture) {
         texture = alloc.malloc(alloc, sizeof(*texture));
+        *texture = (struct texture) { 0 };
 
         image_buffer = resource_manager_fetch(res_manager, "lisilisk", image, &size_image);
         texture_2D_file_mem(texture, image_buffer, size_image);

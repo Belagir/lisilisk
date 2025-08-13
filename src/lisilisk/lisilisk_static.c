@@ -128,6 +128,7 @@ void lisk_deinit(void)
     lisilisk_store_geometry_delete(&static_data.stores.geometry_store);
     lisilisk_store_material_delete(&static_data.stores.material_store);
     lisilisk_store_texture_delete(&static_data.stores.texture_store);
+    lisilisk_store_shader_delete(&static_data.stores.shader_store);
 
     scene_delete(&static_data.world.scene);
 
@@ -411,21 +412,26 @@ void lisk_model_draw_in_front(
  * @param name
  * @param texture
  */
-void lisk_model_base_texture(
+void lisk_model_material_base_texture(
         const char *name,
-        const char *texture)
+        lisk_handle_t texture)
 {
     struct model *model = nullptr;
     struct texture *base = nullptr;
+    union lisk_handle_layout true_handle = { .full = texture };
+
+    if (true_handle.flavor != HANDLE_REPRESENTS_TEXTURE) {
+        return;
+    }
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
         return;
     }
 
-    base = lisilisk_store_texture_cache(
+    base = lisilisk_store_texture_retreive(
             &static_data.stores.texture_store,
-            static_data.context.res_manager, texture);
+            true_handle.hash);
     material_texture(model->material, base);
 }
 
@@ -435,11 +441,14 @@ void lisk_model_base_texture(
  * @param name
  * @param ambient
  */
-void lisk_model_ambient_color(
+void lisk_model_material_ambient(
         const char *name,
-        float (*ambient)[4])
+        float (*ambient)[4],
+        lisk_handle_t texture_mask)
 {
     struct model *model = nullptr;
+    struct texture *mask = nullptr;
+    union lisk_handle_layout true_handle = { .full = texture_mask };
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
@@ -447,30 +456,17 @@ void lisk_model_ambient_color(
     }
 
     material_ambient(model->material, *ambient, (*ambient)[3]);
-}
 
-/**
- * @brief
- *
- * @param name
- * @param texture_mask
- */
-void lisk_model_ambient_mask(
-        const char *name,
-        const char *texture_mask)
-{
-    struct model *model = nullptr;
-    struct texture *mask = nullptr;
+    mask = lisilisk_store_texture_retreive(
+        &static_data.stores.texture_store,
+        true_handle.hash);
 
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
-        return;
+    if (mask) {
+        material_ambient_mask(model->material, mask);
+    } else {
+        material_ambient_mask(model->material,
+                static_data.stores.texture_store.default_texture);
     }
-
-    mask = lisilisk_store_texture_cache(
-            &static_data.stores.texture_store,
-            static_data.context.res_manager, texture_mask);
-    material_ambient_mask(model->material, mask);
 }
 
 /**
@@ -479,11 +475,14 @@ void lisk_model_ambient_mask(
  * @param name
  * @param diffuse
  */
-void lisk_model_diffuse_color(
+void lisk_model_material_diffuse(
         const char *name,
-        float (*diffuse)[4])
+        float (*diffuse)[4],
+        lisk_handle_t texture_mask)
 {
     struct model *model = nullptr;
+    struct texture *mask = nullptr;
+    union lisk_handle_layout true_handle = { .full = texture_mask };
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
@@ -491,29 +490,17 @@ void lisk_model_diffuse_color(
     }
 
     material_diffuse(model->material, *diffuse, (*diffuse)[3]);
-}
-/**
- * @brief
- *
- * @param name
- * @param texture_mask
- */
-void lisk_model_diffuse_mask(
-        const char *name,
-        const char *texture_mask)
-{
-    struct model *model = nullptr;
-    struct texture *mask = nullptr;
 
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
-        return;
+    mask = lisilisk_store_texture_retreive(
+        &static_data.stores.texture_store,
+        true_handle.hash);
+
+    if (mask) {
+        material_diffuse_mask(model->material, mask);
+    } else {
+        material_diffuse_mask(model->material,
+                static_data.stores.texture_store.default_texture);
     }
-
-    mask = lisilisk_store_texture_cache(
-            &static_data.stores.texture_store,
-            static_data.context.res_manager, texture_mask);
-    material_diffuse_mask(model->material, mask);
 }
 
 /**
@@ -522,12 +509,15 @@ void lisk_model_diffuse_mask(
  * @param name
  * @param specular
  */
-void lisk_model_specular_color(
+void lisk_model_material_specular(
         const char *name,
         float (*specular)[4],
-        float shininess)
+        float shininess,
+        lisk_handle_t texture_mask)
 {
     struct model *model = nullptr;
+    struct texture *mask = nullptr;
+    union lisk_handle_layout true_handle = { .full = texture_mask };
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
@@ -536,30 +526,17 @@ void lisk_model_specular_color(
 
     material_specular(model->material, *specular, (*specular)[3]);
     material_shininess(model->material, shininess);
-}
 
-/**
- * @brief
- *
- * @param name
- * @param texture_mask
- */
-void lisk_model_specular_mask(
-        const char *name,
-        const char *texture_mask)
-{
-    struct model *model = nullptr;
-    struct texture *mask = nullptr;
+    mask = lisilisk_store_texture_retreive(
+        &static_data.stores.texture_store,
+        true_handle.hash);
 
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
-        return;
+    if (mask) {
+        material_specular_mask(model->material, mask);
+    } else {
+        material_specular_mask(model->material,
+                static_data.stores.texture_store.default_texture);
     }
-
-    mask = lisilisk_store_texture_cache(
-            &static_data.stores.texture_store,
-            static_data.context.res_manager, texture_mask);
-    material_specular_mask(model->material, mask);
 }
 
 /**
@@ -568,11 +545,14 @@ void lisk_model_specular_mask(
  * @param name
  * @param emission
  */
-void lisk_model_emission_color(
+void lisk_model_material_emission(
         const char *name,
-        float (*emission)[4])
+        float (*emission)[4],
+        lisk_handle_t texture_mask)
 {
     struct model *model = nullptr;
+    struct texture *mask = nullptr;
+    union lisk_handle_layout true_handle = { .full = texture_mask };
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
@@ -580,30 +560,17 @@ void lisk_model_emission_color(
     }
 
     material_emissive(model->material, *emission, (*emission)[3]);
-}
 
-/**
- * @brief
- *
- * @param name
- * @param texture_mask
- */
-void lisk_model_emission_mask(
-        const char *name,
-        const char *texture_mask)
-{
-    struct model *model = nullptr;
-    struct texture *mask = nullptr;
+    mask = lisilisk_store_texture_retreive(
+        &static_data.stores.texture_store,
+        true_handle.hash);
 
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
-        return;
+    if (mask) {
+        material_emissive_mask(model->material, mask);
+    } else {
+        material_emissive_mask(model->material,
+                static_data.stores.texture_store.default_texture);
     }
-
-    mask = lisilisk_store_texture_cache(
-            &static_data.stores.texture_store,
-            static_data.context.res_manager, texture_mask);
-    material_emissive_mask(model->material, mask);
 }
 
 /**

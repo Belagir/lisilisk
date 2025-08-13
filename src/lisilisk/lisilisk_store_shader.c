@@ -55,6 +55,10 @@ void lisilisk_store_shader_delete(
     shader_delete(shader_store->default_material_shader);
     alloc.free(alloc, shader_store->default_material_shader);
 
+    for(size_t i = 0 ; i < array_length(shader_store->shaders) ; i++) {
+        shader_delete(shader_store->shaders[i]);
+        alloc.free(alloc, shader_store->shaders[i]);
+    }
     hashmap_destroy(alloc, (HASHMAP_ANY *) &shader_store->shaders);
 
     *shader_store = (struct lisilisk_store_shader) { 0 };
@@ -170,32 +174,28 @@ struct shader *lisilisk_store_shader_cache(
         return store->shaders[pos];
     }
 
-    new_shader = alloc.malloc(alloc, sizeof(*new_shader));
-    *new_shader = (struct shader) { 0 };
-
     vert_source = resource_manager_fetch(res_manager, "lisilisk",
             vert, &vert_source_length);
     frag_source = resource_manager_fetch(res_manager, "lisilisk",
             frag, &frag_source_length);
 
     if (!vert_source || !frag_source) {
-        goto cleanup;
+        return nullptr;
     }
+
+    new_shader = alloc.malloc(alloc, sizeof(*new_shader));
+    *new_shader = (struct shader) { 0 };
 
     shader_frag_mem(new_shader, frag_source, frag_source_length);
     shader_vert_mem(new_shader, vert_source, vert_source_length);
     shader_link(new_shader);
 
-    if (new_shader->program == 0) {
-        goto cleanup;
+    if (new_shader->program != 0) {
+        hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->shaders, 1);
+        pos = hashmap_set_hashed(store->shaders, hash, &new_shader);
+        return store->shaders[pos];
     }
 
-    hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->shaders, 1);
-    pos = hashmap_set_hashed(store->shaders, hash, &new_shader);
-
-    return store->shaders[pos];
-
-cleanup:
     shader_delete(new_shader);
     alloc.free(alloc, new_shader);
 
