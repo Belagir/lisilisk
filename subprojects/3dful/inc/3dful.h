@@ -222,7 +222,7 @@ struct material {
 
 struct instance {
     struct vector3 position;
-    f32 scale;
+    struct vector3 scale;
     struct quaternion rotation;
 };
 
@@ -485,7 +485,7 @@ void model_instance_position(struct model *model, handle_t handle,
 void model_instance_rotation(struct model *model, handle_t handle,
         struct quaternion rotation);
 void model_instance_scale(struct model *model, handle_t handle,
-        f32 scale);
+        f32 scale[3]);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

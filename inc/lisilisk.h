@@ -58,7 +58,13 @@ void lisk_model_frontface_culling(
 void lisk_model_backface_culling(
         const char *name);
 
-void lisk_model_show_in_back(
+void lisk_model_noface_culling(
+        const char *name);
+
+void lisk_model_draw_in_back(
+        const char *name);
+
+void lisk_model_draw_in_front(
         const char *name);
 
 void lisk_model_base_texture(
@@ -127,7 +133,7 @@ void lisk_instance_remove(
 // Changes the scale of an instance.
 void lisk_instance_set_scale(
         lisk_handle_t instance,
-        float scale);
+        float (*scale)[3]);
 
 // Changes the position of an instance or a point light.
 void lisk_instance_set_position(

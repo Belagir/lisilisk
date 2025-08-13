@@ -162,11 +162,11 @@ void model_instance_rotation(struct model *model, handle_t handle,
  * @param[in] pos New scale factor assigned to this instance.
  */
 void model_instance_scale(struct model *model, handle_t handle,
-        f32 scale)
+        f32 scale[3])
 {
     handle_buffer_array_set(&model->instances, handle,
-            &scale, OFFSET_OF(struct instance, scale),
-            sizeof(scale));
+            scale, OFFSET_OF(struct instance, scale),
+            sizeof(f32)*3);
 }
 
 /**
@@ -235,7 +235,7 @@ void model_load(struct model *model)
                 (void*) (OFFSET_OF(struct instance, position)));
 
         glEnableVertexAttribArray(SHADER_VERT_INSTANCESCALE);
-        glVertexAttribPointer(SHADER_VERT_INSTANCESCALE, 1,
+        glVertexAttribPointer(SHADER_VERT_INSTANCESCALE, 3,
                 GL_FLOAT, GL_FALSE, sizeof(struct instance),
                 (void*) (OFFSET_OF(struct instance, scale)));
 
@@ -295,14 +295,16 @@ void model_draw(struct model *model)
         switch ((enum geometry_culling)
                 model->geometry->render_flags.culling) {
             case GEOMETRY_CULL_NONE:
-                glCullFace(GL_NONE);
+                glDisable(GL_CULL_FACE);
                 break;
 
             case GEOMETRY_CULL_FRONT:
+                glEnable(GL_CULL_FACE);
                 glCullFace(GL_FRONT);
                 break;
 
             case GEOMETRY_CULL_BACK:
+                glEnable(GL_CULL_FACE);
                 glCullFace(GL_BACK);
                 break;
         }

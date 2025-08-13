@@ -316,8 +316,25 @@ void lisk_model_backface_culling(
 /**
  * @brief
  *
+ * @param name
  */
-void lisk_model_show_in_back(
+void lisk_model_noface_culling(
+        const char *name)
+{
+    struct model *model = nullptr;
+    model = static_data_model_named(name, nullptr);
+    if (!model) {
+        return;
+    }
+
+    geometry_set_culling(model->geometry, GEOMETRY_CULL_NONE);
+}
+
+/**
+ * @brief
+ *
+ */
+void lisk_model_draw_in_back(
         const char *name)
 {
     struct model *model = nullptr;
@@ -327,6 +344,23 @@ void lisk_model_show_in_back(
     }
 
     geometry_set_layering(model->geometry, GEOMETRY_LAYER_BACK);
+}
+
+/**
+ * @brief
+ *
+ * @param name
+ */
+void lisk_model_draw_in_front(
+        const char *name)
+{
+    struct model *model = nullptr;
+    model = static_data_model_named(name, nullptr);
+    if (!model) {
+        return;
+    }
+
+    geometry_set_layering(model->geometry, GEOMETRY_LAYER_FRONT);
 }
 
 /**
@@ -558,7 +592,7 @@ lisk_handle_t lisk_model_instanciate(
     model_instantiate(model, &in_handle);
     model_instance_position(model, in_handle,
         (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
-    model_instance_scale(model, in_handle, scale);
+    model_instance_scale(model, in_handle, (f32[3]) { scale, scale, scale });
     model_instance_rotation(model, in_handle,
         quaternion_identity());
 
@@ -698,7 +732,7 @@ void lisk_instance_remove(
 
 void lisk_instance_set_scale(
         lisk_handle_t instance,
-        float scale)
+        float (*scale)[3])
 {
     union lisk_handle_layout handle = { .full = instance };
 
@@ -708,7 +742,7 @@ void lisk_instance_set_scale(
         case HANDLE_REPRESENTS_INSTANCE:
             model_instance_scale(
                     static_data_model_of_instance(handle),
-                    handle.internal, scale);
+                    handle.internal, *scale);
             return;
         case HANDLE_REPRESENTS_LIGHT_DIREC:
             return;

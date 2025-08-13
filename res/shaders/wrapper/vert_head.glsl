@@ -7,7 +7,7 @@ layout (location = 0) in vec3 VertexPos;
 layout (location = 1) in vec3 VertexNormal;
 layout (location = 2) in vec2 VertexUV;
 layout (location = 3) in vec3 InstancePosition;
-layout (location = 4) in float InstanceScale;
+layout (location = 4) in vec3 InstanceScale;
 layout (location = 5) in vec4 InstanceRotation;
 
 uniform mat4 VIEW_MATRIX;
