@@ -29,9 +29,14 @@ void lisk_deinit(void);
 void lisk_resize(
         uint16_t width,
         uint16_t height);
+
 // Sets the title of the window.
 void lisk_rename(
         const char *window_name);
+
+void lisk_get_size(
+        int32_t *width,
+        int32_t *height);
 
 // Makes it mossible for a model's instances to be rendered to the scene.
 void lisk_model_show(

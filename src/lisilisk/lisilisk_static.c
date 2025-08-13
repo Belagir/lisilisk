@@ -152,6 +152,23 @@ void lisk_resize(uint16_t width, uint16_t height)
 }
 
 /**
+ * @brief
+ *
+ * @param width
+ * @param height
+ */
+void lisk_get_size(
+        int32_t *width,
+        int32_t *height)
+{
+    if (!static_data.active) {
+        return;
+    }
+
+    lisilisk_context_window_get_size(&static_data.context, width, height);
+}
+
+/**
  * @brief Changes the title of the window.
  *
  * @param[in] window_name New name for the window.
