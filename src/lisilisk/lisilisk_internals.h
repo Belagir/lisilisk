@@ -23,6 +23,7 @@
 
 enum handle_flavor {
     HANDLE_IS_INVALID,
+    HANDLE_REPRESENTS_TEXTURE,
     HANDLE_REPRESENTS_INSTANCE,
     HANDLE_REPRESENTS_LIGHT_DIREC,
     HANDLE_REPRESENTS_LIGHT_POINT,
@@ -130,6 +131,14 @@ struct texture *lisilisk_store_texture_cubemap_cache(
         struct lisilisk_store_texture *store,
         struct resource_manager *res_manager,
         const char *(*images)[6]);
+
+u32 lisilisk_store_texture_register(
+        struct lisilisk_store_texture *store,
+        struct resource_manager *res_manager,
+        const char *image);
+struct texture *lisilisk_store_texture_retreive(
+        struct lisilisk_store_texture *store,
+        u32 hash);
 
 // -----------------------------------------------------------------------------
 

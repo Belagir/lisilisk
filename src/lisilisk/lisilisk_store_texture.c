@@ -167,6 +167,68 @@ struct texture *lisilisk_store_texture_cubemap_cache(
  * @brief
  *
  * @param store
+ * @param res_manager
+ * @param image
+ * @return u32
+ */
+u32 lisilisk_store_texture_register(
+        struct lisilisk_store_texture *store,
+        struct resource_manager *res_manager,
+        const char *image)
+{
+    struct allocator alloc = make_system_allocator();
+    struct texture *texture = nullptr;
+    size_t size_image = 0;
+    byte *image_buffer = nullptr;
+    u32 hash = 0;
+
+    hash = hashmap_hash_of(image, 0);
+    texture = lisilisk_store_texture_retreive(store, hash);
+
+    if (!texture) {
+        texture = alloc.malloc(alloc, sizeof(*texture));
+
+        image_buffer = resource_manager_fetch(res_manager, "lisilisk", image, &size_image);
+        texture_2D_file_mem(texture, image_buffer, size_image);
+
+        hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->textures, 1);
+        hashmap_set_hashed(store->textures, hash, &texture);
+    }
+
+    return hash;
+}
+
+/**
+ * @brief
+ *
+ * @param store
+ * @param res_manager
+ * @param hash
+ * @return struct texture*
+ */
+struct texture *lisilisk_store_texture_retreive(
+        struct lisilisk_store_texture *store,
+        u32 hash)
+{
+    size_t pos = 0;
+
+    if (!store) {
+        return 0;
+    }
+
+    pos = hashmap_index_of_hashed(store->textures, hash);
+
+    if (pos < array_length(store->textures)) {
+        return store->textures[pos];
+    }
+
+    return nullptr;
+}
+
+/**
+ * @brief
+ *
+ * @param store
  * @return struct texture*
  */
 struct texture *lisilisk_store_texture_default(

@@ -34,9 +34,14 @@ void lisk_resize(
 void lisk_rename(
         const char *window_name);
 
+//
 void lisk_get_size(
         int32_t *width,
         int32_t *height);
+
+//
+lisk_handle_t lisk_texture(
+        const char *file);
 
 // Makes it mossible for a model's instances to be rendered to the scene.
 void lisk_model_show(
@@ -47,64 +52,80 @@ void lisk_model_geometry(
         const char *name,
         const char *obj_file);
 
+//
 void lisk_model_material_shader(
         const char *name,
         const char *frag_shader,
         const char *vert_shader);
 
+//
 void lisk_model_advanced_shader(
         const char *name,
         const char *frag_shader,
         const char *vert_shader);
 
+//
 void lisk_model_frontface_culling(
         const char *name);
 
+//
 void lisk_model_backface_culling(
         const char *name);
 
+//
 void lisk_model_noface_culling(
         const char *name);
 
+//
 void lisk_model_draw_in_back(
         const char *name);
 
+//
 void lisk_model_draw_in_front(
         const char *name);
 
+//
 void lisk_model_base_texture(
         const char *name,
         const char *texture);
 
+//
 void lisk_model_ambient_color(
         const char *name,
         float (*ambient)[4]);
 
+//
 void lisk_model_ambient_mask(
         const char *name,
         const char *texture_mask);
 
+//
 void lisk_model_diffuse_color(
         const char *name,
         float (*diffuse)[4]);
 
+//
 void lisk_model_diffuse_mask(
         const char *name,
         const char *texture_mask);
 
+//
 void lisk_model_specular_color(
         const char *name,
         float (*specular)[4],
         float shininess);
 
+//
 void lisk_model_specular_mask(
         const char *name,
         const char *texture_mask);
 
+//
 void lisk_model_emission_color(
         const char *name,
         float (*emission)[4]);
 
+//
 void lisk_model_emission_mask(
         const char *name,
         const char *texture_mask);
@@ -191,8 +212,10 @@ void lisk_bg_color_set(
 // Shows the window and the scene.
 void lisk_show(void);
 
+//
 void lisk_draw(void);
 
+//
 void lisk_hide(void);
 
 #endif
