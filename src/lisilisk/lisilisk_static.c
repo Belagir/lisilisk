@@ -1,3 +1,13 @@
+/**
+ * @file lisilisk_static.c
+ * @author Gabriel Bédat
+ * @brief
+ * @version 0.1
+ * @date 2025-08-13
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
 
 #include <sys/time.h>
 #include <GLES3/gl3.h>
@@ -10,16 +20,19 @@
 
 #include "lisilisk_internals.h"
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 DECLARE_RES(skybox_vert, "res_shaders_environment_skybox_vert_glsl")
 DECLARE_RES(skybox_frag, "res_shaders_environment_skybox_frag_glsl")
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static struct model * static_data_model_of_instance(
+static struct model *static_data_model_of_instance(
         union lisk_handle_layout handle);
 
-static struct model * static_data_model_named(
+static struct model *static_data_model_named(
         const char *name,
         u32 *out_hash);
 
@@ -36,20 +49,22 @@ static struct {
 
     struct lisilisk_context context;
 
+    // TODO: refactor that like the .context
     struct {
         struct scene scene;
         struct camera camera;
         struct environment environment;
     } world;
 
+    // TODO: make this held by the shader store.
     struct shader sky_shader;
 
     struct {
-        struct lisilisk_store_texture texture_store;
-        struct lisilisk_store_geometry geometry_store;
-        struct lisilisk_store_material material_store;
-        struct lisilisk_store_shader shader_store;
-        struct lisilisk_store_model model_store;
+        struct lisilisk_store_texture textures;
+        struct lisilisk_store_geometry geometries;
+        struct lisilisk_store_material materials;
+        struct lisilisk_store_shader shaders;
+        struct lisilisk_store_model models;
     } stores;
 } static_data;
 
@@ -60,6 +75,9 @@ static struct {
  * @brief This function orchestrates the setup of the engine. It will set the
  * engine data into a blank state, ready to receive models and modifications.
  * Once this is done, the window can be shown with lisk_show().
+ *
+ * @param[in] name Name displayed on the window.
+ * @param[in] resources_folder System path to a folder that will hold all of the engine's resources.
  */
 void lisk_init(const char *name, const char *resources_folder)
 {
@@ -83,26 +101,21 @@ void lisk_init(const char *name, const char *resources_folder)
     lisilisk_context_integrate_resources(&static_data.context,
             resources_folder);
 
-    static_data.stores.texture_store = lisilisk_store_texture_create();
-    static_data.stores.geometry_store = lisilisk_store_geometry_create();
-    static_data.stores.material_store = lisilisk_store_material_create(
-            &static_data.stores.texture_store);
-    static_data.stores.shader_store = lisilisk_store_shader_create();
+    static_data.stores.textures = lisilisk_store_texture_create();
+    static_data.stores.geometries = lisilisk_store_geometry_create();
+    static_data.stores.materials = lisilisk_store_material_create( &static_data.stores.textures);
+    static_data.stores.shaders = lisilisk_store_shader_create();
 
-    static_data.stores.model_store = lisilisk_store_model_create(
-            &static_data.stores.material_store,
-            &static_data.stores.shader_store);
+    static_data.stores.models = lisilisk_store_model_create( &static_data.stores.materials,
+            &static_data.stores.shaders);
 
     lisilisk_setup_camera(&static_data.world.camera, &static_data.context);
 
-    shader_vert_mem(&static_data.sky_shader, skybox_vert_start,
-            (size_t)&skybox_vert_size);
-    shader_frag_mem(&static_data.sky_shader, skybox_frag_start,
-            (size_t)&skybox_frag_size);
+    shader_vert_mem(&static_data.sky_shader, skybox_vert_start, (size_t)&skybox_vert_size);
+    shader_frag_mem(&static_data.sky_shader, skybox_frag_start, (size_t)&skybox_frag_size);
     shader_link(&static_data.sky_shader);
 
-    lisilisk_setup_environment(&static_data.world.environment,
-            static_data.stores.geometry_store.sphere,
+    lisilisk_setup_environment(&static_data.world.environment, static_data.stores.geometries.sphere,
             &static_data.sky_shader);
 
     scene_create(&static_data.world.scene);
@@ -124,11 +137,11 @@ void lisk_deinit(void)
 
     shader_delete(&static_data.sky_shader);
 
-    lisilisk_store_model_delete(&static_data.stores.model_store);
-    lisilisk_store_geometry_delete(&static_data.stores.geometry_store);
-    lisilisk_store_material_delete(&static_data.stores.material_store);
-    lisilisk_store_texture_delete(&static_data.stores.texture_store);
-    lisilisk_store_shader_delete(&static_data.stores.shader_store);
+    lisilisk_store_model_delete(&static_data.stores.models);
+    lisilisk_store_geometry_delete(&static_data.stores.geometries);
+    lisilisk_store_material_delete(&static_data.stores.materials);
+    lisilisk_store_texture_delete(&static_data.stores.textures);
+    lisilisk_store_shader_delete(&static_data.stores.shaders);
 
     scene_delete(&static_data.world.scene);
 
@@ -153,10 +166,10 @@ void lisk_resize(uint16_t width, uint16_t height)
 }
 
 /**
- * @brief
+ * @brief Requests the size, in pixels, of the window.
  *
- * @param width
- * @param height
+ * @param[out] width Pointer to an integer to receive the width.
+ * @param[out] height Pointer to an integer to receive the height.
  */
 void lisk_get_size(
         int32_t *width,
@@ -184,9 +197,10 @@ void lisk_rename(const char *window_name)
 }
 
 /**
- * @brief
+ * @brief Loads or retreive a previously loaded texture. The texture can be
+ * used with the handle that is returned.
  *
- * @param file
+ * @param[in] file System path to an image inside your resources folder.
  * @return struct lisk_texture
  */
 lisk_handle_t lisk_texture(
@@ -196,7 +210,7 @@ lisk_handle_t lisk_texture(
     u32 hash = 0;
 
 
-    hash = lisilisk_store_texture_register(&static_data.stores.texture_store,
+    hash = lisilisk_store_texture_register(&static_data.stores.textures,
         static_data.context.res_manager, file);
 
     handle = (union lisk_handle_layout) {
@@ -209,9 +223,9 @@ lisk_handle_t lisk_texture(
 }
 
 /**
- * @brief
+ * @brief Adds a model to the scene so all its instances can be visible.
  *
- * @param name
+ * @param[in] name Name of the model.
  */
 void lisk_model_show(
         const char *name)
@@ -249,7 +263,7 @@ void lisk_model_geometry(
     }
 
     // Create the geometry from the file and registers it in a map
-    geometry = lisilisk_store_geometry_cache(&static_data.stores.geometry_store,
+    geometry = lisilisk_store_geometry_cache(&static_data.stores.geometries,
             static_data.context.res_manager,
             obj_file);
 
@@ -261,11 +275,16 @@ void lisk_model_geometry(
 }
 
 /**
- * @brief
+ * @brief Compiles a material shader from a pair of glsl source files.
+ * Those files are supposed to be part of a broader "material shader" interface
+ * where they define specific functions and can have access to some specific
+ * vertex inputs and uniforms.
  *
- * @param name
- * @param frag_shader
- * @param vert_shader
+ * TODO: details about those kind of shaders.
+ *
+ * @param[in] name Name used to reference this shader.
+ * @param[in] frag_shader Fragment shader partial source file.
+ * @param[in] vert_shader Vertex shader partial source file.
  */
 void lisk_model_material_shader(
         const char *name,
@@ -281,7 +300,7 @@ void lisk_model_material_shader(
     }
 
     shader = lisilisk_store_shader_material_cache(
-            &static_data.stores.shader_store,
+            &static_data.stores.shaders,
             static_data.context.res_manager, frag_shader, vert_shader);
 
     if (!shader) {
@@ -292,11 +311,14 @@ void lisk_model_material_shader(
 }
 
 /**
- * @brief
+ * @brief Compiles a shader from a pair of glsl sources.
+ * Those files are not expected to conform to the "material shader" interface.
  *
- * @param name
- * @param frag_shader
- * @param vert_shader
+ * TODO: those shaders still have fixed vertex inputs
+ *
+ * @param name Name use to reference this shader.
+ * @param frag_shader Fragment shader full source file.
+ * @param vert_shader Vertex shader full source file.
  */
 void lisk_model_advanced_shader(
         const char *name,
@@ -312,7 +334,7 @@ void lisk_model_advanced_shader(
     }
 
     shader = lisilisk_store_shader_cache(
-            &static_data.stores.shader_store,
+            &static_data.stores.shaders,
             static_data.context.res_manager, frag_shader, vert_shader);
 
     if (!shader) {
@@ -323,9 +345,10 @@ void lisk_model_advanced_shader(
 }
 
 /**
- * @brief
+ * @brief Configure the model so its instances are rendered with front face
+ * culling.
  *
- * @param name
+ * @param[in] name Name of the target model.
  */
 void lisk_model_frontface_culling(
         const char *name)
@@ -340,9 +363,10 @@ void lisk_model_frontface_culling(
 }
 
 /**
- * @brief
+ * @brief Configure the model so its instances are rendered with back face
+ * culling.
  *
- * @param name
+ * @param[in] name Name of the target model.
  */
 void lisk_model_backface_culling(
         const char *name)
@@ -357,9 +381,10 @@ void lisk_model_backface_culling(
 }
 
 /**
- * @brief
+ * @brief Configure the model so its instances are rendered with no face
+ * culling performed.
  *
- * @param name
+ * @param[in] name Name of the target model.
  */
 void lisk_model_noface_culling(
         const char *name)
@@ -374,8 +399,9 @@ void lisk_model_noface_culling(
 }
 
 /**
- * @brief
+ * @brief Configure the model so its instances are always rendered in the back.
  *
+ * @param[in] name Name of the target model.
  */
 void lisk_model_draw_in_back(
         const char *name)
@@ -390,9 +416,9 @@ void lisk_model_draw_in_back(
 }
 
 /**
- * @brief
+ * @brief Configure the model so its instances are always rendered to the front.
  *
- * @param name
+ * @param[in] name Name of the target model.
  */
 void lisk_model_draw_in_front(
         const char *name)
@@ -407,10 +433,11 @@ void lisk_model_draw_in_front(
 }
 
 /**
- * @brief
+ * @brief Assigns a new texture to a model. This texture will be rendered
+ * as a background to all other effects and masks.
  *
- * @param name
- * @param texture
+ * @param[in] name Name of the target model.
+ * @param[in] texture Handle to a 2D texture.
  */
 void lisk_model_material_base_texture(
         const char *name,
@@ -430,16 +457,17 @@ void lisk_model_material_base_texture(
     }
 
     base = lisilisk_store_texture_retreive(
-            &static_data.stores.texture_store,
+            &static_data.stores.textures,
             true_handle.hash);
     material_texture(model->material, base);
 }
 
 /**
- * @brief
+ * @brief Configures how a model reacts to ambient light.
  *
- * @param name
- * @param ambient
+ * @param[in] name Name of the target model
+ * @param[in] ambient Color modifier for the ambient light.
+ * @param[in] texture_mask Eventual highlight mask.
  */
 void lisk_model_material_ambient(
         const char *name,
@@ -458,22 +486,23 @@ void lisk_model_material_ambient(
     material_ambient(model->material, *ambient, (*ambient)[3]);
 
     mask = lisilisk_store_texture_retreive(
-        &static_data.stores.texture_store,
+        &static_data.stores.textures,
         true_handle.hash);
 
     if (mask) {
         material_ambient_mask(model->material, mask);
     } else {
         material_ambient_mask(model->material,
-                static_data.stores.texture_store.default_texture);
+                static_data.stores.textures.default_texture);
     }
 }
 
 /**
- * @brief
+ * @brief Configures how a model softly diffuses light.
  *
- * @param name
- * @param diffuse
+ * @param[in] name Name of the target model.
+ * @param[in] diffuse Color modifier for diffuse reflections.
+ * @param[in] texture_mask Eventual highlight mask.
  */
 void lisk_model_material_diffuse(
         const char *name,
@@ -492,22 +521,24 @@ void lisk_model_material_diffuse(
     material_diffuse(model->material, *diffuse, (*diffuse)[3]);
 
     mask = lisilisk_store_texture_retreive(
-        &static_data.stores.texture_store,
+        &static_data.stores.textures,
         true_handle.hash);
 
     if (mask) {
         material_diffuse_mask(model->material, mask);
     } else {
         material_diffuse_mask(model->material,
-                static_data.stores.texture_store.default_texture);
+                static_data.stores.textures.default_texture);
     }
 }
 
 /**
- * @brief
+ * @brief Configures how a model shines light back.
  *
- * @param name
- * @param specular
+ * @param[in] name Name of the target model.
+ * @param[in] diffuse Color modifier for specular reflections.
+ * @param[in] shininess Reflection factor. Higher, the sharper reflections will be.
+ * @param[in] texture_mask Eventual highlight mask.
  */
 void lisk_model_material_specular(
         const char *name,
@@ -528,22 +559,23 @@ void lisk_model_material_specular(
     material_shininess(model->material, shininess);
 
     mask = lisilisk_store_texture_retreive(
-        &static_data.stores.texture_store,
+        &static_data.stores.textures,
         true_handle.hash);
 
     if (mask) {
         material_specular_mask(model->material, mask);
     } else {
         material_specular_mask(model->material,
-                static_data.stores.texture_store.default_texture);
+                static_data.stores.textures.default_texture);
     }
 }
 
 /**
- * @brief
+ * @brief Configures how a model emits highlights.
  *
- * @param name
- * @param emission
+ * @param[in] name Name of the target model.
+ * @param[in] emission Color modifier of the emission.
+ * @param[in] texture_mask Eventual highlight mask.
  */
 void lisk_model_material_emission(
         const char *name,
@@ -562,14 +594,14 @@ void lisk_model_material_emission(
     material_emissive(model->material, *emission, (*emission)[3]);
 
     mask = lisilisk_store_texture_retreive(
-        &static_data.stores.texture_store,
+        &static_data.stores.textures,
         true_handle.hash);
 
     if (mask) {
         material_emissive_mask(model->material, mask);
     } else {
         material_emissive_mask(model->material,
-                static_data.stores.texture_store.default_texture);
+                static_data.stores.textures.default_texture);
     }
 }
 
@@ -577,8 +609,7 @@ void lisk_model_material_emission(
  * @brief Creates an instance of a model at some point in space.
  * The function returns a handle referencing the new instance within the model.
  *
- * @param[in] name String containing the name of a previously registered
- * model.
+ * @param[in] name String containing the name of a previously registered model.
  * @param[in] pos 3D position of the new instance.
  * @param[in] scale scale of the model.
  * @return lisk_handle_t
@@ -615,6 +646,15 @@ lisk_handle_t lisk_model_instanciate(
     return handle.full;
 }
 
+/**
+ * @brief Adds a directional light to the scene, a source of light that
+ * simulates a bright, but far away object. All of its rays are parallel
+ * to each other.
+ *
+ * @param[in] direction Light rays direction.
+ * @param[in] color Light color.
+ * @return lisk_handle_t
+ */
 lisk_handle_t lisk_directional_light_add(
         float (*direction)[3],
         float (*color)[4])
@@ -644,10 +684,15 @@ lisk_handle_t lisk_directional_light_add(
 }
 
 /**
- * @brief
+ * @brief Adds a point light to the scene, a source of light that is limited
+ * sin space. All of its rays take the same origin and its strength fade with
+ * distance.
  *
- * @param position
- * @param color
+ * @param[in] direction Light position.
+ * @param[in] color Light color.
+ * @param[in] constant Constant attenuation (doesn't vary with distance).
+ * @param[in] linear Linear attenuation (gets stronger with distance).
+ * @param[in] quadratic Quadratic attenuation (gets very strong with distance).
  * @return lisk_handle_t
  */
 lisk_handle_t lisk_point_light_add(
@@ -684,7 +729,7 @@ lisk_handle_t lisk_point_light_add(
 }
 
 /**
- * @brief
+ * @brief Returns a handle to the scene camera.
  *
  * @return lisk_handle_t
  */
@@ -706,9 +751,9 @@ lisk_handle_t lisk_camera(void)
 }
 
 /**
- * @brief Deletes an instance from a model registered to the engine.
+ * @brief Deletes an instance of a model or a light from the engine.
  *
- * @param[in] instance Handle to the deleted instance.
+ * @param[in] instance Handle to the deleted object.
  */
 void lisk_instance_remove(
         lisk_handle_t instance)
@@ -736,10 +781,10 @@ void lisk_instance_remove(
 }
 
 /**
- * @brief
+ * @brief Changes the scale of a model's instance.
  *
- * @param instance
- * @param scale
+ * @param[in] instance Handle to an instance.
+ * @param[in] scale New scale.
  */
 
 void lisk_instance_set_scale(
@@ -768,10 +813,10 @@ void lisk_instance_set_scale(
 }
 
 /**
- * @brief
+ * @brief Changes the position of an intance, a point light, or the camera.
  *
- * @param instance
- * @param pos
+ * @param[in] instance Handle to the repositioned object.
+ * @param[in] pos New position.
  */
 void lisk_instance_set_position(
         lisk_handle_t instance,
@@ -804,10 +849,12 @@ void lisk_instance_set_position(
 }
 
 /**
- * @brief
+ * @brief Changes the rotation of an intance, a directional light, or the
+ * camera.
  *
- * @param instance
- * @param pos
+ * @param[in] instance Handle to the reoriented object.
+ * @param[in] axis Axis of rotation.
+ * @param[in] angle_rad Angle, in radians, of the object around the axis.
  */
 void lisk_instance_set_rotation(
         lisk_handle_t instance,
@@ -822,11 +869,12 @@ void lisk_instance_set_rotation(
 }
 
 /**
-* @brief
-*
-* @param instance
-* @param q
-*/
+ * @brief Changes the rotation of an intance, a directional light, or the
+ * camera, using a quaternion.
+ *
+ * @param[in] instance Handle to the reoriented object.
+ * @param[in] q Quaternion encoding the rotation.
+ */
 void lisk_instance_set_rotation_quaternion(
         lisk_handle_t instance,
         float (*q)[4])
@@ -860,12 +908,12 @@ void lisk_instance_set_rotation_quaternion(
 }
 
 /**
- * @brief
+ * @brief Changes the attenuation factors of a point light.
  *
- * @param instance
- * @param constant
- * @param linear
- * @param quadratic
+ * @param[in] instance handle to a point light.
+ * @param[in] constant Constant attenuation (doesn't vary with distance).
+ * @param[in] linear Linear attenuation (gets stronger with distance).
+ * @param[in] quadratic Quadratic attenuation (gets very strong with distance).
  */
 void lisk_instance_light_point_set_attenuation(
         lisk_handle_t instance,
@@ -893,10 +941,10 @@ void lisk_instance_light_point_set_attenuation(
 }
 
 /**
- * @brief
+ * @brief Changes the field of view of the camera.
  *
- * @param instance
- * @param fov
+ * @param[in] instance Handle to the camera.
+ * @param[in] fov New field of view angle, in degrees.
  */
 void lisk_instance_camera_set_fov(
         lisk_handle_t instance,
@@ -922,11 +970,12 @@ void lisk_instance_camera_set_fov(
 }
 
 /**
- * @brief
+ * @brief Changes the distances to the near and far planes of the camera,
+ * from which stops and start clipping.
  *
- * @param instance
- * @param near
- * @param far
+ * @param[in] instance Handle to the camera.
+ * @param[in] near Distance to the near plane.
+ * @param[in] far Distance to the far plane.
  */
 void lisk_instance_camera_set_limits(
         lisk_handle_t instance,
@@ -952,10 +1001,10 @@ void lisk_instance_camera_set_limits(
 }
 
 /**
- * @brief
+ * @brief Changes the camera's target point.
  *
- * @param instance
- * @param point
+ * @param[in] instance Handle to the camera.
+ * @param[in] point Point the camera nows looks at.
  */
 void lisk_instance_camera_set_target(
         lisk_handle_t instance,
@@ -1004,9 +1053,10 @@ void lisk_ambient_light_set(
 }
 
 /**
- * @brief
+ * @brief Changes the environment's background to a cubemap texture.
+ * The order of images is : Right, Left, Top, Bottom, Front, Back.
  *
- * @param cubemap
+ * @param[in] cubemap Set of six paths to iamges.
  */
 void lisk_skybox_set(
         const char *(*cubemap)[6])
@@ -1018,15 +1068,15 @@ void lisk_skybox_set(
     }
 
     texture = lisilisk_store_texture_cubemap_cache(
-            &static_data.stores.texture_store,
+            &static_data.stores.textures,
             static_data.context.res_manager, cubemap);
     environment_skybox(&static_data.world.environment, texture);
 }
 
 /**
- * @brief
+ * @brief Sets the color of the background, in absence of a cubemap texture.
  *
- * @param color
+ * @param[in] color New color.
  */
 void lisk_bg_color_set(
         float (*color)[3])
@@ -1053,7 +1103,9 @@ void lisk_show(void)
 }
 
 /**
- * @brief
+ * @brief Updates the scene once. This will render all models that are set to be
+ * shown, and swap the window. This call will try to synchronize itself with the
+ * refresh rate of the monitor.
  *
  */
 void lisk_draw(void)
@@ -1078,7 +1130,7 @@ void lisk_draw(void)
 }
 
 /**
- * @brief
+ * @brief Hides the window. This will actually unload the scene from the GPU.
  *
  */
 void lisk_hide(void)
@@ -1095,12 +1147,12 @@ void lisk_hide(void)
 // -----------------------------------------------------------------------------
 
 /**
- * @brief
+ * @brief Retreives the model that generated an instance, from the handle.
  *
  * @param instance_handle
  * @return struct model*
  */
-static struct model * static_data_model_of_instance(
+static struct model *static_data_model_of_instance(
         union lisk_handle_layout handle)
 {
     struct model *model = nullptr;
@@ -1113,19 +1165,20 @@ static struct model * static_data_model_of_instance(
         return nullptr;
     }
 
-    model = lisilisk_store_model_retrieve(&static_data.stores.model_store,
+    model = lisilisk_store_model_retrieve(&static_data.stores.models,
             handle.hash);
 
     return model;
 }
 
 /**
- * @brief
+ * @brief Retreives a model from the name the user supplied. If it doesn't
+ * exists, an entry will be created for it.
  *
  * @param name
  * @return struct model*
  */
-static struct model * static_data_model_named(
+static struct model *static_data_model_named(
         const char *name,
         u32 *out_hash)
 {
@@ -1138,9 +1191,9 @@ static struct model * static_data_model_named(
 
     // Create the model, register it in a map
     model_hash = lisilisk_store_model_register(
-            &static_data.stores.model_store, name);
+            &static_data.stores.models, name);
     model = lisilisk_store_model_retrieve(
-            &static_data.stores.model_store, model_hash);
+            &static_data.stores.models, model_hash);
 
     if (out_hash) {
         *out_hash = model_hash;

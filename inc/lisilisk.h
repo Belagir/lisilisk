@@ -17,6 +17,7 @@
 /** Invalid handle is just full of zeroes. */
 #define LISK_HANDLE_NONE ((lisk_handle_t) 0)
 
+// TODO: create a second handle type for data like textures, models, etc.
 /** Handle type to hold basic information and have it be a scalar. */
 typedef uint64_t lisk_handle_t;
 
@@ -34,12 +35,15 @@ void lisk_resize(
 void lisk_rename(
         const char *window_name);
 
-//
+// Requests y=the size of the window.
 void lisk_get_size(
         int32_t *width,
         int32_t *height);
 
-//
+// TODO: manage geometries like those
+// TODO: manage shaders like those
+// TODO: manage materials like those
+// Loads a texture from a file in the resources directory.
 lisk_handle_t lisk_texture(
         const char *file);
 
@@ -52,63 +56,63 @@ void lisk_model_geometry(
         const char *name,
         const char *obj_file);
 
-//
+// Assigns a material shader to render a model.
 void lisk_model_material_shader(
         const char *name,
         const char *frag_shader,
         const char *vert_shader);
 
-//
+// Assigns a fully user-defined shader to render a model.
 void lisk_model_advanced_shader(
         const char *name,
         const char *frag_shader,
         const char *vert_shader);
 
-//
+// Sets the culling mode of a model.
 void lisk_model_frontface_culling(
         const char *name);
 
-//
+// Sets the culling mode of a model.
 void lisk_model_backface_culling(
         const char *name);
 
-//
+// Sets the culling mode of a model.
 void lisk_model_noface_culling(
         const char *name);
 
-//
+// Sets the model to always be rendered behind others.
 void lisk_model_draw_in_back(
         const char *name);
 
-//
+// Sets the model to always be rendered in front of others.
 void lisk_model_draw_in_front(
         const char *name);
 
-//
+// Assigns a base texture to a model.
 void lisk_model_material_base_texture(
         const char *name,
         lisk_handle_t texture);
 
-//
+// Sets how a model is visible in the ambient light.
 void lisk_model_material_ambient(
         const char *name,
         float (*ambient)[4],
         lisk_handle_t texture_mask);
 
-//
+// Sets how a model diffuses the light sources.
 void lisk_model_material_diffuse(
         const char *name,
         float (*diffuse)[4],
         lisk_handle_t texture_mask);
 
-//
+// Sets how a model reflects the light sources.
 void lisk_model_material_specular(
         const char *name,
         float (*specular)[4],
         float shininess,
         lisk_handle_t texture_mask);
 
-//
+// Sets how a model emits color highlights.
 void lisk_model_material_emission(
         const char *name,
         float (*emission)[4],
@@ -136,44 +140,56 @@ lisk_handle_t lisk_point_light_add(
 // Fetches the camera rendering the world.
 lisk_handle_t lisk_camera(void);
 
+// TODO: change nomenclature
 // Removes a model instance or light from the world.
 void lisk_instance_remove(
         lisk_handle_t instance);
 
+// TODO: change nomenclature
 // Changes the scale of an instance.
 void lisk_instance_set_scale(
         lisk_handle_t instance,
         float (*scale)[3]);
 
+// TODO: change nomenclature
 // Changes the position of an instance or a point light.
 void lisk_instance_set_position(
         lisk_handle_t instance,
         float (*pos)[3]);
 
+// TODO: change nomenclature
 // Changes the orientation of an instance or a directional light.
 void lisk_instance_set_rotation(
         lisk_handle_t instance,
         float (*axis)[3],
         float angle_rad);
 
+// TODO: change nomenclature
 // Changes the orientation of an instance or a directional light.
 void lisk_instance_set_rotation_quaternion(
         lisk_handle_t instance,
         float (*q)[4]);
 
+// TODO: change nomenclature
 // Changes the attenuation properties of a light point.
 void lisk_instance_light_point_set_attenuation(
         lisk_handle_t instance,
         float constant, float linear, float quadratic);
 
+// TODO: change nomenclature
+// Sets the FOV of the camera.
 void lisk_instance_camera_set_fov(
         lisk_handle_t instance,
         float fov);
 
+// TODO: change nomenclature
+// Sets the near and far planes of the camera.
 void lisk_instance_camera_set_limits(
         lisk_handle_t instance,
         float near, float far);
 
+// TODO: change nomenclature
+// Sets target point of the camera.
 void lisk_instance_camera_set_target(
         lisk_handle_t instance,
         float (*point)[3]);
@@ -196,10 +212,10 @@ void lisk_bg_color_set(
 // Shows the window and the scene.
 void lisk_show(void);
 
-//
+// Renders the current scene.
 void lisk_draw(void);
 
-//
+// Hides the window.
 void lisk_hide(void);
 
 #endif

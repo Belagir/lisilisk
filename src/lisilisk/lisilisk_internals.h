@@ -21,6 +21,10 @@
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+/**
+ * @brief Kinds of objects managed by handles.
+ *
+ */
 enum handle_flavor {
     HANDLE_IS_INVALID,
     HANDLE_REPRESENTS_TEXTURE,
@@ -30,26 +34,47 @@ enum handle_flavor {
     HANDLE_REPRESENTS_CAMERA,
 };
 
+/**
+ * @brief Translation of a user-facing handle to the underlying usable data.
+ *
+ */
 union lisk_handle_layout {
     lisk_handle_t full;
-    struct { lisk_handle_t hash:32, internal:HANDLE_BREADTH, flavor:8; };
+    struct {
+        /** Hash associated to an object stored in the engine. */
+        lisk_handle_t hash:32;
+        /** Eventual instance handle from the 3dful module. */
+        lisk_handle_t internal:HANDLE_BREADTH;
+        /** Value from the enum handle_flavor. */
+        lisk_handle_t  flavor:8; };
 };
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+/**
+ * @brief Data store to cache texture objects.
+ *
+ */
 struct lisilisk_store_texture {
     struct texture *default_texture;
     HASHMAP(struct texture *) textures;
 };
 
+/**
+ * @brief Data store to cache geometry objects.
+ *
+ */
 struct lisilisk_store_geometry {
     struct geometry *sphere;
-    struct geometry *quad;
 
     HASHMAP(struct geometry *) geometries;
 };
 
+/**
+ * @brief Data store to cache material objects.
+ *
+ */
 struct lisilisk_store_material {
     struct lisilisk_store_texture *texture_store;
 
@@ -57,6 +82,10 @@ struct lisilisk_store_material {
     HASHMAP(struct material *) materials;
 };
 
+/**
+ * @brief Data store to cache model objects.
+ *
+ */
 struct lisilisk_store_model {
     struct lisilisk_store_material *material_store;
     struct lisilisk_store_shader *shader_store;
@@ -64,6 +93,10 @@ struct lisilisk_store_model {
     HASHMAP(struct model *) models;
 };
 
+/**
+ * @brief Data store to cache shader objects.
+ *
+ */
 struct lisilisk_store_shader {
     struct shader *default_material_shader;
 
@@ -73,10 +106,14 @@ struct lisilisk_store_shader {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+/**
+ * @brief Holds data about the OS-facing stuff needed by the engine.
+ *
+ */
 struct lisilisk_context {
-        struct SDL_Window *window;
-        SDL_GLContext *opengl;
-        struct resource_manager *res_manager;
+    struct SDL_Window *window;
+    SDL_GLContext *opengl;
+    struct resource_manager *res_manager;
 };
 
 // -----------------------------------------------------------------------------

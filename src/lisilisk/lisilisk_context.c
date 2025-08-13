@@ -1,3 +1,13 @@
+/**
+ * @file lisilisk_context.c
+ * @author Gabriel Bédat
+ * @brief
+ * @version 0.1
+ * @date 2025-08-13
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
 
 #include "lisilisk_internals.h"
 
@@ -6,13 +16,14 @@
 #include <SDL2/SDL_image.h>
 
 /**
- * @brief
+ * @brief Setup the libraries and creates a window to render the opengl
+ * context. The window starts hidden.
  *
- * @param window
- * @param context
- * @param name
- * @param width
- * @param height
+ * @param[inout] context Context to initialize.
+ * @param[in] log Logger to communicate with the outside world.
+ * @param[in] name Title of the window.
+ * @param[in] width Width, in pixels, of the window.
+ * @param[in] height Height, in pixels, of the window.
  */
 void lisilisk_context_init(
         struct lisilisk_context *context,
@@ -77,7 +88,12 @@ void lisilisk_context_init(
     glDepthFunc(GL_LEQUAL);
 }
 
-
+/**
+ * @brief Quits all libraries and utilities needed for the window.
+ * This will close the window.
+ *
+ * @param[inout] context Context to de-initialize.
+ */
 void lisilisk_context_deinit(
         struct lisilisk_context *context)
 {
@@ -93,11 +109,11 @@ void lisilisk_context_deinit(
 }
 
 /**
- * @brief
+ * @brief Changes the size of the window.
  *
- * @param context
- * @param width
- * @param height
+ * @param[inout] context Modified context.
+ * @param[in] width Width, in pixels, of the window.
+ * @param[in] height Height, in pixels, of the window.
  */
 void lisilisk_context_window_set_size(
         struct lisilisk_context *context,
@@ -107,11 +123,11 @@ void lisilisk_context_window_set_size(
 }
 
 /**
- * @brief
+ * @brief Fills the given pointers with the dimensions of the window.
  *
- * @param context
- * @param width
- * @param height
+ * @param[in] context Queried context.
+ * @param[out] width Filled with the width, in pixels, of the window.
+ * @param[out] height Filled with the height, in pixels, of the window.
  */
 void lisilisk_context_window_get_size(
         struct lisilisk_context *context,
@@ -121,10 +137,10 @@ void lisilisk_context_window_get_size(
 }
 
 /**
- * @brief
+ * @brief Changes the title of the window.
  *
- * @param context
- * @param name
+ * @param[inout] context Modified context.
+ * @param[in] name String of the new window title.
  */
 void lisilisk_context_window_set_name(
         struct lisilisk_context *context,
@@ -134,10 +150,11 @@ void lisilisk_context_window_set_name(
 }
 
 /**
- * @brief
+ * @brief Reads all files in a folder, and adds them to the packaged
+ * resources system.
  *
- * @param context
- * @param folder
+ * @param[inout] context Modified context.
+ * @param[in] folder Valid path to a system folder.
  */
 void lisilisk_context_integrate_resources(
         struct lisilisk_context *context,
@@ -157,7 +174,7 @@ void lisilisk_context_integrate_resources(
     fts_close(hierarchy_stream);
 
     resource_manager_touch(context->res_manager, "lisilisk", nullptr,
-                    make_system_allocator());
+            make_system_allocator());
     resource_manager_add_supplicant(context->res_manager, "lisilisk", 0,
             make_system_allocator());
 }

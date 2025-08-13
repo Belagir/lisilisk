@@ -1,3 +1,13 @@
+/**
+ * @file lisilisk_defaults.c
+ * @author Gabriel Bédat
+ * @brief
+ * @version 0.1
+ * @date 2025-08-13
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
 
 #include "lisilisk_internals.h"
 
@@ -6,9 +16,11 @@
 #include <ustd/res.h>
 
 /**
- * @brief
+ * @brief Loads a default environment for the engine.
  *
- * @param env
+ * @param[out] env target environment.
+ * @param[in] sky_shape Shaped used to render the sky.
+ * @param[in] sky_shader Shader applied to the shape of the sky.
  */
 void lisilisk_setup_environment(
         struct environment *env,
@@ -29,9 +41,10 @@ void lisilisk_setup_environment(
 }
 
 /**
- * @brief
+ * @brief Configures a default camera for the engine.
  *
- * @param camera
+ * @param[out] camera Target camera.
+ * @param[in] context Context in which the camera evolves.
  */
 void lisilisk_setup_camera(
         struct camera *camera,
