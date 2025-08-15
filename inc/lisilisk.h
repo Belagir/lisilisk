@@ -59,21 +59,25 @@ lisk_res_t lisk_shader(
         const char *frag_shader,
         const char *vert_shader);
 
-//
+// Creates a material.
+lisk_res_t lisk_material(
+        const char *name);
+
+// Loads a 3D mesh from a .obj file.
+lisk_res_t lisk_geometry(
+        const char *obj_file);
+
+// Changes the value of a uniform in a shader.
 void lisk_shader_set_uniform_float(
         lisk_res_t shader,
         const char *uniform_name,
         float value);
 
-//
+// TODO:
 void lisk_shader_set_uniform_texture(
         lisk_res_t shader,
         const char *uniform_name,
         lisk_res_t texture);
-
-// Loads a 3D mesh from a .obj file.
-lisk_res_t lisk_geometry(
-        const char *obj_file);
 
 // Makes it mossible for a model's instances to be rendered to the scene.
 void lisk_model_show(
@@ -83,6 +87,11 @@ void lisk_model_show(
 void lisk_model_geometry(
         const char *name,
         lisk_res_t geometry);
+
+// Assigns a material to configure a model's shading.
+void lisk_model_material(
+        const char *name,
+        lisk_res_t material);
 
 // Assigns a material shader to render a model.
 void lisk_model_shader(
@@ -110,32 +119,32 @@ void lisk_model_draw_in_front(
         const char *name);
 
 // Assigns a base texture to a model.
-void lisk_model_material_base_texture(
-        const char *name,
+void lisk_material_base_texture(
+        lisk_res_t material,
         lisk_res_t texture);
 
 // Sets how a model is visible in the ambient light.
-void lisk_model_material_ambient(
-        const char *name,
+void lisk_material_ambient(
+        lisk_res_t material,
         float (*ambient)[4],
         lisk_res_t texture_mask);
 
 // Sets how a model diffuses the light sources.
-void lisk_model_material_diffuse(
-        const char *name,
+void lisk_material_diffuse(
+        lisk_res_t material,
         float (*diffuse)[4],
         lisk_res_t texture_mask);
 
 // Sets how a model reflects the light sources.
-void lisk_model_material_specular(
-        const char *name,
+void lisk_material_specular(
+        lisk_res_t material,
         float (*specular)[4],
         float shininess,
         lisk_res_t texture_mask);
 
 // Sets how a model emits color highlights.
-void lisk_model_material_emission(
-        const char *name,
+void lisk_material_emission(
+        lisk_res_t material,
         float (*emission)[4],
         lisk_res_t texture_mask);
 

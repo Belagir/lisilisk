@@ -38,6 +38,7 @@ enum res_flavor : u8 {
     RES_REPRESENTS_TEXTURE,
     RES_REPRESENTS_SHADER,
     RES_REPRESENTS_GEOMETRY,
+    RES_REPRESENTS_MATERIAL,
 };
 
 /**
@@ -212,9 +213,12 @@ struct lisilisk_store_material lisilisk_store_material_create(
 void lisilisk_store_material_delete(
         struct lisilisk_store_material *store);
 
-struct material *lisilisk_store_material_cache(
+u32 lisilisk_store_material_register(
         struct lisilisk_store_material *store,
         const char *name);
+struct material *lisilisk_store_material_retrieve(
+        struct lisilisk_store_material *store,
+        u32 hash);
 
 // -----------------------------------------------------------------------------
 
@@ -237,7 +241,7 @@ struct lisilisk_store_shader lisilisk_store_shader_create(void);
 void lisilisk_store_shader_delete(
         struct lisilisk_store_shader *shader_store);
 
-u32 lisilisk_store_shader_material_register(
+u32 lisilisk_store_shader_register(
         struct lisilisk_store_shader *store,
         struct resource_manager *res_manager,
         const char *frag, const char *vert);

@@ -73,7 +73,7 @@ void lisilisk_store_shader_delete(
  * @param vert
  * @return u32
  */
-u32 lisilisk_store_shader_material_register(
+u32 lisilisk_store_shader_register(
         struct lisilisk_store_shader *store,
         struct resource_manager *res_manager,
         const char *frag, const char *vert)
@@ -115,8 +115,8 @@ u32 lisilisk_store_shader_material_register(
             frag_source_length = (size_t) &default_fragment_size;
         }
 
-        shader_material_frag_mem(shader, frag_source, frag_source_length);
-        shader_material_vert_mem(shader, vert_source, vert_source_length);
+        shader_frag_mem(shader, frag_source, frag_source_length);
+        shader_vert_mem(shader, vert_source, vert_source_length);
         shader_link(shader);
 
         if (shader->program == 0) {

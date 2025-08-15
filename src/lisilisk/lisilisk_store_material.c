@@ -77,55 +77,52 @@ void lisilisk_store_material_delete(
  *
  * @param store
  * @param name
- * @return struct material*
+ * @return u32
  */
-struct material *lisilisk_store_material_cache(
+u32 lisilisk_store_material_register(
         struct lisilisk_store_material *store,
         const char *name)
 {
     struct allocator alloc = make_system_allocator();
-    size_t pos = 0;
-    struct material *new_material = nullptr;
+    struct material *material = nullptr;
+    u32 hash = 0;
 
-    if (!store) {
-        return nullptr;
-    }
+    hash = hashmap_hash_of(name, 0);
+    material = lisilisk_store_material_retrieve(store, hash);
 
-    pos = hashmap_index_of(store->materials, name);
-
-    if (pos < array_length(store->materials)) {
-        return store->materials[pos];
-    }
-
-    new_material = alloc.malloc(alloc, sizeof(*new_material));
-
-    if (new_material) {
-        *new_material = *store->default_material;
+    if (!material) {
+        material = alloc.malloc(alloc, sizeof(*material));
+        *material = *store->default_material;
 
         hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->materials, 1);
-        pos = hashmap_set(store->materials, name, &new_material);
-
-        store->materials[pos] = new_material;
-
-        return store->materials[pos];
+        hashmap_set(store->materials, name, &material);
     }
 
-    alloc.free(alloc, new_material);
-    return nullptr;
+    return hash;
 }
 
 /**
  * @brief
  *
  * @param store
+ * @param hash
  * @return struct material*
  */
-struct material *lisilisk_store_material_default(
-        struct lisilisk_store_material *store)
+struct material *lisilisk_store_material_retrieve(
+        struct lisilisk_store_material *store,
+        u32 hash)
 {
+    size_t pos = 0;
+
     if (!store) {
-        return nullptr;
+        return 0;
     }
 
-    return store->default_material;
+    pos = hashmap_index_of_hashed(store->materials, hash);
+
+    if (pos < array_length(store->materials)) {
+        return store->materials[pos];
+    }
+
+    return nullptr;
 }

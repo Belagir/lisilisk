@@ -233,11 +233,34 @@ lisk_res_t lisk_shader(
     union lisk_res_layout handle = { .full = LISK_RES_NONE };
     u32 hash = 0;
 
-    hash = lisilisk_store_shader_material_register(&static_data.stores.shaders,
+    hash = lisilisk_store_shader_register(&static_data.stores.shaders,
         static_data.context.res_manager, frag_shader, vert_shader);
 
     handle = (union lisk_res_layout) {
         .flavor = RES_REPRESENTS_SHADER,
+        .hash = hash
+    };
+
+    return handle.full;
+}
+
+/**
+ * @brief
+ *
+ * @param name
+ * @return lisk_res_t
+ */
+lisk_res_t lisk_material(
+        const char *name)
+{
+    union lisk_res_layout handle = { .full = LISK_RES_NONE };
+    u32 hash = 0;
+
+    hash = lisilisk_store_material_register(&static_data.stores.materials,
+            name);
+
+    handle = (union lisk_res_layout) {
+        .flavor = RES_REPRESENTS_MATERIAL,
         .hash = hash
     };
 
@@ -270,13 +293,6 @@ void lisk_shader_set_uniform_float(
         shader_uniform_float(shader, uniform_name, value);
     }
 }
-
-//
-void lisk_shader_set_uniform_texture(
-        lisk_res_t shader,
-        const char *uniform_name,
-        lisk_res_t texture);
-
 
 /**
  * @brief
