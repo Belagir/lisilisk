@@ -16,10 +16,17 @@
 
 /** Invalid handle is just full of zeroes. */
 #define LISK_HANDLE_NONE ((lisk_handle_t) 0)
+
+/** Handle type to a scene object to hold basic information and have it be a
+    scalar. */
+enum lisk_handle : uint64_t;
+typedef enum lisk_handle lisk_handle_t;
+
+/** Invalid handle is just full of zeroes. */
 #define LISK_RES_NONE ((lisk_res_t) 0)
 
-/** Handle type to hold basic information and have it be a scalar. */
-typedef uint64_t lisk_handle_t;
+/** Handle type to a resource to hold basic information and have it be a
+    scalar. */
 enum lisk_res : uint64_t;
 typedef enum lisk_res lisk_res_t;
 
@@ -48,6 +55,7 @@ void lisk_get_size(
 lisk_res_t lisk_texture(
         const char *file);
 
+// TODO: implementation & integration
 lisk_res_t lisk_shader(
         const char *frag_shader,
         const char *vert_shader);

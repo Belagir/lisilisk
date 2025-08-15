@@ -474,7 +474,7 @@ void lisk_model_material_ambient(
 {
     struct model *model = nullptr;
     struct texture *mask = nullptr;
-    union lisk_handle_layout true_handle = { .full = texture_mask };
+    union lisk_res_layout true_handle = { .full = texture_mask };
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
@@ -546,7 +546,7 @@ void lisk_model_material_specular(
 {
     struct model *model = nullptr;
     struct texture *mask = nullptr;
-    union lisk_handle_layout true_handle = { .full = texture_mask };
+    union lisk_res_layout true_handle = { .full = texture_mask };
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
@@ -582,7 +582,7 @@ void lisk_model_material_emission(
 {
     struct model *model = nullptr;
     struct texture *mask = nullptr;
-    union lisk_handle_layout true_handle = { .full = texture_mask };
+    union lisk_res_layout true_handle = { .full = texture_mask };
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
