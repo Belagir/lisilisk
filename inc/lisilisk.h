@@ -49,7 +49,6 @@ void lisk_get_size(
         int32_t *width,
         int32_t *height);
 
-// TODO: manage materials like those
 // Loads a texture from a file in the resources directory.
 lisk_res_t lisk_texture(
         const char *file);

@@ -81,7 +81,7 @@ u32 lisilisk_store_geometry_register(
 
 
     hash = hashmap_hash_of(obj_path, 0);
-    geometry = lisilisk_store_geometry_retreive(store, hash);
+    geometry = lisilisk_store_geometry_retrieve(store, hash);
 
     if (!geometry) {
         // create geometry from file
@@ -122,7 +122,7 @@ cleanup:
  * @param hash
  * @return struct geometry*
  */
-struct geometry *lisilisk_store_geometry_retreive(
+struct geometry *lisilisk_store_geometry_retrieve(
         struct lisilisk_store_geometry *store,
         u32 hash)
 {

@@ -187,7 +187,7 @@ u32 lisilisk_store_texture_register(
         struct lisilisk_store_texture *store,
         struct resource_manager *res_manager,
         const char *image);
-struct texture *lisilisk_store_texture_retreive(
+struct texture *lisilisk_store_texture_retrieve(
         struct lisilisk_store_texture *store,
         u32 hash);
 
@@ -202,7 +202,7 @@ u32 lisilisk_store_geometry_register(
         struct resource_manager *res_manager,
         const char *obj_path);
 
-struct geometry *lisilisk_store_geometry_retreive(
+struct geometry *lisilisk_store_geometry_retrieve(
         struct lisilisk_store_geometry *store,
         u32 hash);
 
@@ -246,7 +246,7 @@ u32 lisilisk_store_shader_register(
         struct resource_manager *res_manager,
         const char *frag, const char *vert);
 
-struct shader *lisilisk_store_shader_retreive(
+struct shader *lisilisk_store_shader_retrieve(
         struct lisilisk_store_shader *store,
         u32 hash);
 

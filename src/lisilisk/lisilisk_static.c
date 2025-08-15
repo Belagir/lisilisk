@@ -196,7 +196,7 @@ void lisk_rename(const char *window_name)
 }
 
 /**
- * @brief Loads or retreive a previously loaded texture. The texture can be
+ * @brief Loads or retrieve a previously loaded texture. The texture can be
  * used with the handle that is returned.
  *
  * @param[in] file System path to an image inside your resources folder.
@@ -286,7 +286,7 @@ void lisk_shader_set_uniform_float(
         return;
     }
 
-    shader = lisilisk_store_shader_retreive(
+    shader = lisilisk_store_shader_retrieve(
             &static_data.stores.shaders, handle.hash);
 
     if (shader) {
@@ -362,7 +362,7 @@ void lisk_model_geometry(
     }
 
     // Create the geometry from the file and registers it in a map
-    geometry = lisilisk_store_geometry_retreive(
+    geometry = lisilisk_store_geometry_retrieve(
             &static_data.stores.geometries, geometry_handle.hash);
 
     if (!geometry) {
@@ -394,7 +394,7 @@ void lisk_model_shader(
         return;
     }
 
-    shader = lisilisk_store_shader_retreive(
+    shader = lisilisk_store_shader_retrieve(
             &static_data.stores.shaders, shader_handle.hash);
 
     if (!shader) {
@@ -402,6 +402,39 @@ void lisk_model_shader(
     }
 
     model_shader(model, shader);
+}
+
+/**
+ * @brief
+ *
+ * @param name
+ * @param material
+ */
+void lisk_model_material(
+        const char *name,
+        lisk_res_t res_material)
+{
+    struct model *model = nullptr;
+    struct material *material = nullptr;
+    union lisk_res_layout material_handle = { .full = res_material };
+
+    if (material_handle.flavor != RES_REPRESENTS_MATERIAL) {
+        return;
+    }
+
+    model = static_data_model_named(name, nullptr);
+    if (!model) {
+        return;
+    }
+
+    material = lisilisk_store_material_retrieve(
+            &static_data.stores.materials, material_handle.hash);
+
+    if (!material) {
+        return;
+    }
+
+    model_material(model, material);
 }
 
 /**
@@ -493,175 +526,182 @@ void lisk_model_draw_in_front(
 }
 
 /**
- * @brief Assigns a new texture to a model. This texture will be rendered
- * as a background to all other effects and masks.
+ * @brief
  *
- * @param[in] name Name of the target model.
- * @param[in] texture Handle to a 2D texture.
+ * @param material
+ * @param texture
  */
-void lisk_model_material_base_texture(
-        const char *name,
-        lisk_res_t texture)
+void lisk_material_base_texture(
+        lisk_res_t res_material,
+        lisk_res_t res_texture)
 {
-    struct model *model = nullptr;
-    struct texture *base = nullptr;
-    union lisk_res_layout true_handle = { .full = texture };
+    union lisk_res_layout handle_material = { .full = res_material };
+    union lisk_res_layout handle_texture = { .full = res_texture };
+    struct material *material = nullptr;
+    struct texture *texture = nullptr;
 
-    if (true_handle.flavor != RES_REPRESENTS_TEXTURE) {
+    if ((handle_material.flavor != RES_REPRESENTS_MATERIAL)
+            || (handle_texture.flavor != RES_REPRESENTS_TEXTURE)) {
         return;
     }
 
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
-        return;
-    }
+    material = lisilisk_store_material_retrieve(
+            &static_data.stores.materials, handle_material.hash);
 
-    base = lisilisk_store_texture_retreive(
-            &static_data.stores.textures,
-            true_handle.hash);
-    material_texture(model->material, base);
+    texture = lisilisk_store_texture_retrieve(
+            &static_data.stores.textures, handle_texture.hash);
+
+    if (material && texture) {
+        material_texture(material, texture);
+    }
 }
 
 /**
- * @brief Configures how a model reacts to ambient light.
+ * @brief
  *
- * @param[in] name Name of the target model
- * @param[in] ambient Color modifier for the ambient light.
- * @param[in] texture_mask Eventual highlight mask.
+ * @param material
+ * @param ambient
+ * @param texture_mask
  */
-void lisk_model_material_ambient(
-        const char *name,
+void lisk_material_ambient(
+        lisk_res_t res_material,
         float (*ambient)[4],
-        lisk_res_t texture_mask)
+        lisk_res_t res_texture_mask)
 {
-    struct model *model = nullptr;
+    union lisk_res_layout handle_material = { .full = res_material };
+    union lisk_res_layout handle_mask = { .full = res_texture_mask };
+    struct material *material = nullptr;
     struct texture *mask = nullptr;
-    union lisk_res_layout true_handle = { .full = texture_mask };
 
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
+    if ((handle_material.flavor != RES_REPRESENTS_MATERIAL)
+            || (handle_mask.flavor != RES_REPRESENTS_TEXTURE)) {
         return;
     }
 
-    material_ambient(model->material, *ambient, (*ambient)[3]);
+    material = lisilisk_store_material_retrieve(
+            &static_data.stores.materials, handle_material.hash);
 
-    mask = lisilisk_store_texture_retreive(
-        &static_data.stores.textures,
-        true_handle.hash);
+    mask = lisilisk_store_texture_retrieve(
+            &static_data.stores.textures, handle_mask.hash);
 
-    if (mask) {
-        material_ambient_mask(model->material, mask);
-    } else {
-        material_ambient_mask(model->material,
-                static_data.stores.textures.default_texture);
+    if (material) {
+        if (ambient) {
+            material_ambient(material, *ambient, (*ambient)[3]);
+        }
+        if (mask) {
+            material_ambient_mask(material, mask);
+        }
     }
 }
 
 /**
- * @brief Configures how a model softly diffuses light.
+ * @brief
  *
- * @param[in] name Name of the target model.
- * @param[in] diffuse Color modifier for diffuse reflections.
- * @param[in] texture_mask Eventual highlight mask.
+ * @param material
+ * @param diffuse
+ * @param texture_mask
  */
-void lisk_model_material_diffuse(
-        const char *name,
+void lisk_material_diffuse(
+        lisk_res_t res_material,
         float (*diffuse)[4],
-        lisk_res_t texture_mask)
+        lisk_res_t res_texture_mask)
 {
-    struct model *model = nullptr;
+    union lisk_res_layout handle_material = { .full = res_material };
+    union lisk_res_layout handle_mask = { .full = res_texture_mask };
+    struct material *material = nullptr;
     struct texture *mask = nullptr;
-    union lisk_res_layout true_handle = { .full = texture_mask };
 
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
+    if ((handle_material.flavor != RES_REPRESENTS_MATERIAL)
+            || (handle_mask.flavor != RES_REPRESENTS_TEXTURE)) {
         return;
     }
 
-    material_diffuse(model->material, *diffuse, (*diffuse)[3]);
+    material = lisilisk_store_material_retrieve(
+            &static_data.stores.materials, handle_material.hash);
 
-    mask = lisilisk_store_texture_retreive(
-        &static_data.stores.textures,
-        true_handle.hash);
+    mask = lisilisk_store_texture_retrieve(
+            &static_data.stores.textures, handle_mask.hash);
 
-    if (mask) {
-        material_diffuse_mask(model->material, mask);
-    } else {
-        material_diffuse_mask(model->material,
-                static_data.stores.textures.default_texture);
+    if (material) {
+        if (diffuse) {
+            material_diffuse(material, *diffuse, (*diffuse)[3]);
+        }
+        if (mask) {
+            material_diffuse_mask(material, mask);
+        }
     }
 }
 
-/**
- * @brief Configures how a model shines light back.
- *
- * @param[in] name Name of the target model.
- * @param[in] diffuse Color modifier for specular reflections.
- * @param[in] shininess Reflection factor. Higher, the sharper reflections will be.
- * @param[in] texture_mask Eventual highlight mask.
- */
-void lisk_model_material_specular(
-        const char *name,
+// Sets how a model reflects the light sources.
+void lisk_material_specular(
+        lisk_res_t res_material,
         float (*specular)[4],
         float shininess,
-        lisk_res_t texture_mask)
+        lisk_res_t res_texture_mask)
 {
-    struct model *model = nullptr;
+    union lisk_res_layout handle_material = { .full = res_material };
+    union lisk_res_layout handle_mask = { .full = res_texture_mask };
+    struct material *material = nullptr;
     struct texture *mask = nullptr;
-    union lisk_res_layout true_handle = { .full = texture_mask };
 
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
+    if ((handle_material.flavor != RES_REPRESENTS_MATERIAL)
+            || (handle_mask.flavor != RES_REPRESENTS_TEXTURE)) {
         return;
     }
 
-    material_specular(model->material, *specular, (*specular)[3]);
-    material_shininess(model->material, shininess);
+    material = lisilisk_store_material_retrieve(
+            &static_data.stores.materials, handle_material.hash);
 
-    mask = lisilisk_store_texture_retreive(
-        &static_data.stores.textures,
-        true_handle.hash);
+    mask = lisilisk_store_texture_retrieve(
+            &static_data.stores.textures, handle_mask.hash);
 
-    if (mask) {
-        material_specular_mask(model->material, mask);
-    } else {
-        material_specular_mask(model->material,
-                static_data.stores.textures.default_texture);
+    if (material) {
+        material_shininess(material, shininess);
+
+        if (specular) {
+            material_specular(material, *specular, (*specular)[3]);
+        }
+        if (mask) {
+            material_specular_mask(material, mask);
+        }
     }
 }
 
 /**
- * @brief Configures how a model emits highlights.
+ * @brief
  *
- * @param[in] name Name of the target model.
- * @param[in] emission Color modifier of the emission.
- * @param[in] texture_mask Eventual highlight mask.
+ * @param material
+ * @param emission
+ * @param texture_mask
  */
-void lisk_model_material_emission(
-        const char *name,
+void lisk_material_emission(
+        lisk_res_t res_material,
         float (*emission)[4],
-        lisk_res_t texture_mask)
+        lisk_res_t res_texture_mask)
 {
-    struct model *model = nullptr;
+    union lisk_res_layout handle_material = { .full = res_material };
+    union lisk_res_layout handle_mask = { .full = res_texture_mask };
+    struct material *material = nullptr;
     struct texture *mask = nullptr;
-    union lisk_res_layout true_handle = { .full = texture_mask };
 
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
+    if ((handle_material.flavor != RES_REPRESENTS_MATERIAL)
+            || (handle_mask.flavor != RES_REPRESENTS_TEXTURE)) {
         return;
     }
 
-    material_emissive(model->material, *emission, (*emission)[3]);
+    material = lisilisk_store_material_retrieve(
+            &static_data.stores.materials, handle_material.hash);
 
-    mask = lisilisk_store_texture_retreive(
-        &static_data.stores.textures,
-        true_handle.hash);
+    mask = lisilisk_store_texture_retrieve(
+            &static_data.stores.textures, handle_mask.hash);
 
-    if (mask) {
-        material_emissive_mask(model->material, mask);
-    } else {
-        material_emissive_mask(model->material,
-                static_data.stores.textures.default_texture);
+    if (material) {
+        if (emission) {
+            material_emissive(material, *emission, (*emission)[3]);
+        }
+        if (mask) {
+            material_emissive_mask(material, mask);
+        }
     }
 }
 
@@ -1191,7 +1231,7 @@ void lisk_hide(void)
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Retreives the model that generated an instance, from the handle.
+ * @brief retrieves the model that generated an instance, from the handle.
  *
  * @param instance_handle
  * @return struct model*
@@ -1216,7 +1256,7 @@ static struct model *static_data_model_of_instance(
 }
 
 /**
- * @brief Retreives a model from the name the user supplied. If it doesn't
+ * @brief retrieves a model from the name the user supplied. If it doesn't
  * exists, an entry will be created for it.
  *
  * @param name

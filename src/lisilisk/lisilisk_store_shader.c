@@ -92,7 +92,7 @@ u32 lisilisk_store_shader_register(
 
     hash = hashmap_hash_of(frag, 0);
     hash = hashmap_hash_of(vert, hash);
-    shader = lisilisk_store_shader_retreive(store, hash);
+    shader = lisilisk_store_shader_retrieve(store, hash);
 
     if (!shader) {
         shader = alloc.malloc(alloc, sizeof(*shader));
@@ -115,8 +115,8 @@ u32 lisilisk_store_shader_register(
             frag_source_length = (size_t) &default_fragment_size;
         }
 
-        shader_frag_mem(shader, frag_source, frag_source_length);
-        shader_vert_mem(shader, vert_source, vert_source_length);
+        shader_material_frag_mem(shader, frag_source, frag_source_length);
+        shader_material_vert_mem(shader, vert_source, vert_source_length);
         shader_link(shader);
 
         if (shader->program == 0) {
@@ -143,7 +143,7 @@ cleanup:
  * @param hash
  * @return struct shader*
  */
-struct shader *lisilisk_store_shader_retreive(
+struct shader *lisilisk_store_shader_retrieve(
         struct lisilisk_store_shader *store,
         u32 hash)
 {

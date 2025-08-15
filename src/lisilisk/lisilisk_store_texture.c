@@ -127,7 +127,7 @@ u32 lisilisk_store_texture_register(
     u32 hash = 0;
 
     hash = hashmap_hash_of(image, 0);
-    texture = lisilisk_store_texture_retreive(store, hash);
+    texture = lisilisk_store_texture_retrieve(store, hash);
 
     if (!texture) {
         texture = alloc.malloc(alloc, sizeof(*texture));
@@ -151,7 +151,7 @@ u32 lisilisk_store_texture_register(
  * @param hash
  * @return struct texture*
  */
-struct texture *lisilisk_store_texture_retreive(
+struct texture *lisilisk_store_texture_retrieve(
         struct lisilisk_store_texture *store,
         u32 hash)
 {
