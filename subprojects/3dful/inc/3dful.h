@@ -391,13 +391,6 @@ void scene_unload(struct scene *scene);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-#if 0
-struct application application_create(const char *name, u32 width, u32 height);
-void application_destroy(struct application *target);
-#endif
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // SHADERS ---------------------------------------------------------------------
 
@@ -410,6 +403,9 @@ void shader_vert_mem(struct shader *shader, const byte *source,
         size_t length);
 void shader_frag_mem(struct shader *shader, const byte *source,
         size_t length);
+
+void shader_uniform_float(struct shader *shader, const char *name,
+        float value);
 
 void shader_link(struct shader *shader);
 void shader_delete(struct shader *shader);

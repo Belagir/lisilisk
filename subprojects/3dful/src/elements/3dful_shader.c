@@ -100,6 +100,23 @@ void shader_frag_mem(struct shader *shader, const byte *source,
 }
 
 /**
+ * @brief
+ *
+ * @param shader
+ * @param name
+ * @param value
+ */
+void shader_uniform_float(struct shader *shader, const char *name,
+        float value)
+{
+    GLint loc = 0;
+
+    glUseProgram(shader->program);
+    loc = glGetUniformLocation(shader->program, name);
+    glUniform1f(loc, value);
+}
+
+/**
  * @brief Links a shader program, assembling the vertex part and fragment part
  * into one usable program.
  *

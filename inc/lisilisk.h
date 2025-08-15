@@ -49,7 +49,6 @@ void lisk_get_size(
         int32_t *width,
         int32_t *height);
 
-// TODO: manage geometries like those
 // TODO: manage materials like those
 // Loads a texture from a file in the resources directory.
 lisk_res_t lisk_texture(
@@ -64,6 +63,18 @@ lisk_res_t lisk_material_shader(
 lisk_res_t lisk_advanced_shader(
         const char *frag_shader,
         const char *vert_shader);
+
+//
+void lisk_shader_set_uniform_float(
+        lisk_res_t shader,
+        const char *uniform_name,
+        float value);
+
+//
+void lisk_shader_set_uniform_texture(
+        lisk_res_t shader,
+        const char *uniform_name,
+        lisk_res_t texture);
 
 // Loads a 3D mesh from a .obj file.
 lisk_res_t lisk_geometry(

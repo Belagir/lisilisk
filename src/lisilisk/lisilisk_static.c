@@ -10,7 +10,6 @@
  */
 
 #include <sys/time.h>
-#include <GLES3/gl3.h>
 
 #include <lisilisk.h>
 #include <ustd/res.h>
@@ -269,6 +268,40 @@ lisk_res_t lisk_advanced_shader(
 
     return handle.full;
 }
+
+/**
+ * @brief
+ *
+ * @param shader
+ * @param uniform_name
+ * @param value
+ */
+void lisk_shader_set_uniform_float(
+        lisk_res_t res_shader,
+        const char *uniform_name,
+        float value)
+{
+    union lisk_res_layout handle = { .full = res_shader };
+    struct shader* shader = nullptr;
+
+    if (handle.flavor != RES_REPRESENTS_SHADER) {
+        return;
+    }
+
+    shader = lisilisk_store_shader_retreive(
+            &static_data.stores.shaders, handle.hash);
+
+    if (shader) {
+        shader_uniform_float(shader, uniform_name, value);
+    }
+}
+
+//
+void lisk_shader_set_uniform_texture(
+        lisk_res_t shader,
+        const char *uniform_name,
+        lisk_res_t texture);
+
 
 /**
  * @brief
