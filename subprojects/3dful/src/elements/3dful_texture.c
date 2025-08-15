@@ -63,9 +63,12 @@ void texture_2D_file(struct texture *texture, const char *path)
 void texture_2D_file_mem(struct texture *texture, const byte *image_buffer,
      size_t length)
 {
+    SDL_RWops *mem_rw = SDL_RWFromMem((void *) image_buffer, length);
+
     texture->flavor = TEXTURE_FLAVOR_2D;
-    texture->specific.image_for_2D = IMG_Load_RW(
-            SDL_RWFromMem((void *) image_buffer, length), 0);
+    texture->specific.image_for_2D = IMG_Load_RW(mem_rw, 0);
+
+    SDL_RWclose(mem_rw);
 
     texture_reload(texture);
 }
@@ -98,9 +101,12 @@ void texture_cubemap_file(struct texture *texture, enum cubemap_face face,
 void texture_cubemap_file_mem(struct texture *texture, enum cubemap_face face,
         const byte *image_buffer, size_t length)
 {
+    SDL_RWops *mem_rw = SDL_RWFromMem((void *) image_buffer, length);
+
     texture->flavor = TEXTURE_FLAVOR_CUBEMAP;
-    texture->specific.images_for_cubemap[face] = IMG_Load_RW(
-            SDL_RWFromMem((void *) image_buffer, length), 0);
+    texture->specific.images_for_cubemap[face] = IMG_Load_RW(mem_rw, 0);
+
+    SDL_RWclose(mem_rw);
 
     texture_reload(texture);
 }
