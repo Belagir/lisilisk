@@ -25,13 +25,17 @@
  * @brief Kinds of objects managed by handles.
  *
  */
-enum handle_flavor {
-    HANDLE_IS_INVALID,
-    HANDLE_REPRESENTS_TEXTURE,
+enum handle_flavor : u8 {
+    HANDLE_IS_INVALID = 0,
     HANDLE_REPRESENTS_INSTANCE,
     HANDLE_REPRESENTS_LIGHT_DIREC,
     HANDLE_REPRESENTS_LIGHT_POINT,
     HANDLE_REPRESENTS_CAMERA,
+};
+
+enum res_flavor : u8 {
+    RES_IS_INVALID = 0,
+    RES_REPRESENTS_TEXTURE,
 };
 
 /**
@@ -42,11 +46,22 @@ union lisk_handle_layout {
     lisk_handle_t full;
     struct {
         /** Hash associated to an object stored in the engine. */
-        lisk_handle_t hash:32;
+        u32 hash:32;
         /** Eventual instance handle from the 3dful module. */
-        lisk_handle_t internal:HANDLE_BREADTH;
+        u32 internal:HANDLE_BREADTH;
         /** Value from the enum handle_flavor. */
-        lisk_handle_t  flavor:8; };
+        enum handle_flavor flavor:8;
+    };
+};
+
+union lisk_res_layout {
+    lisk_res_t full;
+    struct {
+        /** Hash associated to an object stored in the engine. */
+        u32 hash:32;
+        /** Value from the enum handle_flavor. */
+        enum res_flavor flavor:8;
+    };
 };
 
 // -----------------------------------------------------------------------------

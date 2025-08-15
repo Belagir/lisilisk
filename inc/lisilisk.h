@@ -16,10 +16,12 @@
 
 /** Invalid handle is just full of zeroes. */
 #define LISK_HANDLE_NONE ((lisk_handle_t) 0)
+#define LISK_RES_NONE ((lisk_res_t) 0)
 
-// TODO: create a second handle type for data like textures, models, etc.
 /** Handle type to hold basic information and have it be a scalar. */
 typedef uint64_t lisk_handle_t;
+enum lisk_res : uint64_t;
+typedef enum lisk_res lisk_res_t;
 
 // Sets the engine ready to be used.
 void lisk_init(const char *name, const char *resources_folder);
@@ -41,11 +43,14 @@ void lisk_get_size(
         int32_t *height);
 
 // TODO: manage geometries like those
-// TODO: manage shaders like those
 // TODO: manage materials like those
 // Loads a texture from a file in the resources directory.
-lisk_handle_t lisk_texture(
+lisk_res_t lisk_texture(
         const char *file);
+
+lisk_res_t lisk_shader(
+        const char *frag_shader,
+        const char *vert_shader);
 
 // Makes it mossible for a model's instances to be rendered to the scene.
 void lisk_model_show(
@@ -91,32 +96,32 @@ void lisk_model_draw_in_front(
 // Assigns a base texture to a model.
 void lisk_model_material_base_texture(
         const char *name,
-        lisk_handle_t texture);
+        lisk_res_t texture);
 
 // Sets how a model is visible in the ambient light.
 void lisk_model_material_ambient(
         const char *name,
         float (*ambient)[4],
-        lisk_handle_t texture_mask);
+        lisk_res_t texture_mask);
 
 // Sets how a model diffuses the light sources.
 void lisk_model_material_diffuse(
         const char *name,
         float (*diffuse)[4],
-        lisk_handle_t texture_mask);
+        lisk_res_t texture_mask);
 
 // Sets how a model reflects the light sources.
 void lisk_model_material_specular(
         const char *name,
         float (*specular)[4],
         float shininess,
-        lisk_handle_t texture_mask);
+        lisk_res_t texture_mask);
 
 // Sets how a model emits color highlights.
 void lisk_model_material_emission(
         const char *name,
         float (*emission)[4],
-        lisk_handle_t texture_mask);
+        lisk_res_t texture_mask);
 
 // Instanciate a model at some point in the world.
 lisk_handle_t lisk_model_instanciate(

@@ -201,22 +201,20 @@ void lisk_rename(const char *window_name)
  * used with the handle that is returned.
  *
  * @param[in] file System path to an image inside your resources folder.
- * @return struct lisk_texture
+ * @return lisk_res_t
  */
-lisk_handle_t lisk_texture(
+lisk_res_t lisk_texture(
         const char *file)
 {
-    union lisk_handle_layout handle = { .full = LISK_HANDLE_NONE };
+    union lisk_res_layout handle = { .full = LISK_RES_NONE };
     u32 hash = 0;
-
 
     hash = lisilisk_store_texture_register(&static_data.stores.textures,
         static_data.context.res_manager, file);
 
-    handle = (union lisk_handle_layout) {
-        .flavor = HANDLE_REPRESENTS_TEXTURE,
+    handle = (union lisk_res_layout) {
+        .flavor = RES_REPRESENTS_TEXTURE,
         .hash = hash,
-        .internal = 0,
     };
 
     return handle.full;
@@ -441,13 +439,13 @@ void lisk_model_draw_in_front(
  */
 void lisk_model_material_base_texture(
         const char *name,
-        lisk_handle_t texture)
+        lisk_res_t texture)
 {
     struct model *model = nullptr;
     struct texture *base = nullptr;
-    union lisk_handle_layout true_handle = { .full = texture };
+    union lisk_res_layout true_handle = { .full = texture };
 
-    if (true_handle.flavor != HANDLE_REPRESENTS_TEXTURE) {
+    if (true_handle.flavor != RES_REPRESENTS_TEXTURE) {
         return;
     }
 
@@ -472,7 +470,7 @@ void lisk_model_material_base_texture(
 void lisk_model_material_ambient(
         const char *name,
         float (*ambient)[4],
-        lisk_handle_t texture_mask)
+        lisk_res_t texture_mask)
 {
     struct model *model = nullptr;
     struct texture *mask = nullptr;
@@ -507,11 +505,11 @@ void lisk_model_material_ambient(
 void lisk_model_material_diffuse(
         const char *name,
         float (*diffuse)[4],
-        lisk_handle_t texture_mask)
+        lisk_res_t texture_mask)
 {
     struct model *model = nullptr;
     struct texture *mask = nullptr;
-    union lisk_handle_layout true_handle = { .full = texture_mask };
+    union lisk_res_layout true_handle = { .full = texture_mask };
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
@@ -544,7 +542,7 @@ void lisk_model_material_specular(
         const char *name,
         float (*specular)[4],
         float shininess,
-        lisk_handle_t texture_mask)
+        lisk_res_t texture_mask)
 {
     struct model *model = nullptr;
     struct texture *mask = nullptr;
@@ -580,7 +578,7 @@ void lisk_model_material_specular(
 void lisk_model_material_emission(
         const char *name,
         float (*emission)[4],
-        lisk_handle_t texture_mask)
+        lisk_res_t texture_mask)
 {
     struct model *model = nullptr;
     struct texture *mask = nullptr;
@@ -763,8 +761,6 @@ void lisk_instance_remove(
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
             return;
-        case HANDLE_REPRESENTS_TEXTURE:
-            return;
         case HANDLE_REPRESENTS_INSTANCE:
             model_instance_remove(
                     static_data_model_of_instance(handle), handle.internal);
@@ -796,8 +792,6 @@ void lisk_instance_set_scale(
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
             return;
-        case HANDLE_REPRESENTS_TEXTURE:
-            return;
         case HANDLE_REPRESENTS_INSTANCE:
             model_instance_scale(
                     static_data_model_of_instance(handle),
@@ -826,8 +820,6 @@ void lisk_instance_set_position(
 
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
-            return;
-        case HANDLE_REPRESENTS_TEXTURE:
             return;
         case HANDLE_REPRESENTS_INSTANCE:
             model_instance_position(static_data_model_of_instance(handle),
@@ -884,8 +876,6 @@ void lisk_instance_set_rotation_quaternion(
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
             return;
-        case HANDLE_REPRESENTS_TEXTURE:
-            return;
         case HANDLE_REPRESENTS_INSTANCE:
             model_instance_rotation(static_data_model_of_instance(handle),
                     handle.internal, *(struct quaternion *) q);
@@ -924,8 +914,6 @@ void lisk_instance_light_point_set_attenuation(
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
             return;
-        case HANDLE_REPRESENTS_TEXTURE:
-            return;
         case HANDLE_REPRESENTS_INSTANCE:
             return;
         case HANDLE_REPRESENTS_LIGHT_DIREC:
@@ -954,8 +942,6 @@ void lisk_instance_camera_set_fov(
 
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
-            return;
-        case HANDLE_REPRESENTS_TEXTURE:
             return;
         case HANDLE_REPRESENTS_INSTANCE:
             return;
@@ -986,8 +972,6 @@ void lisk_instance_camera_set_limits(
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
             return;
-        case HANDLE_REPRESENTS_TEXTURE:
-            return;
         case HANDLE_REPRESENTS_INSTANCE:
             return;
         case HANDLE_REPRESENTS_LIGHT_DIREC:
@@ -1014,8 +998,6 @@ void lisk_instance_camera_set_target(
 
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
-            return;
-        case HANDLE_REPRESENTS_TEXTURE:
             return;
         case HANDLE_REPRESENTS_INSTANCE:
             return;
