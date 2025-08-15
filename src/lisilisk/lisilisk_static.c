@@ -246,6 +246,31 @@ lisk_res_t lisk_material_shader(
 }
 
 /**
+ * @brief
+ *
+ * @param frag_shader
+ * @param vert_shader
+ * @return lisk_res_t
+ */
+lisk_res_t lisk_advanced_shader(
+        const char *frag_shader,
+        const char *vert_shader)
+{
+        union lisk_res_layout handle = { .full = LISK_RES_NONE };
+    u32 hash = 0;
+
+    hash = lisilisk_store_shader_register(&static_data.stores.shaders,
+        static_data.context.res_manager, frag_shader, vert_shader);
+
+    handle = (union lisk_res_layout) {
+        .flavor = RES_REPRESENTS_MATERIAL_SHADER,
+        .hash = hash
+    };
+
+    return handle.full;
+}
+
+/**
  * @brief Adds a model to the scene so all its instances can be visible.
  *
  * @param[in] name Name of the model.
@@ -306,8 +331,6 @@ void lisk_model_geometry(
  * TODO: details about those kind of shaders.
  *
  * @param[in] name Name used to reference this shader.
- * @param[in] frag_shader Fragment shader partial source file.
- * @param[in] vert_shader Vertex shader partial source file.
  */
 void lisk_model_material_shader(
         const char *name,
@@ -326,7 +349,7 @@ void lisk_model_material_shader(
         return;
     }
 
-    shader = lisilisk_store_shader_material_retreive(
+    shader = lisilisk_store_shader_retreive(
             &static_data.stores.shaders, shader_handle.hash);
 
     if (!shader) {
@@ -343,25 +366,22 @@ void lisk_model_material_shader(
  * TODO: those shaders still have fixed vertex inputs
  *
  * @param name Name use to reference this shader.
- * @param frag_shader Fragment shader full source file.
- * @param vert_shader Vertex shader full source file.
  */
 void lisk_model_advanced_shader(
         const char *name,
-        const char *frag_shader,
-        const char *vert_shader)
+        lisk_res_t res_shader)
 {
     struct model *model = nullptr;
     struct shader *shader = nullptr;
+    union lisk_res_layout shader_handle = { .full = res_shader };
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
         return;
     }
 
-    shader = lisilisk_store_shader_cache(
-            &static_data.stores.shaders,
-            static_data.context.res_manager, frag_shader, vert_shader);
+    shader = lisilisk_store_shader_retreive(
+            &static_data.stores.shaders, shader_handle.hash);
 
     if (!shader) {
         return;

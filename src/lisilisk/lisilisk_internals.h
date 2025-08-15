@@ -232,7 +232,7 @@ struct lisilisk_store_shader lisilisk_store_shader_create(void);
 void lisilisk_store_shader_delete(
         struct lisilisk_store_shader *shader_store);
 
-struct shader *lisilisk_store_shader_cache(
+u32 lisilisk_store_shader_register(
         struct lisilisk_store_shader *store,
         struct resource_manager *res_manager,
         const char *frag, const char *vert);
@@ -242,7 +242,7 @@ u32 lisilisk_store_shader_material_register(
         struct resource_manager *res_manager,
         const char *frag, const char *vert);
 
-struct shader *lisilisk_store_shader_material_retreive(
+struct shader *lisilisk_store_shader_retreive(
         struct lisilisk_store_shader *store,
         u32 hash);
 

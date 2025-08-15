@@ -60,6 +60,11 @@ lisk_res_t lisk_material_shader(
         const char *frag_shader,
         const char *vert_shader);
 
+//
+lisk_res_t lisk_advanced_shader(
+        const char *frag_shader,
+        const char *vert_shader);
+
 // Makes it mossible for a model's instances to be rendered to the scene.
 void lisk_model_show(
         const char *name);
@@ -74,11 +79,11 @@ void lisk_model_material_shader(
         const char *name,
         lisk_res_t shader);
 
+// TODO: merge with other shader assignment method
 // Assigns a fully user-defined shader to render a model.
 void lisk_model_advanced_shader(
         const char *name,
-        const char *frag_shader,
-        const char *vert_shader);
+        lisk_res_t res_shader);
 
 // Sets the culling mode of a model.
 void lisk_model_frontface_culling(
