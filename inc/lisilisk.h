@@ -55,15 +55,19 @@ void lisk_get_size(
 lisk_res_t lisk_texture(
         const char *file);
 
-//
+// Loads a material shader from the resources directory.
 lisk_res_t lisk_material_shader(
         const char *frag_shader,
         const char *vert_shader);
 
-//
+// Loads a general shader from the resources directory.
 lisk_res_t lisk_advanced_shader(
         const char *frag_shader,
         const char *vert_shader);
+
+// Loads a 3D mesh from a .obj file.
+lisk_res_t lisk_geometry(
+        const char *obj_file);
 
 // Makes it mossible for a model's instances to be rendered to the scene.
 void lisk_model_show(
@@ -72,7 +76,7 @@ void lisk_model_show(
 // Changes the geometry of a model.
 void lisk_model_geometry(
         const char *name,
-        const char *obj_file);
+        lisk_res_t geometry);
 
 // Assigns a material shader to render a model.
 void lisk_model_shader(

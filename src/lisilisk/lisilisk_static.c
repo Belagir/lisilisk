@@ -256,7 +256,7 @@ lisk_res_t lisk_advanced_shader(
         const char *frag_shader,
         const char *vert_shader)
 {
-        union lisk_res_layout handle = { .full = LISK_RES_NONE };
+    union lisk_res_layout handle = { .full = LISK_RES_NONE };
     u32 hash = 0;
 
     hash = lisilisk_store_shader_register(&static_data.stores.shaders,
@@ -264,6 +264,29 @@ lisk_res_t lisk_advanced_shader(
 
     handle = (union lisk_res_layout) {
         .flavor = RES_REPRESENTS_SHADER,
+        .hash = hash
+    };
+
+    return handle.full;
+}
+
+/**
+ * @brief
+ *
+ * @param obj_file
+ * @return lisk_res_t
+ */
+lisk_res_t lisk_geometry(
+        const char *obj_file)
+{
+    union lisk_res_layout handle = { .full = LISK_RES_NONE };
+    u32 hash = 0;
+
+    hash = lisilisk_store_geometry_register(&static_data.stores.geometries,
+            static_data.context.res_manager, obj_file);
+
+    handle = (union lisk_res_layout) {
+        .flavor = RES_REPRESENTS_GEOMETRY,
         .hash = hash
     };
 
@@ -296,14 +319,18 @@ void lisk_model_show(
  * to have a valid model.
  *
  * @param[in] name New name to reference the model.
- * @param[in] obj_file Object file from which the model takes its geometry from.
  */
 void lisk_model_geometry(
         const char *name,
-        const char *obj_file)
+        lisk_res_t res_geometry)
 {
     struct geometry *geometry = nullptr;
     struct model *model = nullptr;
+    union lisk_res_layout geometry_handle = { .full = res_geometry };
+
+    if (geometry_handle.flavor != RES_REPRESENTS_GEOMETRY) {
+        return;
+    }
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
@@ -311,9 +338,8 @@ void lisk_model_geometry(
     }
 
     // Create the geometry from the file and registers it in a map
-    geometry = lisilisk_store_geometry_cache(&static_data.stores.geometries,
-            static_data.context.res_manager,
-            obj_file);
+    geometry = lisilisk_store_geometry_retreive(
+            &static_data.stores.geometries, geometry_handle.hash);
 
     if (!geometry) {
         return;

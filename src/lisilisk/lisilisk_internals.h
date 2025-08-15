@@ -37,6 +37,7 @@ enum res_flavor : u8 {
     RES_IS_INVALID = 0,
     RES_REPRESENTS_TEXTURE,
     RES_REPRESENTS_SHADER,
+    RES_REPRESENTS_GEOMETRY,
 };
 
 /**
@@ -195,10 +196,14 @@ struct lisilisk_store_geometry lisilisk_store_geometry_create(void);
 void lisilisk_store_geometry_delete(
         struct lisilisk_store_geometry *store);
 
-struct geometry *lisilisk_store_geometry_cache(
+u32 lisilisk_store_geometry_register(
         struct lisilisk_store_geometry *store,
         struct resource_manager *res_manager,
         const char *obj_path);
+
+struct geometry *lisilisk_store_geometry_retreive(
+        struct lisilisk_store_geometry *store,
+        u32 hash);
 
 // -----------------------------------------------------------------------------
 
