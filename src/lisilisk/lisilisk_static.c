@@ -238,7 +238,7 @@ lisk_res_t lisk_material_shader(
         static_data.context.res_manager, frag_shader, vert_shader);
 
     handle = (union lisk_res_layout) {
-        .flavor = RES_REPRESENTS_MATERIAL_SHADER,
+        .flavor = RES_REPRESENTS_SHADER,
         .hash = hash
     };
 
@@ -263,7 +263,7 @@ lisk_res_t lisk_advanced_shader(
         static_data.context.res_manager, frag_shader, vert_shader);
 
     handle = (union lisk_res_layout) {
-        .flavor = RES_REPRESENTS_MATERIAL_SHADER,
+        .flavor = RES_REPRESENTS_SHADER,
         .hash = hash
     };
 
@@ -323,16 +323,11 @@ void lisk_model_geometry(
 }
 
 /**
- * @brief Compiles a material shader from a pair of glsl source files.
- * Those files are supposed to be part of a broader "material shader" interface
- * where they define specific functions and can have access to some specific
- * vertex inputs and uniforms.
- *
- * TODO: details about those kind of shaders.
+ * @brief
  *
  * @param[in] name Name used to reference this shader.
  */
-void lisk_model_material_shader(
+void lisk_model_shader(
         const char *name,
         lisk_res_t res_shader)
 {
@@ -340,40 +335,9 @@ void lisk_model_material_shader(
     struct shader *shader = nullptr;
     union lisk_res_layout shader_handle = { .full = res_shader };
 
-    if (shader_handle.flavor != RES_REPRESENTS_MATERIAL_SHADER) {
+    if (shader_handle.flavor != RES_REPRESENTS_SHADER) {
         return;
     }
-
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
-        return;
-    }
-
-    shader = lisilisk_store_shader_retreive(
-            &static_data.stores.shaders, shader_handle.hash);
-
-    if (!shader) {
-        return;
-    }
-
-    model_shader(model, shader);
-}
-
-/**
- * @brief Compiles a shader from a pair of glsl sources.
- * Those files are not expected to conform to the "material shader" interface.
- *
- * TODO: those shaders still have fixed vertex inputs
- *
- * @param name Name use to reference this shader.
- */
-void lisk_model_advanced_shader(
-        const char *name,
-        lisk_res_t res_shader)
-{
-    struct model *model = nullptr;
-    struct shader *shader = nullptr;
-    union lisk_res_layout shader_handle = { .full = res_shader };
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
