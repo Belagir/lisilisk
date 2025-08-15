@@ -79,7 +79,7 @@ u32 lisilisk_store_model_register(
     model_create(stored);
     model_material(stored,
             lisilisk_store_material_cache(store->material_store, name));
-    model_shader(stored, store->shader_store->default_material_shader);
+    model_shader(stored, store->shader_store->default_shader);
 
     hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->models, 1);
     hashmap_set_hashed(store->models, model_hash, &stored);

@@ -226,7 +226,7 @@ lisk_res_t lisk_texture(
  * @param vert_shader
  * @return lisk_res_t
  */
-lisk_res_t lisk_material_shader(
+lisk_res_t lisk_shader(
         const char *frag_shader,
         const char *vert_shader)
 {
@@ -234,31 +234,6 @@ lisk_res_t lisk_material_shader(
     u32 hash = 0;
 
     hash = lisilisk_store_shader_material_register(&static_data.stores.shaders,
-        static_data.context.res_manager, frag_shader, vert_shader);
-
-    handle = (union lisk_res_layout) {
-        .flavor = RES_REPRESENTS_SHADER,
-        .hash = hash
-    };
-
-    return handle.full;
-}
-
-/**
- * @brief
- *
- * @param frag_shader
- * @param vert_shader
- * @return lisk_res_t
- */
-lisk_res_t lisk_advanced_shader(
-        const char *frag_shader,
-        const char *vert_shader)
-{
-    union lisk_res_layout handle = { .full = LISK_RES_NONE };
-    u32 hash = 0;
-
-    hash = lisilisk_store_shader_register(&static_data.stores.shaders,
         static_data.context.res_manager, frag_shader, vert_shader);
 
     handle = (union lisk_res_layout) {

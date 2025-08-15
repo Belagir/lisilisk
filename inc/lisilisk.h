@@ -55,12 +55,7 @@ lisk_res_t lisk_texture(
         const char *file);
 
 // Loads a material shader from the resources directory.
-lisk_res_t lisk_material_shader(
-        const char *frag_shader,
-        const char *vert_shader);
-
-// Loads a general shader from the resources directory.
-lisk_res_t lisk_advanced_shader(
+lisk_res_t lisk_shader(
         const char *frag_shader,
         const char *vert_shader);
 
