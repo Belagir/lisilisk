@@ -55,8 +55,8 @@ void lisk_get_size(
 lisk_res_t lisk_texture(
         const char *file);
 
-// TODO: implementation & integration
-lisk_res_t lisk_shader(
+//
+lisk_res_t lisk_material_shader(
         const char *frag_shader,
         const char *vert_shader);
 
@@ -72,8 +72,7 @@ void lisk_model_geometry(
 // Assigns a material shader to render a model.
 void lisk_model_material_shader(
         const char *name,
-        const char *frag_shader,
-        const char *vert_shader);
+        lisk_res_t shader);
 
 // Assigns a fully user-defined shader to render a model.
 void lisk_model_advanced_shader(

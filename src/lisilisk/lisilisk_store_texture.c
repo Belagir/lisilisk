@@ -55,61 +55,6 @@ void lisilisk_store_texture_delete(
  * @brief
  *
  * @param store
- * @param name
- * @return struct texture*
- */
-struct texture *lisilisk_store_texture_cache(
-        struct lisilisk_store_texture *store,
-        struct resource_manager *res_manager,
-        const char *image)
-{
-    struct allocator alloc = make_system_allocator();
-    size_t pos = 0;
-    struct texture *new_texture = nullptr;
-    const byte *obj_contents = nullptr;
-    size_t obj_contents_length = 0;
-
-    if (!store) {
-        return nullptr;
-    }
-
-    pos = hashmap_index_of(store->textures, image);
-
-    if (pos < array_length(store->textures)) {
-        return store->textures[pos];
-    }
-
-    new_texture = alloc.malloc(alloc, sizeof(*new_texture));
-    *new_texture = (struct texture) { 0 };
-
-    obj_contents = resource_manager_fetch(res_manager, "lisilisk",
-            image, &obj_contents_length);
-
-    if (!obj_contents) {
-        goto cleanup;
-    }
-
-    texture_2D_file_mem(new_texture, obj_contents, obj_contents_length);
-
-    if (!new_texture->specific.image_for_2D) {
-        goto cleanup;
-    }
-    hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->textures, 1);
-    pos = hashmap_set(store->textures, image, &new_texture);
-
-    return store->textures[pos];
-
-cleanup:
-    texture_delete(new_texture);
-    alloc.free(alloc, new_texture);
-
-    return nullptr;
-}
-
-/**
- * @brief
- *
- * @param store
  * @param images
  * @return struct texture*
  */

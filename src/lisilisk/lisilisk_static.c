@@ -221,6 +221,31 @@ lisk_res_t lisk_texture(
 }
 
 /**
+ * @brief
+ *
+ * @param frag_shader
+ * @param vert_shader
+ * @return lisk_res_t
+ */
+lisk_res_t lisk_material_shader(
+        const char *frag_shader,
+        const char *vert_shader)
+{
+    union lisk_res_layout handle = { .full = LISK_RES_NONE };
+    u32 hash = 0;
+
+    hash = lisilisk_store_shader_material_register(&static_data.stores.shaders,
+        static_data.context.res_manager, frag_shader, vert_shader);
+
+    handle = (union lisk_res_layout) {
+        .flavor = RES_REPRESENTS_MATERIAL_SHADER,
+        .hash = hash
+    };
+
+    return handle.full;
+}
+
+/**
  * @brief Adds a model to the scene so all its instances can be visible.
  *
  * @param[in] name Name of the model.
@@ -286,20 +311,23 @@ void lisk_model_geometry(
  */
 void lisk_model_material_shader(
         const char *name,
-        const char *frag_shader,
-        const char *vert_shader)
+        lisk_res_t res_shader)
 {
     struct model *model = nullptr;
     struct shader *shader = nullptr;
+    union lisk_res_layout shader_handle = { .full = res_shader };
+
+    if (shader_handle.flavor != RES_REPRESENTS_MATERIAL_SHADER) {
+        return;
+    }
 
     model = static_data_model_named(name, nullptr);
     if (!model) {
         return;
     }
 
-    shader = lisilisk_store_shader_material_cache(
-            &static_data.stores.shaders,
-            static_data.context.res_manager, frag_shader, vert_shader);
+    shader = lisilisk_store_shader_material_retreive(
+            &static_data.stores.shaders, shader_handle.hash);
 
     if (!shader) {
         return;

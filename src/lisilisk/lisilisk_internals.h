@@ -36,6 +36,7 @@ enum handle_flavor : u8 {
 enum res_flavor : u8 {
     RES_IS_INVALID = 0,
     RES_REPRESENTS_TEXTURE,
+    RES_REPRESENTS_MATERIAL_SHADER,
 };
 
 /**
@@ -175,10 +176,6 @@ struct lisilisk_store_texture lisilisk_store_texture_create(void);
 void lisilisk_store_texture_delete(
         struct lisilisk_store_texture *store);
 
-struct texture *lisilisk_store_texture_cache(
-        struct lisilisk_store_texture *store,
-        struct resource_manager *res_manager,
-        const char *image);
 struct texture *lisilisk_store_texture_cubemap_cache(
         struct lisilisk_store_texture *store,
         struct resource_manager *res_manager,
@@ -234,13 +231,19 @@ struct model *lisilisk_store_model_retrieve(
 struct lisilisk_store_shader lisilisk_store_shader_create(void);
 void lisilisk_store_shader_delete(
         struct lisilisk_store_shader *shader_store);
-struct shader *lisilisk_store_shader_material_cache(
-        struct lisilisk_store_shader *store,
-        struct resource_manager *res_manager,
-        const char *frag, const char *vert);
+
 struct shader *lisilisk_store_shader_cache(
         struct lisilisk_store_shader *store,
         struct resource_manager *res_manager,
         const char *frag, const char *vert);
+
+u32 lisilisk_store_shader_material_register(
+        struct lisilisk_store_shader *store,
+        struct resource_manager *res_manager,
+        const char *frag, const char *vert);
+
+struct shader *lisilisk_store_shader_material_retreive(
+        struct lisilisk_store_shader *store,
+        u32 hash);
 
 #endif
