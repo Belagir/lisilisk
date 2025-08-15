@@ -14,6 +14,10 @@
 
 #include <stdint.h>
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 /** Invalid handle is just full of zeroes. */
 #define LISK_HANDLE_NONE ((lisk_handle_t) 0)
 
@@ -30,10 +34,27 @@ typedef enum lisk_handle lisk_handle_t;
 enum lisk_res : uint64_t;
 typedef enum lisk_res lisk_res_t;
 
+// -----------------------------------------------------------------------------
+
+enum lisk_geometry_conf {
+    LISK_GEOMETRY_CULL_FRONT,
+    LISK_GEOMETRY_CULL_BACK,
+    LISK_GEOMETRY_CULL_NONE,
+    LISK_GEOMETRY_IN_BACK,
+    LISK_GEOMETRY_IN_FRONT,
+    LISK_GEOMETRY_IN_SCENE,
+};
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 // Sets the engine ready to be used.
 void lisk_init(const char *name, const char *resources_folder);
 // Make the engine shut down and release all memory.
 void lisk_deinit(void);
+
+// -----------------------------------------------------------------------------
 
 // Sets the size of the window, in pixels.
 void lisk_resize(
@@ -48,6 +69,8 @@ void lisk_rename(
 void lisk_get_size(
         int32_t *width,
         int32_t *height);
+
+// -----------------------------------------------------------------------------
 
 // Loads a texture from a file in the resources directory.
 lisk_res_t lisk_texture(
@@ -66,6 +89,8 @@ lisk_res_t lisk_material(
 lisk_res_t lisk_geometry(
         const char *obj_file);
 
+// -----------------------------------------------------------------------------
+
 // Changes the value of a uniform in a shader.
 void lisk_shader_set_uniform_float(
         lisk_res_t shader,
@@ -77,6 +102,8 @@ void lisk_shader_set_uniform_texture(
         lisk_res_t shader,
         const char *uniform_name,
         lisk_res_t texture);
+
+// -----------------------------------------------------------------------------
 
 // Makes it mossible for a model's instances to be rendered to the scene.
 void lisk_model_show(
@@ -97,25 +124,13 @@ void lisk_model_shader(
         const char *name,
         lisk_res_t shader);
 
-// Sets the culling mode of a model.
-void lisk_model_frontface_culling(
-        const char *name);
+// -----------------------------------------------------------------------------
 
-// Sets the culling mode of a model.
-void lisk_model_backface_culling(
-        const char *name);
+void lisk_geometry_configure(
+        lisk_res_t geometry,
+        enum lisk_geometry_conf conf);
 
-// Sets the culling mode of a model.
-void lisk_model_noface_culling(
-        const char *name);
-
-// Sets the model to always be rendered behind others.
-void lisk_model_draw_in_back(
-        const char *name);
-
-// Sets the model to always be rendered in front of others.
-void lisk_model_draw_in_front(
-        const char *name);
+// -----------------------------------------------------------------------------
 
 // Assigns a base texture to a model.
 void lisk_material_base_texture(
@@ -147,6 +162,8 @@ void lisk_material_emission(
         float (*emission)[4],
         lisk_res_t texture_mask);
 
+// -----------------------------------------------------------------------------
+
 // Instanciate a model at some point in the world.
 lisk_handle_t lisk_model_instanciate(
         const char *model_name,
@@ -168,6 +185,8 @@ lisk_handle_t lisk_point_light_add(
 
 // Fetches the camera rendering the world.
 lisk_handle_t lisk_camera(void);
+
+// -----------------------------------------------------------------------------
 
 // TODO: change nomenclature
 // Removes a model instance or light from the world.
@@ -223,6 +242,8 @@ void lisk_instance_camera_set_target(
         lisk_handle_t instance,
         float (*point)[3]);
 
+// -----------------------------------------------------------------------------
+
 // Changes the ambient ight setting of the environment.
 void lisk_ambient_light_set(
         float r,
@@ -238,6 +259,8 @@ void lisk_skybox_set(
 void lisk_bg_color_set(
         float (*color)[3]);
 
+// -----------------------------------------------------------------------------
+
 // Shows the window and the scene.
 void lisk_show(void);
 
@@ -246,5 +269,7 @@ void lisk_draw(void);
 
 // Hides the window.
 void lisk_hide(void);
+
+// -----------------------------------------------------------------------------
 
 #endif

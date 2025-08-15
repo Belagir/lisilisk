@@ -438,91 +438,52 @@ void lisk_model_material(
 }
 
 /**
- * @brief Configure the model so its instances are rendered with front face
- * culling.
+ * @brief
  *
- * @param[in] name Name of the target model.
+ * @param res_geometry
+ * @param conf
  */
-void lisk_model_frontface_culling(
-        const char *name)
+void lisk_geometry_configure(
+        lisk_res_t res_geometry,
+        enum lisk_geometry_conf conf)
 {
-    struct model *model = nullptr;
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
+
+    struct geometry *geometry = nullptr;
+
+    union lisk_res_layout geometry_handle = { .full = res_geometry };
+
+    if (geometry_handle.flavor != RES_REPRESENTS_GEOMETRY) {
         return;
     }
 
-    geometry_set_culling(model->geometry, GEOMETRY_CULL_FRONT);
-}
+    // Create the geometry from the file and registers it in a map
+    geometry = lisilisk_store_geometry_retrieve(
+            &static_data.stores.geometries, geometry_handle.hash);
 
-/**
- * @brief Configure the model so its instances are rendered with back face
- * culling.
- *
- * @param[in] name Name of the target model.
- */
-void lisk_model_backface_culling(
-        const char *name)
-{
-    struct model *model = nullptr;
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
+    if (!geometry) {
         return;
     }
 
-    geometry_set_culling(model->geometry, GEOMETRY_CULL_BACK);
-}
-
-/**
- * @brief Configure the model so its instances are rendered with no face
- * culling performed.
- *
- * @param[in] name Name of the target model.
- */
-void lisk_model_noface_culling(
-        const char *name)
-{
-    struct model *model = nullptr;
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
-        return;
+    switch (conf) {
+        case LISK_GEOMETRY_CULL_FRONT:
+            geometry_set_culling(geometry, GEOMETRY_CULL_FRONT);
+            break;
+        case LISK_GEOMETRY_CULL_BACK:
+            geometry_set_culling(geometry, GEOMETRY_CULL_BACK);
+            break;
+        case LISK_GEOMETRY_CULL_NONE:
+            geometry_set_culling(geometry, GEOMETRY_CULL_NONE);
+            break;
+        case LISK_GEOMETRY_IN_BACK:
+            geometry_set_layering(geometry, GEOMETRY_LAYER_BACK);
+            break;
+        case LISK_GEOMETRY_IN_FRONT:
+            geometry_set_layering(geometry, GEOMETRY_LAYER_FRONT);
+            break;
+        case LISK_GEOMETRY_IN_SCENE:
+            geometry_set_layering(geometry, GEOMETRY_LAYER_NORMAL);
+            break;
     }
-
-    geometry_set_culling(model->geometry, GEOMETRY_CULL_NONE);
-}
-
-/**
- * @brief Configure the model so its instances are always rendered in the back.
- *
- * @param[in] name Name of the target model.
- */
-void lisk_model_draw_in_back(
-        const char *name)
-{
-    struct model *model = nullptr;
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
-        return;
-    }
-
-    geometry_set_layering(model->geometry, GEOMETRY_LAYER_BACK);
-}
-
-/**
- * @brief Configure the model so its instances are always rendered to the front.
- *
- * @param[in] name Name of the target model.
- */
-void lisk_model_draw_in_front(
-        const char *name)
-{
-    struct model *model = nullptr;
-    model = static_data_model_named(name, nullptr);
-    if (!model) {
-        return;
-    }
-
-    geometry_set_layering(model->geometry, GEOMETRY_LAYER_FRONT);
 }
 
 /**
