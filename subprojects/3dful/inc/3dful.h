@@ -17,6 +17,7 @@
 
 #include <ustd/common.h>
 #include <ustd/array.h>
+#include <ustd/hashmap.h>
 #include <ustd/logging.h>
 #include <ustd/math2d.h>
 #include <ustd/math3d.h>
@@ -203,6 +204,12 @@ struct material_properties {
         f32 PADDING[3];
 };
 
+struct material_user_uniform {
+    const char *name;
+    size_t nb;
+    byte value[4*4*sizeof(f32)];
+};
+
 /**
  * @brief Describes how some surface behaves in contact with light.
  * Passed to a material shader.
@@ -212,6 +219,8 @@ struct material {
 
     struct material_properties properties;
     struct texture * samplers[16u];
+
+    HASHMAP(struct material_user_uniform) added_uniforms;
 
     struct {
         GLuint ubo;
@@ -446,6 +455,9 @@ void texture_delete(struct texture *texture);
 // -----------------------------------------------------------------------------
 // MATERIAL --------------------------------------------------------------------
 
+void material_create(struct material *material);
+void material_delete(struct material *material);
+
 void material_texture(struct material *material, struct texture *texture);
 
 void material_ambient(struct material *material, f32 ambient[3], f32 strength);
@@ -459,6 +471,9 @@ void material_shininess(struct material *material, float shininess);
 void material_emissive(struct material *material, f32 emission[3],
         f32 strength);
 void material_emissive_mask(struct material *material, struct texture *mask);
+
+void material_set_uniform_float(struct material *material, const char *name,
+        size_t nb, f32 *values);
 
 void material_custom_texture(struct material *material, u8 index,
         struct texture *texture);
@@ -506,7 +521,6 @@ void light_point_quadratic(struct light_point *light, f32 quadratic);
 
 void light_directional_direction(struct light_directional *light,
         struct vector3 direction);
-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

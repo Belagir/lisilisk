@@ -28,6 +28,35 @@ static const char * material_sampler_uniforms[MATERIAL_BASE_SAMPLERS_NUMBER] = {
 // -----------------------------------------------------------------------------
 
 /**
+ * @brief
+ *
+ * @param material
+ */
+void material_create(struct material *material)
+{
+    *material = (struct material) {
+            .load_state = { },
+            .properties = { },
+            .added_uniforms = hashmap_create(make_system_allocator(),
+                    sizeof(*material->added_uniforms), 32),
+            .samplers = { },
+            .gpu_side = { },
+    };
+}
+
+/**
+ * @brief
+ *
+ * @param material
+ */
+void material_delete(struct material *material)
+{
+    hashmap_destroy(make_system_allocator(),
+            (HASHMAP_ANY *) &material->added_uniforms);
+    *material = (struct material) { 0 };
+}
+
+/**
  * @brief Sets the base texture image of a material.
  * Usually the background skin of a model.
  *
