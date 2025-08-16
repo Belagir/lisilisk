@@ -207,12 +207,13 @@ struct material_properties {
 struct material_user_uniform {
     const char *name;
     size_t nb;
+    GLuint nature;
     byte value[4*4*sizeof(f32)];
 };
 
 /**
  * @brief Describes how some surface behaves in contact with light.
- * Passed to a material shader.
+ * More generally, contains all data passed to a material shader.
  */
 struct material {
     struct loadable load_state;
@@ -472,8 +473,8 @@ void material_emissive(struct material *material, f32 emission[3],
         f32 strength);
 void material_emissive_mask(struct material *material, struct texture *mask);
 
-void material_set_uniform_float(struct material *material, const char *name,
-        size_t nb, f32 *values);
+void material_set_uniform(struct material *material, const char *name,
+        size_t nb, GLint type, f32 *data);
 
 void material_custom_texture(struct material *material, u8 index,
         struct texture *texture);

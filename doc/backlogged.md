@@ -7,6 +7,7 @@ Important stuff
 - [x] Detect channels (rgb / rgba) set in surfaces to set the correct value when we load the texture on GPU
 - [x] Include the engine-specific resources within the executable
 - [ ] The engine should have some error procedure that fires when the user provides incorrect arguments
+- [ ] Add the possibility to pass arbitrary uniforms through materials.
 
 Half implemented
 

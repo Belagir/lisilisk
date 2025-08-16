@@ -217,6 +217,21 @@ void material_emissive_mask(struct material *material, struct texture *mask)
 /**
  * @brief
  *
+ * @param material
+ * @param name
+ * @param nb
+ * @param type
+ * @param data
+ */
+void material_set_uniform(struct material *material, const char *name,
+        size_t nb, GLint type, f32 *data)
+{
+    // TODO: store uniform & send it with the other data to a shader
+}
+
+/**
+ * @brief
+ *
  * @warning Not implemented.
  *
  * @param material
