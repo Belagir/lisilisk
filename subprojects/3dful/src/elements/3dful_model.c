@@ -287,6 +287,7 @@ void model_unload(struct model *model)
 void model_draw(struct model *model)
 {
     if (model->material) {
+        material_send_uniforms(model->material, model->shader);
         material_bind_uniform_blocks(model->material, model->shader);
         material_bind_textures(model->material, model->shader);
     }

@@ -270,33 +270,6 @@ lisk_res_t lisk_material(
 /**
  * @brief
  *
- * @param shader
- * @param uniform_name
- * @param value
- */
-void lisk_shader_set_uniform_float(
-        lisk_res_t res_shader,
-        const char *uniform_name,
-        float value)
-{
-    union lisk_res_layout handle = { .full = res_shader };
-    struct shader* shader = nullptr;
-
-    if (handle.flavor != RES_REPRESENTS_SHADER) {
-        return;
-    }
-
-    shader = lisilisk_store_shader_retrieve(
-            &static_data.stores.shaders, handle.hash);
-
-    if (shader) {
-        shader_uniform_float(shader, uniform_name, value);
-    }
-}
-
-/**
- * @brief
- *
  * @param obj_file
  * @return lisk_res_t
  */
@@ -315,6 +288,39 @@ lisk_res_t lisk_geometry(
     };
 
     return handle.full;
+}
+
+/**
+ * @brief
+ *
+ * @param material
+ * @param uniform_name
+ * @param value
+ */
+void lisk_material_set_uniform_float(
+        lisk_res_t res_material,
+        const char *uniform_name,
+        float value)
+{
+    union lisk_res_layout handle = { .full = res_material };
+    struct material* material = nullptr;
+
+    if (handle.flavor != RES_REPRESENTS_MATERIAL) {
+        return;
+    }
+
+    material = lisilisk_store_material_retrieve(
+            &static_data.stores.materials, handle.hash);
+
+    if (!material) {
+        return;
+    }
+
+    if (!material_has_uniform(material, uniform_name)) {
+        material_add_uniform_float(material, uniform_name, 1);
+    }
+
+    material_set_uniform(material, uniform_name, &value);
 }
 
 /**

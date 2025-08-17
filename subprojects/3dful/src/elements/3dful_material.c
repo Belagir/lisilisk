@@ -24,6 +24,13 @@ static const char * material_sampler_uniforms[MATERIAL_BASE_SAMPLERS_NUMBER] = {
         [MATERIAL_BASE_SAMPLER_TEXTURE]       = "base_texture",
 };
 
+static const size_t material_uniform_sizes[MATERIAL_UNIFORM_BASES_NB] = {
+        [MATERIAL_UNIFORM_FLOAT1] = 1 * sizeof(float),
+        [MATERIAL_UNIFORM_FLOAT2] = 2 * sizeof(float),
+        [MATERIAL_UNIFORM_FLOAT3] = 3 * sizeof(float),
+        [MATERIAL_UNIFORM_FLOAT4] = 4 * sizeof(float),
+};
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
@@ -32,16 +39,18 @@ static const char * material_sampler_uniforms[MATERIAL_BASE_SAMPLERS_NUMBER] = {
  *
  * @param material
  */
-void material_create(struct material *material)
+void material_create(struct material *material, const struct material *source)
 {
-    *material = (struct material) {
-            .load_state = { },
-            .properties = { },
-            .added_uniforms = hashmap_create(make_system_allocator(),
-                    sizeof(*material->added_uniforms), 32),
-            .samplers = { },
-            .gpu_side = { },
-    };
+    *material = (struct material) { 0 };
+    material->added_uniforms = hashmap_create(make_system_allocator(),
+                    sizeof(*material->added_uniforms), 32);
+
+    if (source) {
+        for (size_t i = 0 ; i < COUNT_OF(material->samplers) ; i++) {
+            material->samplers[i] = source->samplers[i];
+        }
+        material->properties = source->properties;
+    }
 }
 
 /**
@@ -219,14 +228,58 @@ void material_emissive_mask(struct material *material, struct texture *mask)
  *
  * @param material
  * @param name
+ */
+bool material_has_uniform(struct material *material, const char *name)
+{
+    return (hashmap_index_of(material->added_uniforms, name)
+                < array_length(material->added_uniforms));
+}
+
+/**
+ * @brief
+ *
+ * @param material
+ * @param name
  * @param nb
- * @param type
+ */
+void material_add_uniform_float(struct material *material, const char *name,
+        size_t nb)
+{
+    if (!name || !nb) {
+        return;
+    }
+
+    hashmap_ensure_capacity(make_system_allocator(),
+            (HASHMAP_ANY *) &material->added_uniforms, 1);
+    hashmap_set(material->added_uniforms, name, &(struct material_user_uniform) {
+            .name = name,
+            .nb = nb,
+            .base_type = MATERIAL_UNIFORM_FLOAT1 + (nb - 1),
+            .value = { },
+    });
+}
+
+/**
+ * @brief
+ *
+ * @param material
+ * @param name
  * @param data
  */
 void material_set_uniform(struct material *material, const char *name,
-        size_t nb, GLint type, f32 *data)
+        void *data)
 {
-    // TODO: store uniform & send it with the other data to a shader
+    size_t pos = hashmap_index_of(material->added_uniforms, name);
+    struct material_user_uniform *uniform = { };
+    size_t copied_size = 0;
+
+    if (pos >= array_length(material->added_uniforms)) {
+        return;
+    }
+
+    uniform = material->added_uniforms + pos;
+    copied_size = material_uniform_sizes[uniform->base_type];
+    bytewise_copy(&uniform->value, data, copied_size);
 }
 
 /**
@@ -302,6 +355,49 @@ void material_unload(struct material *material)
             texture_unload(material->samplers[i]);
         }
     }
+}
+
+/**
+ * @brief
+ *
+ * @param material
+ * @param shader
+ */
+void material_send_uniforms(struct material *material, struct shader *shader)
+{
+    GLint location = 0;
+    struct material_user_uniform uniform = { };
+
+    glUseProgram(shader->program);
+
+    for (size_t i = 0 ; i < array_length(material->added_uniforms) ; i++) {
+        uniform = material->added_uniforms[i];
+
+        location = glGetUniformLocation(shader->program, uniform.name);
+        if (!location) {
+            continue;
+        }
+
+        switch (material->added_uniforms[i].base_type) {
+            case MATERIAL_UNIFORM_FLOAT1:
+                glUniform1fv(location, uniform.nb, (const GLfloat *) &uniform.value);
+                break;
+            case MATERIAL_UNIFORM_FLOAT2:
+                glUniform2fv(location, uniform.nb, (const GLfloat *) &uniform.value);
+                break;
+            case MATERIAL_UNIFORM_FLOAT3:
+                glUniform3fv(location, uniform.nb, (const GLfloat *) &uniform.value);
+                break;
+            case MATERIAL_UNIFORM_FLOAT4:
+                glUniform4fv(location, uniform.nb, (const GLfloat *) &uniform.value);
+                break;
+
+            case MATERIAL_UNIFORM_BASES_NB:
+                break;
+        }
+    }
+
+    glUseProgram(0);
 }
 
 /**

@@ -96,6 +96,7 @@ void texture_unload(struct texture *texture);
 
 void material_load(struct material *material);
 void material_unload(struct material *material);
+void material_send_uniforms(struct material *material, struct shader *shader);
 void material_bind_uniform_blocks(struct material *material,
         struct shader *shader);
 void material_bind_textures(struct material *material, struct shader *shader);

@@ -23,7 +23,7 @@ struct lisilisk_store_material lisilisk_store_material_create(
     };
 
     *new_store.default_material = (struct material) { 0 };
-    material_create(new_store.default_material);
+    material_create(new_store.default_material, nullptr);
 
     material_texture(new_store.default_material,
             new_store.texture_store->default_texture);
@@ -95,7 +95,7 @@ u32 lisilisk_store_material_register(
 
     if (!material) {
         material = alloc.malloc(alloc, sizeof(*material));
-        material_create(material);
+        material_create(material, store->default_material);
 
         hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->materials, 1);
         hashmap_set(store->materials, name, &material);

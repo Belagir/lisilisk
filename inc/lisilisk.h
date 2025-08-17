@@ -91,15 +91,15 @@ lisk_res_t lisk_geometry(
 
 // -----------------------------------------------------------------------------
 
-// Changes the value of a uniform in a shader.
-void lisk_shader_set_uniform_float(
-        lisk_res_t shader,
+// Changes the value of a uniform in a material.
+void lisk_material_set_uniform_float(
+        lisk_res_t material,
         const char *uniform_name,
         float value);
 
 // TODO:
-void lisk_shader_set_uniform_texture(
-        lisk_res_t shader,
+void lisk_material_set_uniform_texture(
+        lisk_res_t material,
         const char *uniform_name,
         lisk_res_t texture);
 

@@ -71,6 +71,17 @@ enum geometry_layering {
 };
 
 // -----------------------------------------------------------------------------
+
+enum material_uniform_base {
+    MATERIAL_UNIFORM_FLOAT1,
+    MATERIAL_UNIFORM_FLOAT2,
+    MATERIAL_UNIFORM_FLOAT3,
+    MATERIAL_UNIFORM_FLOAT4,
+
+    MATERIAL_UNIFORM_BASES_NB,
+};
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
 /**
@@ -204,10 +215,14 @@ struct material_properties {
         f32 PADDING[3];
 };
 
+/**
+ * @brief
+ *
+ */
 struct material_user_uniform {
     const char *name;
     size_t nb;
-    GLuint nature;
+    enum material_uniform_base base_type;
     byte value[4*4*sizeof(f32)];
 };
 
@@ -414,9 +429,6 @@ void shader_vert_mem(struct shader *shader, const byte *source,
 void shader_frag_mem(struct shader *shader, const byte *source,
         size_t length);
 
-void shader_uniform_float(struct shader *shader, const char *name,
-        float value);
-
 void shader_link(struct shader *shader);
 void shader_delete(struct shader *shader);
 
@@ -442,12 +454,10 @@ void geometry_set_layering(struct geometry *geometry,
 
 void texture_2D_default(struct texture *texture);
 void texture_2D_file(struct texture *texture, const char *path);
-// TODO : array out !
 void texture_2D_file_mem(struct texture *texture,
         const byte *image_buffer, size_t length);
 void texture_cubemap_file(struct texture *texture, enum cubemap_face face,
         const char *path);
-// TODO : array out !
 void texture_cubemap_file_mem(struct texture *texture, enum cubemap_face face,
         const byte *image_buffer, size_t length);
 void texture_delete(struct texture *texture);
@@ -456,7 +466,7 @@ void texture_delete(struct texture *texture);
 // -----------------------------------------------------------------------------
 // MATERIAL --------------------------------------------------------------------
 
-void material_create(struct material *material);
+void material_create(struct material *material, const struct material *source);
 void material_delete(struct material *material);
 
 void material_texture(struct material *material, struct texture *texture);
@@ -473,8 +483,18 @@ void material_emissive(struct material *material, f32 emission[3],
         f32 strength);
 void material_emissive_mask(struct material *material, struct texture *mask);
 
+void material_add_uniform_float(struct material *material, const char *name,
+        size_t nb);
+#ifdef TODO_MORE_UNIFORMS_IMPLEMENTATION
+void material_add_uniform_int(struct material *material, const char *name,
+        size_t nb);
+void material_add_uniform_uint(struct material *material, const char *name,
+        size_t nb);
+#endif
+
+bool material_has_uniform(struct material *material, const char *name);
 void material_set_uniform(struct material *material, const char *name,
-        size_t nb, GLint type, f32 *data);
+        void *data);
 
 void material_custom_texture(struct material *material, u8 index,
         struct texture *texture);
