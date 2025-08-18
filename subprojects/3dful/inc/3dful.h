@@ -72,13 +72,30 @@ enum geometry_layering {
 
 // -----------------------------------------------------------------------------
 
+/**
+ * @brief This enumeration is a direct correspondance with the multiple
+ * uniform sampler2D layout indices found in the `frag_head.glsl`.
+ */
+enum material_base_sampler {
+    MATERIAL_BASE_SAMPLER_AMBIENT_MASK,
+    MATERIAL_BASE_SAMPLER_SPECULAR_MASK,
+    MATERIAL_BASE_SAMPLER_DIFFUSE_MASK,
+    MATERIAL_BASE_SAMPLER_EMISSIVE_MASK,
+    MATERIAL_BASE_SAMPLER_TEXTURE,
+
+    MATERIAL_BASE_SAMPLERS_NUMBER,
+};
+
+/**
+ * @brief
+ *
+ */
 enum material_uniform_base {
     MATERIAL_UNIFORM_FLOAT1,
     MATERIAL_UNIFORM_FLOAT2,
     MATERIAL_UNIFORM_FLOAT3,
     MATERIAL_UNIFORM_FLOAT4,
-
-    MATERIAL_UNIFORM_BASES_NB,
+    MATERIAL_UNIFORM_TEXTURE2D,
 };
 
 // -----------------------------------------------------------------------------
@@ -223,7 +240,11 @@ struct material_user_uniform {
     const char *name;
     size_t nb;
     enum material_uniform_base base_type;
-    byte value[4*4*sizeof(f32)];
+
+    union {
+        float as_float1[1], as_float2[2], as_float3[3], as_float4[4];
+        struct texture *as_texture;
+    } value;
 };
 
 /**
@@ -234,9 +255,10 @@ struct material {
     struct loadable load_state;
 
     struct material_properties properties;
-    struct texture * samplers[16u];
+    struct texture * samplers[MATERIAL_BASE_SAMPLERS_NUMBER];
 
     HASHMAP(struct material_user_uniform) added_uniforms;
+    size_t added_textures_number;
 
     struct {
         GLuint ubo;
@@ -491,6 +513,7 @@ void material_add_uniform_int(struct material *material, const char *name,
 void material_add_uniform_uint(struct material *material, const char *name,
         size_t nb);
 #endif
+void material_add_uniform_texture(struct material *material, const char *name);
 
 bool material_has_uniform(struct material *material, const char *name);
 void material_set_uniform(struct material *material, const char *name,

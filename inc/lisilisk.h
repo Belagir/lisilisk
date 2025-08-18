@@ -101,7 +101,7 @@ void lisk_material_set_uniform_float(
         const char *uniform_name,
         float value);
 
-// TODO:
+//
 void lisk_material_set_uniform_texture(
         lisk_res_t material,
         const char *uniform_name,

@@ -24,13 +24,6 @@ static const char * material_sampler_uniforms[MATERIAL_BASE_SAMPLERS_NUMBER] = {
         [MATERIAL_BASE_SAMPLER_TEXTURE]       = "base_texture",
 };
 
-static const size_t material_uniform_sizes[MATERIAL_UNIFORM_BASES_NB] = {
-        [MATERIAL_UNIFORM_FLOAT1] = 1 * sizeof(float),
-        [MATERIAL_UNIFORM_FLOAT2] = 2 * sizeof(float),
-        [MATERIAL_UNIFORM_FLOAT3] = 3 * sizeof(float),
-        [MATERIAL_UNIFORM_FLOAT4] = 4 * sizeof(float),
-};
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
@@ -264,6 +257,30 @@ void material_add_uniform_float(struct material *material, const char *name,
  *
  * @param material
  * @param name
+ */
+void material_add_uniform_texture(struct material *material, const char *name)
+{
+    if (!name) {
+        return;
+    }
+
+    hashmap_ensure_capacity(make_system_allocator(),
+            (HASHMAP_ANY *) &material->added_uniforms, 1);
+    hashmap_set(material->added_uniforms, name, &(struct material_user_uniform) {
+            .name = name,
+            .nb = material->added_textures_number,
+            .base_type = MATERIAL_UNIFORM_TEXTURE2D,
+            .value = { },
+    });
+
+    material->added_textures_number += 1;
+}
+
+/**
+ * @brief
+ *
+ * @param material
+ * @param name
  * @param data
  */
 void material_set_uniform(struct material *material, const char *name,
@@ -271,38 +288,39 @@ void material_set_uniform(struct material *material, const char *name,
 {
     size_t pos = hashmap_index_of(material->added_uniforms, name);
     struct material_user_uniform *uniform = { };
-    size_t copied_size = 0;
 
     if (pos >= array_length(material->added_uniforms)) {
         return;
     }
 
     uniform = material->added_uniforms + pos;
-    copied_size = material_uniform_sizes[uniform->base_type];
-    bytewise_copy(&uniform->value, data, copied_size);
-}
+    switch (uniform->base_type) {
+        case MATERIAL_UNIFORM_FLOAT1:
+            bytewise_copy(&uniform->value, data,
+                    sizeof(uniform->value.as_float1));
+            break;
+        case MATERIAL_UNIFORM_FLOAT2:
+            bytewise_copy(&uniform->value, data,
+                    sizeof(uniform->value.as_float2));
+            break;
+        case MATERIAL_UNIFORM_FLOAT3:
+            bytewise_copy(&uniform->value, data,
+                    sizeof(uniform->value.as_float3));
+            break;
+        case MATERIAL_UNIFORM_FLOAT4:
+            bytewise_copy(&uniform->value, data,
+                    sizeof(uniform->value.as_float4));
+            break;
+        case MATERIAL_UNIFORM_TEXTURE2D:
+            bytewise_copy(&uniform->value, data,
+                    sizeof(uniform->value.as_texture));
+            if ((material->load_state.flags & LOADABLE_FLAG_LOADED)
+                        && (uniform->value.as_texture)) {
+                texture_load(uniform->value.as_texture);
+            }
+            break;
+    }
 
-/**
- * @brief
- *
- * @warning Not implemented.
- *
- * @param material
- * @param index
- * @param texture
- */
-void material_custom_texture(struct material *material, u8 index,
-        struct texture *texture)
-{
-    // there needs to be a name attached to the texture to set the uniform...
-    (void) material;
-    (void) index;
-    (void) texture;
-
-#if 0
-    material_set_sampler(material, index + MATERIAL_BASE_SAMPLERS_NUMBER,
-            texture);
-#endif
 }
 
 /**
@@ -313,6 +331,8 @@ void material_custom_texture(struct material *material, u8 index,
  */
 void material_load(struct material *material)
 {
+    struct material_user_uniform uniform = { };
+
     loadable_add_user((struct loadable *) material);
 
     if (!loadable_needs_loading((struct loadable *) material)) {
@@ -332,6 +352,25 @@ void material_load(struct material *material)
             texture_load(material->samplers[i]);
         }
     }
+
+    for (size_t i = 0 ; i < array_length(material->added_uniforms) ; i++) {
+        uniform = material->added_uniforms[i];
+        switch (uniform.base_type) {
+            case MATERIAL_UNIFORM_FLOAT1:
+                break;
+            case MATERIAL_UNIFORM_FLOAT2:
+                break;
+            case MATERIAL_UNIFORM_FLOAT3:
+                break;
+            case MATERIAL_UNIFORM_FLOAT4:
+                break;
+            case MATERIAL_UNIFORM_TEXTURE2D:
+                if (uniform.value.as_texture) {
+                    texture_load(uniform.value.as_texture);
+                }
+                break;
+        }
+    }
 }
 
 /**
@@ -341,6 +380,8 @@ void material_load(struct material *material)
  */
 void material_unload(struct material *material)
 {
+    struct material_user_uniform uniform = { };
+
     loadable_remove_user((struct loadable *) material);
 
     if (!loadable_needs_unloading((struct loadable *) material)) {
@@ -355,6 +396,26 @@ void material_unload(struct material *material)
             texture_unload(material->samplers[i]);
         }
     }
+
+    for (size_t i = 0 ; i < array_length(material->added_uniforms) ; i++) {
+        uniform = material->added_uniforms[i];
+        switch (uniform.base_type) {
+            case MATERIAL_UNIFORM_FLOAT1:
+                break;
+            case MATERIAL_UNIFORM_FLOAT2:
+                break;
+            case MATERIAL_UNIFORM_FLOAT3:
+                break;
+            case MATERIAL_UNIFORM_FLOAT4:
+                break;
+            case MATERIAL_UNIFORM_TEXTURE2D:
+                if (uniform.value.as_texture) {
+                    texture_unload(uniform.value.as_texture);
+                }
+                break;
+        }
+    }
+
 }
 
 /**
@@ -374,25 +435,25 @@ void material_send_uniforms(struct material *material, struct shader *shader)
         uniform = material->added_uniforms[i];
 
         location = glGetUniformLocation(shader->program, uniform.name);
-        if (!location) {
+        if (location == -1) {
             continue;
         }
 
         switch (material->added_uniforms[i].base_type) {
             case MATERIAL_UNIFORM_FLOAT1:
-                glUniform1fv(location, uniform.nb, (const GLfloat *) &uniform.value);
+                glUniform1fv(location, uniform.nb, (const GLfloat *) &uniform.value.as_float1);
                 break;
             case MATERIAL_UNIFORM_FLOAT2:
-                glUniform2fv(location, uniform.nb, (const GLfloat *) &uniform.value);
+                glUniform2fv(location, uniform.nb, (const GLfloat *) &uniform.value.as_float2);
                 break;
             case MATERIAL_UNIFORM_FLOAT3:
-                glUniform3fv(location, uniform.nb, (const GLfloat *) &uniform.value);
+                glUniform3fv(location, uniform.nb, (const GLfloat *) &uniform.value.as_float3);
                 break;
             case MATERIAL_UNIFORM_FLOAT4:
-                glUniform4fv(location, uniform.nb, (const GLfloat *) &uniform.value);
+                glUniform4fv(location, uniform.nb, (const GLfloat *) &uniform.value.as_float4);
                 break;
 
-            case MATERIAL_UNIFORM_BASES_NB:
+            case MATERIAL_UNIFORM_TEXTURE2D:
                 break;
         }
     }
@@ -432,21 +493,51 @@ void material_bind_uniform_blocks(struct material *material,
  */
 void material_bind_textures(struct material *material, struct shader *shader)
 {
+    GLint location = 0;
+    struct material_user_uniform uniform = { };
+
     glUseProgram(shader->program);
     for (size_t i = 0 ; i < COUNT_OF(material->samplers) ; i++) {
+        location = glGetUniformLocation(shader->program,
+                material_sampler_uniforms[i]);
+
         glActiveTexture(GL_TEXTURE0 + i);
         if (material->samplers[i]) {
             glBindTexture(GL_TEXTURE_2D,
                     material->samplers[i]->gpu_side.name);
-
-            if (i < MATERIAL_BASE_SAMPLERS_NUMBER) {
-                glUniform1i(glGetUniformLocation(shader->program,
-                        material_sampler_uniforms[i]), i);
-            } else {
-                // custom texture name here
-            }
+            glUniform1i(location, i);
         }
     }
+
+    for (size_t i = 0 ; i < array_length(material->added_uniforms) ; i++) {
+        uniform = material->added_uniforms[i];
+
+        location = glGetUniformLocation(shader->program, uniform.name);
+        if (location == -1) {
+            continue;
+        }
+
+        switch (material->added_uniforms[i].base_type) {
+            case MATERIAL_UNIFORM_FLOAT1:
+                break;
+            case MATERIAL_UNIFORM_FLOAT2:
+                break;
+            case MATERIAL_UNIFORM_FLOAT3:
+                break;
+            case MATERIAL_UNIFORM_FLOAT4:
+                break;
+
+            case MATERIAL_UNIFORM_TEXTURE2D:
+                glActiveTexture(GL_TEXTURE0 + MATERIAL_BASE_SAMPLERS_NUMBER + uniform.nb);
+                if (uniform.value.as_texture) {
+                    glBindTexture(GL_TEXTURE_2D,uniform.value.as_texture->gpu_side.
+                            name);
+                    glUniform1i(location, MATERIAL_BASE_SAMPLERS_NUMBER + uniform.nb);
+                }
+                break;
+        }
+    }
+
     glUseProgram(0);
 }
 

@@ -52,20 +52,6 @@ enum shader_vertex_binding {
     SHADER_VERT_INSTANCEROTATION,
 };
 
-/**
- * @brief This enumeration is a direct correspondance with the multiple
- * uniform sampler2D layout indices found in the `frag_head.glsl`.
- */
-enum material_base_sampler {
-    MATERIAL_BASE_SAMPLER_AMBIENT_MASK,
-    MATERIAL_BASE_SAMPLER_SPECULAR_MASK,
-    MATERIAL_BASE_SAMPLER_DIFFUSE_MASK,
-    MATERIAL_BASE_SAMPLER_EMISSIVE_MASK,
-    MATERIAL_BASE_SAMPLER_TEXTURE,
-
-    MATERIAL_BASE_SAMPLERS_NUMBER,
-};
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // GEOMETRY --------------------------------------------------------------------

@@ -345,6 +345,48 @@ void lisk_material_set_uniform_float(
 }
 
 /**
+ * @brief
+ *
+ * @param material
+ * @param uniform_name
+ * @param texture
+ */
+void lisk_material_set_uniform_texture(
+        lisk_res_t res_material,
+        const char *uniform_name,
+        lisk_res_t res_texture)
+{
+    union lisk_res_layout handle_material = { .full = res_material };
+    struct material* material = nullptr;
+    union lisk_res_layout handle_texture = { .full = res_texture };
+    struct texture* texture = nullptr;
+
+    if (handle_material.flavor != RES_REPRESENTS_MATERIAL) {
+        return;
+    }
+
+    material = lisilisk_store_material_retrieve(
+            &static_data.stores.materials, handle_material.hash);
+
+    if (!material) {
+        return;
+    }
+
+    texture = lisilisk_store_texture_retrieve(
+            &static_data.stores.textures, handle_texture.hash);
+
+    if (!texture) {
+        return;
+    }
+
+    if (!material_has_uniform(material, uniform_name)) {
+        material_add_uniform_texture(material, uniform_name);
+    }
+
+    material_set_uniform(material, uniform_name, &texture);
+}
+
+/**
  * @brief Adds a model to the scene so all its instances can be visible.
  *
  * @param[in] name Name of the model.
