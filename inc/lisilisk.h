@@ -72,6 +72,10 @@ void lisk_get_size(
 
 // -----------------------------------------------------------------------------
 
+//
+lisk_res_t lisk_model(
+        const char *name);
+
 // Loads a texture from a file in the resources directory.
 lisk_res_t lisk_texture(
         const char *file);
@@ -107,21 +111,21 @@ void lisk_material_set_uniform_texture(
 
 // Makes it mossible for a model's instances to be rendered to the scene.
 void lisk_model_show(
-        const char *name);
+        lisk_res_t model);
 
 // Changes the geometry of a model.
 void lisk_model_geometry(
-        const char *name,
+        lisk_res_t model,
         lisk_res_t geometry);
 
 // Assigns a material to configure a model's shading.
 void lisk_model_material(
-        const char *name,
+        lisk_res_t model,
         lisk_res_t material);
 
 // Assigns a material shader to render a model.
 void lisk_model_shader(
-        const char *name,
+        lisk_res_t model,
         lisk_res_t shader);
 
 // -----------------------------------------------------------------------------
@@ -166,7 +170,7 @@ void lisk_material_emission(
 
 // Instanciate a model at some point in the world.
 lisk_handle_t lisk_model_instanciate(
-        const char *model_name,
+        lisk_res_t model,
         float (*pos)[3],
         float scale);
 

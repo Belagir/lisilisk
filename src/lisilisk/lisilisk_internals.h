@@ -35,6 +35,7 @@ enum handle_flavor : u8 {
 
 enum res_flavor : u8 {
     RES_IS_INVALID = 0,
+    RES_REPRESENTS_MODEL,
     RES_REPRESENTS_TEXTURE,
     RES_REPRESENTS_SHADER,
     RES_REPRESENTS_GEOMETRY,

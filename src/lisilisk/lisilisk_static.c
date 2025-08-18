@@ -31,9 +31,8 @@ DECLARE_RES(skybox_frag, "res_shaders_environment_skybox_frag_glsl")
 static struct model *static_data_model_of_instance(
         union lisk_handle_layout handle);
 
-static struct model *static_data_model_named(
-        const char *name,
-        u32 *out_hash);
+static struct model *static_data_model_of(
+        lisk_res_t res_model);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -196,6 +195,28 @@ void lisk_rename(const char *window_name)
 }
 
 /**
+ * @brief
+ *
+ * @param name
+ * @return lisk_res_t
+ */
+lisk_res_t lisk_model(
+        const char *name)
+{
+    union lisk_res_layout handle = { .full = LISK_RES_NONE };
+    u32 hash = 0;
+
+    hash = lisilisk_store_model_register(&static_data.stores.models, name);
+
+    handle = (union lisk_res_layout) {
+        .flavor = RES_REPRESENTS_MODEL,
+        .hash = hash,
+    };
+
+    return handle.full;
+}
+
+/**
  * @brief Loads or retrieve a previously loaded texture. The texture can be
  * used with the handle that is returned.
  *
@@ -329,11 +350,11 @@ void lisk_material_set_uniform_float(
  * @param[in] name Name of the model.
  */
 void lisk_model_show(
-        const char *name)
+        lisk_res_t res_model)
 {
     struct model *model = nullptr;
 
-    model = static_data_model_named(name, nullptr);
+    model = static_data_model_of(res_model);
     if (!model) {
         return;
     }
@@ -351,18 +372,18 @@ void lisk_model_show(
  * @param[in] name New name to reference the model.
  */
 void lisk_model_geometry(
-        const char *name,
+        lisk_res_t res_model,
         lisk_res_t res_geometry)
 {
+    union lisk_res_layout geometry_handle = { .full = res_geometry };
     struct geometry *geometry = nullptr;
     struct model *model = nullptr;
-    union lisk_res_layout geometry_handle = { .full = res_geometry };
 
     if (geometry_handle.flavor != RES_REPRESENTS_GEOMETRY) {
         return;
     }
 
-    model = static_data_model_named(name, nullptr);
+    model = static_data_model_of(res_model);
     if (!model) {
         return;
     }
@@ -384,18 +405,18 @@ void lisk_model_geometry(
  * @param[in] name Name used to reference this shader.
  */
 void lisk_model_shader(
-        const char *name,
+        lisk_res_t res_model,
         lisk_res_t res_shader)
 {
-    struct model *model = nullptr;
-    struct shader *shader = nullptr;
     union lisk_res_layout shader_handle = { .full = res_shader };
+    struct shader *shader = nullptr;
+    struct model *model = nullptr;
 
     if (shader_handle.flavor != RES_REPRESENTS_SHADER) {
         return;
     }
 
-    model = static_data_model_named(name, nullptr);
+    model = static_data_model_of(res_model);
     if (!model) {
         return;
     }
@@ -417,25 +438,24 @@ void lisk_model_shader(
  * @param material
  */
 void lisk_model_material(
-        const char *name,
+        lisk_res_t res_model,
         lisk_res_t res_material)
 {
-    struct model *model = nullptr;
-    struct material *material = nullptr;
     union lisk_res_layout material_handle = { .full = res_material };
+    struct material *material = nullptr;
+    struct model *model = nullptr;
 
     if (material_handle.flavor != RES_REPRESENTS_MATERIAL) {
         return;
     }
 
-    model = static_data_model_named(name, nullptr);
+    model = static_data_model_of(res_model);
     if (!model) {
         return;
     }
 
     material = lisilisk_store_material_retrieve(
             &static_data.stores.materials, material_handle.hash);
-
     if (!material) {
         return;
     }
@@ -682,16 +702,16 @@ void lisk_material_emission(
  * @return lisk_handle_t
  */
 lisk_handle_t lisk_model_instanciate(
-        const char *name,
+        lisk_res_t res_model,
         float (*pos)[3],
         float scale)
 {
     struct model *model = nullptr;
-    u32 model_hash = 0;
     union lisk_handle_layout handle = { .full = 0 };
+    union lisk_res_layout model_handle = { .full = res_model };
     handle_t in_handle = 0;
 
-    model = static_data_model_named(name, &model_hash);
+    model = static_data_model_of(res_model);
     if (!model) {
         return LISK_HANDLE_NONE;
     }
@@ -705,7 +725,7 @@ lisk_handle_t lisk_model_instanciate(
             quaternion_identity());
 
     handle = (union lisk_handle_layout) {
-            .hash = model_hash,
+            .hash = model_handle.hash,
             .flavor = HANDLE_REPRESENTS_INSTANCE,
             .internal = in_handle
     };
@@ -1208,11 +1228,7 @@ static struct model *static_data_model_of_instance(
 {
     struct model *model = nullptr;
 
-    if (!static_data.active) {
-        return nullptr;
-    }
-
-    if (handle.flavor != HANDLE_REPRESENTS_INSTANCE) {
+    if (!static_data.active || (handle.flavor != HANDLE_REPRESENTS_INSTANCE)) {
         return nullptr;
     }
 
@@ -1223,32 +1239,23 @@ static struct model *static_data_model_of_instance(
 }
 
 /**
- * @brief retrieves a model from the name the user supplied. If it doesn't
- * exists, an entry will be created for it.
+ * @brief retrieves a model from the handle the user supplied.
  *
- * @param name
+ * @param res_model
  * @return struct model*
  */
-static struct model *static_data_model_named(
-        const char *name,
-        u32 *out_hash)
+static struct model *static_data_model_of(
+        lisk_res_t res_model)
 {
+    union lisk_res_layout model_handle = { .full = res_model };
     struct model *model = nullptr;
-    u32 model_hash = 0;
 
-    if (!static_data.active) {
+    if (!static_data.active || (model_handle.flavor != RES_REPRESENTS_MODEL)) {
         return nullptr;
     }
 
-    // Create the model, register it in a map
-    model_hash = lisilisk_store_model_register(
-            &static_data.stores.models, name);
     model = lisilisk_store_model_retrieve(
-            &static_data.stores.models, model_hash);
-
-    if (out_hash) {
-        *out_hash = model_hash;
-    }
+            &static_data.stores.models, model_handle.hash);
 
     return model;
 }
