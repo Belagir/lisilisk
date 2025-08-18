@@ -15,6 +15,7 @@
 
 #include "3dful_core.h"
 
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
@@ -72,7 +73,7 @@ void model_geometry(struct model *model, struct geometry *geometry)
             geometry_unload(model->geometry);
         }
         if (geometry) {
-            geometry_load(geometry);
+            geometry_load(model->geometry);
         }
     }
 
@@ -191,10 +192,12 @@ void model_load(struct model *model)
 
     if (loadable_needs_loading((struct loadable *) model)) {
 
-        if (model->geometry) geometry_load(model->geometry);
-        if (model->material) material_load(model->material);
-
-        handle_buffer_array_load(&model->instances);
+        if (model->geometry) {
+            geometry_load(model->geometry);
+        }
+        if (model->material) {
+            material_load(model->material);
+        }
 
         // model's vao
         glGenVertexArrays(1, &model->gpu_side.vao);
@@ -209,24 +212,26 @@ void model_load(struct model *model)
                     model->geometry->gpu_side.vbo);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                     model->geometry->gpu_side.ebo);
+
+            glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE,
+                    sizeof(struct vertex),
+                    (void *) OFFSET_OF(struct vertex, pos));
+            glEnableVertexAttribArray(SHADER_VERT_POS);
+
+            glVertexAttribPointer(SHADER_VERT_NORMAL, 3, GL_FLOAT,
+                    GL_FALSE, sizeof(struct vertex),
+                    (void *) OFFSET_OF(struct vertex, normal));
+            glEnableVertexAttribArray(SHADER_VERT_NORMAL);
+
+            glVertexAttribPointer(SHADER_VERT_UV, 2, GL_FLOAT, GL_FALSE,
+                    sizeof(struct vertex),
+                    (void *) OFFSET_OF(struct vertex, uv));
+            glEnableVertexAttribArray(SHADER_VERT_UV);
         }
 
-        glVertexAttribPointer(SHADER_VERT_POS, 3, GL_FLOAT, GL_FALSE,
-                sizeof(struct vertex),
-                (void *) OFFSET_OF(struct vertex, pos));
-        glEnableVertexAttribArray(SHADER_VERT_POS);
-
-        glVertexAttribPointer(SHADER_VERT_NORMAL, 3, GL_FLOAT,
-                GL_FALSE, sizeof(struct vertex),
-                (void *) OFFSET_OF(struct vertex, normal));
-        glEnableVertexAttribArray(SHADER_VERT_NORMAL);
-
-        glVertexAttribPointer(SHADER_VERT_UV, 2, GL_FLOAT, GL_FALSE,
-                sizeof(struct vertex),
-                (void *) OFFSET_OF(struct vertex, uv));
-        glEnableVertexAttribArray(SHADER_VERT_UV);
-
         // instances data
+        handle_buffer_array_load(&model->instances);
+
         glBindBuffer(GL_ARRAY_BUFFER, model->instances.buffer_name);
 
         glEnableVertexAttribArray(SHADER_VERT_INSTANCEPOSITION);

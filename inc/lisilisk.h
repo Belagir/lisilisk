@@ -109,10 +109,6 @@ void lisk_material_set_uniform_texture(
 
 // -----------------------------------------------------------------------------
 
-// Makes it mossible for a model's instances to be rendered to the scene.
-void lisk_model_show(
-        lisk_res_t model);
-
 // Changes the geometry of a model.
 void lisk_model_geometry(
         lisk_res_t model,

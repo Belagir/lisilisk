@@ -387,24 +387,6 @@ void lisk_material_set_uniform_texture(
 }
 
 /**
- * @brief Adds a model to the scene so all its instances can be visible.
- *
- * @param[in] name Name of the model.
- */
-void lisk_model_show(
-        lisk_res_t res_model)
-{
-    struct model *model = nullptr;
-
-    model = static_data_model_of(res_model);
-    if (!model) {
-        return;
-    }
-
-    scene_model(&static_data.world.scene, model);
-}
-
-/**
  * @brief Registers a model to the engine. Instances of this model will be able
  * to be rendered to the scene from this point on.
  *
@@ -439,6 +421,7 @@ void lisk_model_geometry(
     }
 
     model_geometry(model, geometry);
+    scene_model(&static_data.world.scene, model);
 }
 
 /**
