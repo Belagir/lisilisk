@@ -304,6 +304,7 @@ struct camera {
     f32 fov, aspect;
     vector3 target;
     f32 near, far;
+    vector3 up;
 
     struct matrix4 view;
     struct matrix4 projection;
@@ -551,6 +552,7 @@ void camera_fov(struct camera *camera, f32 fov);
 void camera_target(struct camera *camera, struct vector3 target);
 void camera_limits(struct camera *camera, f32 near, f32 far);
 void camera_aspect(struct camera *camera, f32 aspect);
+void camera_up(struct camera *camera, struct vector3 up);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

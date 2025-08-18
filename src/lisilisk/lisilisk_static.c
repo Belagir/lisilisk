@@ -1007,6 +1007,9 @@ void lisk_instance_set_rotation_quaternion(
                     vector3_add(static_data.world.camera.pos,
                     vector3_rotate_by_quaternion(VECTOR3_Z_NEGATIVE,
                             *(struct quaternion *) q)));
+            camera_up(&static_data.world.camera,
+                    vector3_rotate_by_quaternion(VECTOR3_Y_POSITIVE,
+                            *(struct quaternion *) q));
             return;
     }
 }

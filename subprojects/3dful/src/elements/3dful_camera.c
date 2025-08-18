@@ -22,7 +22,7 @@ void camera_position(struct camera *camera, struct vector3 pos)
 {
     camera->pos = pos;
     camera->view = matrix4_get_view_matrix(camera->pos,
-            camera->target, VECTOR3_Y_POSITIVE);
+            camera->target, camera->up);
 }
 
 /**
@@ -49,7 +49,7 @@ void camera_target(struct camera *camera, struct vector3 target)
 {
     camera->target = target;
     camera->view = matrix4_get_view_matrix(camera->pos,
-            camera->target, VECTOR3_Y_POSITIVE);
+            camera->target, camera->up);
 }
 
 /**
@@ -80,6 +80,19 @@ void camera_aspect(struct camera *camera, f32 aspect)
     camera->aspect = aspect;
     camera->projection = matrix4_get_projection_matrix(camera->near,
             camera->far, camera->fov, camera->aspect);
+}
+
+/**
+ * @brief
+ *
+ * @param camera
+ * @param up
+ */
+void camera_up(struct camera *camera, struct vector3 up)
+{
+    camera->up = up;
+    camera->view = matrix4_get_view_matrix(camera->pos,
+            camera->target, camera->up);
 }
 
 /**

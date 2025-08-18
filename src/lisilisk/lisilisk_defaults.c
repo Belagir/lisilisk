@@ -68,4 +68,5 @@ void lisilisk_setup_camera(
     camera_limits(camera, .1, 1000.);
     camera_position(camera, (struct vector3) { 0, 1, 2 });
     camera_target(camera, VECTOR3_ORIGIN);
+    camera_up(camera, VECTOR3_Y_POSITIVE);
 }
