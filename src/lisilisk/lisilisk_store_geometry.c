@@ -68,10 +68,11 @@ void lisilisk_store_geometry_delete(
  * @param obj_path
  * @return u32
  */
-u32 lisilisk_store_geometry_register(
+bool lisilisk_store_geometry_register(
         struct lisilisk_store_geometry *store,
         struct resource_manager *res_manager,
-        const char *obj_path)
+        const char *obj_path,
+        u32 *out_hash)
 {
     struct allocator alloc = make_system_allocator();
     u32 hash = 0;
@@ -79,33 +80,41 @@ u32 lisilisk_store_geometry_register(
     const byte *obj_contents = nullptr;
     size_t obj_contents_length = 0;
 
+    if (!store || !res_manager || !obj_path) {
+        return false;
+    }
 
     hash = hashmap_hash_of(obj_path, 0);
-    geometry = lisilisk_store_geometry_retrieve(store, hash);
-
-    if (!geometry) {
-        // create geometry from file
-        geometry = alloc.malloc(alloc, sizeof(*geometry));
-        *geometry = (struct geometry) { 0 };
-        geometry_create(geometry);
-
-        obj_contents = resource_manager_fetch(res_manager, "lisilisk",
-                obj_path, &obj_contents_length);
-
-        if (!obj_contents) {
-            goto cleanup;
-        }
-
-        geometry_wavobj_mem(geometry, obj_contents, obj_contents_length);
-
-        // if successful, allocate a new geometry and copy the valid geometry to it
-        if (array_length(geometry->faces) == 0) {
-            goto cleanup;
-        }
-
-        hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->geometries, 1);
-        hashmap_set(store->geometries, obj_path, &geometry);
+    if (out_hash) {
+        *out_hash = hash;
     }
+
+    geometry = lisilisk_store_geometry_retrieve(store, hash);
+    if (geometry) {
+        return true;
+    }
+
+    // create geometry from file
+    geometry = alloc.malloc(alloc, sizeof(*geometry));
+    *geometry = (struct geometry) { 0 };
+    geometry_create(geometry);
+
+    obj_contents = resource_manager_fetch(res_manager, "lisilisk",
+            obj_path, &obj_contents_length);
+
+    if (!obj_contents) {
+        goto cleanup;
+    }
+
+    geometry_wavobj_mem(geometry, obj_contents, obj_contents_length);
+
+    // if successful, allocate a new geometry and copy the valid geometry to it
+    if (array_length(geometry->faces) == 0) {
+        goto cleanup;
+    }
+
+    hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->geometries, 1);
+    hashmap_set(store->geometries, obj_path, &geometry);
 
     return hash;
 

@@ -82,15 +82,23 @@ void lisilisk_store_material_delete(
  * @param name
  * @return u32
  */
-u32 lisilisk_store_material_register(
+bool lisilisk_store_material_register(
         struct lisilisk_store_material *store,
-        const char *name)
+        const char *name,
+        u32 *out_hash)
 {
     struct allocator alloc = make_system_allocator();
     struct material *material = nullptr;
     u32 hash = 0;
 
+    if (!store || !name) {
+        return false;
+    }
+
     hash = hashmap_hash_of(name, 0);
+    if (out_hash) {
+        *out_hash = hash;
+    }
     material = lisilisk_store_material_retrieve(store, hash);
 
     if (!material) {
@@ -101,7 +109,7 @@ u32 lisilisk_store_material_register(
         hashmap_set(store->materials, name, &material);
     }
 
-    return hash;
+    return true;
 }
 
 /**

@@ -206,7 +206,12 @@ lisk_res_t lisk_model(
     union lisk_res_layout handle = { .full = LISK_RES_NONE };
     u32 hash = 0;
 
-    hash = lisilisk_store_model_register(&static_data.stores.models, name);
+    if (!lisilisk_store_model_register(&static_data.stores.models,
+            name, &hash)) {
+        logger_log(static_data.log, LOGGER_SEVERITY_WARN,
+                "Could not create or retreive model named %s.\n", name);
+        return  LISK_RES_NONE;
+    }
 
     handle = (union lisk_res_layout) {
         .flavor = RES_REPRESENTS_MODEL,
@@ -229,8 +234,12 @@ lisk_res_t lisk_texture(
     union lisk_res_layout handle = { .full = LISK_RES_NONE };
     u32 hash = 0;
 
-    hash = lisilisk_store_texture_register(&static_data.stores.textures,
-        static_data.context.res_manager, file);
+    if (!lisilisk_store_texture_register(&static_data.stores.textures,
+            static_data.context.res_manager, file, &hash)) {
+        logger_log(static_data.log, LOGGER_SEVERITY_WARN,
+                "Could not create or retreive texture from file %s.\n", file);
+        return  LISK_RES_NONE;
+    }
 
     handle = (union lisk_res_layout) {
         .flavor = RES_REPRESENTS_TEXTURE,
@@ -254,8 +263,14 @@ lisk_res_t lisk_shader(
     union lisk_res_layout handle = { .full = LISK_RES_NONE };
     u32 hash = 0;
 
-    hash = lisilisk_store_shader_register(&static_data.stores.shaders,
-        static_data.context.res_manager, frag_shader, vert_shader);
+    if (!lisilisk_store_shader_register(&static_data.stores.shaders,
+        static_data.context.res_manager, frag_shader, vert_shader, &hash)) {
+        logger_log(static_data.log, LOGGER_SEVERITY_WARN,
+                "Could not create or retreive shader with fragment %s and vertex %s.\n",
+                frag_shader, vert_shader);
+        return  LISK_RES_NONE;
+
+    }
 
     handle = (union lisk_res_layout) {
         .flavor = RES_REPRESENTS_SHADER,
@@ -277,8 +292,12 @@ lisk_res_t lisk_material(
     union lisk_res_layout handle = { .full = LISK_RES_NONE };
     u32 hash = 0;
 
-    hash = lisilisk_store_material_register(&static_data.stores.materials,
-            name);
+    if (!lisilisk_store_material_register(&static_data.stores.materials,
+            name, &hash)) {
+        logger_log(static_data.log, LOGGER_SEVERITY_WARN,
+                "Could not create or retreive material named %s.\n", name);
+        return  LISK_RES_NONE;
+    }
 
     handle = (union lisk_res_layout) {
         .flavor = RES_REPRESENTS_MATERIAL,
@@ -300,8 +319,12 @@ lisk_res_t lisk_geometry(
     union lisk_res_layout handle = { .full = LISK_RES_NONE };
     u32 hash = 0;
 
-    hash = lisilisk_store_geometry_register(&static_data.stores.geometries,
-            static_data.context.res_manager, obj_file);
+    if (!lisilisk_store_geometry_register(&static_data.stores.geometries,
+            static_data.context.res_manager, obj_file, &hash)) {
+        logger_log(static_data.log, LOGGER_SEVERITY_WARN,
+                "Could not create or retreive geometry from file %s.\n", obj_file);
+        return  LISK_RES_NONE;
+    }
 
     handle = (union lisk_res_layout) {
         .flavor = RES_REPRESENTS_GEOMETRY,

@@ -54,23 +54,27 @@ void lisilisk_store_model_delete(
  * @param mesh
  * @return struct model*
  */
-u32 lisilisk_store_model_register(
+bool lisilisk_store_model_register(
         struct lisilisk_store_model *store,
-        const char *name)
+        const char *name,
+        u32 *out_hash)
 {
     struct allocator alloc = make_system_allocator();
     struct model *stored = nullptr;
     u32 model_hash = 0;
 
-    if (!store) {
-        return 0;
+    if (!store || !name) {
+        return false;
     }
 
     model_hash = hashmap_hash_of(name, 0);
-    stored = lisilisk_store_model_retrieve(store, model_hash);
+    if (out_hash) {
+        *out_hash = model_hash;
+    }
 
+    stored = lisilisk_store_model_retrieve(store, model_hash);
     if (stored) {
-        return model_hash;
+        return true;
     }
 
     stored = alloc.malloc(alloc, sizeof(*stored));
@@ -83,7 +87,7 @@ u32 lisilisk_store_model_register(
     hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->models, 1);
     hashmap_set_hashed(store->models, model_hash, &stored);
 
-    return model_hash;
+    return true;
 }
 
 /**

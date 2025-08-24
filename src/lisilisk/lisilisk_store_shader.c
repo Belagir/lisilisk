@@ -73,10 +73,11 @@ void lisilisk_store_shader_delete(
  * @param vert
  * @return u32
  */
-u32 lisilisk_store_shader_register(
+bool lisilisk_store_shader_register(
         struct lisilisk_store_shader *store,
         struct resource_manager *res_manager,
-        const char *frag, const char *vert)
+        const char *frag, const char *vert,
+        u32 *out_hash)
 {
     struct allocator alloc = make_system_allocator();
     u32 hash = 0;
@@ -86,54 +87,60 @@ u32 lisilisk_store_shader_register(
     const byte *frag_source = nullptr;
     size_t frag_source_length = 0;
 
-    if (!store) {
+    if (!store || !res_manager || !frag || !vert) {
         return 0;
     }
 
     hash = hashmap_hash_of(frag, 0);
     hash = hashmap_hash_of(vert, hash);
-    shader = lisilisk_store_shader_retrieve(store, hash);
-
-    if (!shader) {
-        shader = alloc.malloc(alloc, sizeof(*shader));
-        *shader = (struct shader) { 0 };
-
-        vert_source = resource_manager_fetch(res_manager, "lisilisk",
-                vert, &vert_source_length);
-        frag_source = resource_manager_fetch(res_manager, "lisilisk",
-                frag, &frag_source_length);
-
-        if (!vert_source && !frag_source) {
-            goto cleanup;
-        }
-
-        if (!vert_source) {
-            vert_source = default_vertex_start;
-            vert_source_length = (size_t) &default_vertex_size;
-        } else if (!frag_source) {
-            frag_source = default_fragment_start;
-            frag_source_length = (size_t) &default_fragment_size;
-        }
-
-        shader_material_frag_mem(shader, frag_source, frag_source_length);
-        shader_material_vert_mem(shader, vert_source, vert_source_length);
-        shader_link(shader);
-
-        if (shader->program == 0) {
-            goto cleanup;
-        }
-
-        hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->shaders, 1);
-        hashmap_set_hashed(store->shaders, hash, &shader);
+    if (out_hash) {
+        *out_hash = hash;
     }
 
-    return hash;
+    shader = lisilisk_store_shader_retrieve(store, hash);
+
+    if (shader) {
+        return true;
+    }
+
+    shader = alloc.malloc(alloc, sizeof(*shader));
+    *shader = (struct shader) { 0 };
+
+    vert_source = resource_manager_fetch(res_manager, "lisilisk",
+            vert, &vert_source_length);
+    frag_source = resource_manager_fetch(res_manager, "lisilisk",
+            frag, &frag_source_length);
+
+    if (!vert_source && !frag_source) {
+        goto cleanup;
+    }
+
+    if (!vert_source) {
+        vert_source = default_vertex_start;
+        vert_source_length = (size_t) &default_vertex_size;
+    } else if (!frag_source) {
+        frag_source = default_fragment_start;
+        frag_source_length = (size_t) &default_fragment_size;
+    }
+
+    shader_material_frag_mem(shader, frag_source, frag_source_length);
+    shader_material_vert_mem(shader, vert_source, vert_source_length);
+    shader_link(shader);
+
+    if (shader->program == 0) {
+        goto cleanup;
+    }
+
+    hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->shaders, 1);
+    hashmap_set_hashed(store->shaders, hash, &shader);
+
+    return true;
 
 cleanup:
     shader_delete(shader);
     alloc.free(alloc, shader);
 
-    return 0;
+    return false;
 }
 
 /**

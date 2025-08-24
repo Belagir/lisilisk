@@ -184,10 +184,11 @@ struct texture *lisilisk_store_texture_cubemap_cache(
         struct resource_manager *res_manager,
         const char *(*images)[6]);
 
-u32 lisilisk_store_texture_register(
+bool lisilisk_store_texture_register(
         struct lisilisk_store_texture *store,
         struct resource_manager *res_manager,
-        const char *image);
+        const char *image,
+        u32 *out_hash);
 struct texture *lisilisk_store_texture_retrieve(
         struct lisilisk_store_texture *store,
         u32 hash);
@@ -198,10 +199,11 @@ struct lisilisk_store_geometry lisilisk_store_geometry_create(void);
 void lisilisk_store_geometry_delete(
         struct lisilisk_store_geometry *store);
 
-u32 lisilisk_store_geometry_register(
+bool lisilisk_store_geometry_register(
         struct lisilisk_store_geometry *store,
         struct resource_manager *res_manager,
-        const char *obj_path);
+        const char *obj_path,
+        u32 *out_hash);
 
 struct geometry *lisilisk_store_geometry_retrieve(
         struct lisilisk_store_geometry *store,
@@ -214,9 +216,10 @@ struct lisilisk_store_material lisilisk_store_material_create(
 void lisilisk_store_material_delete(
         struct lisilisk_store_material *store);
 
-u32 lisilisk_store_material_register(
+bool lisilisk_store_material_register(
         struct lisilisk_store_material *store,
-        const char *name);
+        const char *name,
+        u32 *out_hash);
 struct material *lisilisk_store_material_retrieve(
         struct lisilisk_store_material *store,
         u32 hash);
@@ -229,9 +232,10 @@ struct lisilisk_store_model lisilisk_store_model_create(
 void lisilisk_store_model_delete(
         struct lisilisk_store_model *store);
 
-u32 lisilisk_store_model_register(
+bool lisilisk_store_model_register(
         struct lisilisk_store_model *store,
-        const char *name);
+        const char *name,
+        u32 *out_hash);
 struct model *lisilisk_store_model_retrieve(
         struct lisilisk_store_model *store,
         u32 hash);
@@ -242,10 +246,11 @@ struct lisilisk_store_shader lisilisk_store_shader_create(void);
 void lisilisk_store_shader_delete(
         struct lisilisk_store_shader *shader_store);
 
-u32 lisilisk_store_shader_register(
+bool lisilisk_store_shader_register(
         struct lisilisk_store_shader *store,
         struct resource_manager *res_manager,
-        const char *frag, const char *vert);
+        const char *frag, const char *vert,
+        u32 *out_hash);
 
 struct shader *lisilisk_store_shader_retrieve(
         struct lisilisk_store_shader *store,
