@@ -17,11 +17,11 @@
 #include <GLES3/gl3.h>
 
 #include <ustd/common.h>
+#include <ustd/filereading.h>
 #include <ustd/math2d.h>
 #include <ustd/math3d.h>
 
 #include <3dful.h>
-#include "../inout/file_operations.h"
 #include "../dynamic_data/3dful_dynamic_data.h"
 
 // -----------------------------------------------------------------------------

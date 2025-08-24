@@ -13,39 +13,14 @@
 #include <stdio.h>
 
 #include <ustd/array.h>
-
-/**
- * @brief Private state of the parser.
- */
-struct parser_state {
-    const ARRAY(byte) buffer_array;
-    size_t buffer_idx;
-    u32 line, column;
-};
-
-static void parser_state_advance(struct parser_state *state);
+#include <ustd/parsing.h>
 
 // -----------------------------------------------------------------------------
-// UTILITY FUNCTIONS -----------------------------------------------------------
-static i32 accept(struct parser_state *state, char *alternatives, size_t nb,
-        char *c_out);
-static i32 expect(struct parser_state *state, char *alternatives, size_t nb,
-        char *c_out);
-static i32 lookup(struct parser_state *state, char *alternatives, size_t nb,
-        char *c_out);
-
-static void skip_whitespace(struct parser_state *state);
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-// -----------------------------------------------------------------------------
-// PARSING ROUTINES ------------------------------------------------------------
 static i32 wavefront_parse_comment(struct parser_state *state,
         struct wavefront_obj *out_obj);
-static i32 wavefront_parse_end_line(struct parser_state *state,
-        struct wavefront_obj *out_obj);
-static i32 wavefront_parse_end_of_obj(struct parser_state *state,
-        struct wavefront_obj *out_obj);
-
 static i32 wavefront_parse_obj_name(struct parser_state *state,
         struct wavefront_obj *out_obj);
 static i32 wavefront_parse_obj_smoothing(struct parser_state *state,
@@ -62,12 +37,6 @@ static i32 wavefront_parse_face(struct parser_state *state,
         struct wavefront_obj *out_obj);
 static i32 wavefront_parse_face_point(struct parser_state *state,
         i32 read_idx[3]);
-
-static i32 wavefront_parse_value(struct parser_state *state, f32 *out_value);
-static i32 wavefront_parse_value_int(struct parser_state *state,
-        i32 *out_value);
-static i32 wavefront_parse_value_uint(struct parser_state *state,
-        i32 *out_value);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -127,10 +96,10 @@ void wavefront_obj_parse(struct wavefront_obj *obj, const byte *buffer)
 
     struct parser_state state = { .buffer_array = buffer, 0 };
 
-    while (!wavefront_parse_end_of_obj(&state, obj)) {
-        skip_whitespace(&state);
+    while (!parser_parse_end_of_file(&state)) {
+        parser_skip_whitespace(&state);
 
-        if (wavefront_parse_end_line(&state, obj)) {
+        if (parser_parse_end_line(&state)) {
             // NOP
         } else if (wavefront_parse_comment(&state, obj)) {
             // NOP
@@ -222,35 +191,21 @@ void wavefront_obj_dump(struct wavefront_obj *obj, FILE *file)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static i32 wavefront_parse_end_line(struct parser_state *state,
-        struct wavefront_obj *out_obj)
-{
-    (void) out_obj;
-
-    return accept(state, (char []) { '\n' }, 1, NULL);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
 static i32 wavefront_parse_comment(struct parser_state *state,
         struct wavefront_obj *out_obj)
 {
     (void) out_obj;
 
     // detect comment character
-    if (!accept(state, (char []) { '#' }, 1, NULL)) {
+    if (!parser_accept(state, (char []) { '#' }, 1, NULL)) {
         return 0;
     }
 
-    while (!lookup(state, (char []) { '\n' }, 1, NULL)) {
+    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
         parser_state_advance(state);
     }
     return 1;
 }
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 
 static i32 wavefront_parse_obj_name(struct parser_state *state,
         struct wavefront_obj *out_obj)
@@ -258,11 +213,11 @@ static i32 wavefront_parse_obj_name(struct parser_state *state,
     (void) out_obj;
 
     // detect 'o' starting letter
-    if (!accept(state, (char []) { 'o' }, 1, NULL)) {
+    if (!parser_accept(state, (char []) { 'o' }, 1, NULL)) {
         return 0;
     }
 
-    while (!lookup(state, (char []) { '\n' }, 1, NULL)) {
+    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
         parser_state_advance(state);
     }
     return 1;
@@ -278,13 +233,13 @@ static i32 wavefront_parse_obj_smoothing(struct parser_state *state,
     char is_smooth = '0';
 
     // detect 'o' starting letter
-    if (!accept(state, (char []) { 's' }, 1, NULL)) {
+    if (!parser_accept(state, (char []) { 's' }, 1, NULL)) {
         return 0;
     }
 
-    skip_whitespace(state);
+    parser_skip_whitespace(state);
 
-    if (expect(state, (char []) { '0', '1' }, 2, &is_smooth)) {
+    if (parser_expect(state, (char []) { '0', '1' }, 2, &is_smooth)) {
         out_obj->smooth = (is_smooth == '1');
     }
 
@@ -297,17 +252,17 @@ static i32 wavefront_parse_obj_smoothing(struct parser_state *state,
 static i32 wavefront_parse_vertex(struct parser_state *state,
         struct wavefront_obj *out_obj)
 {
-    skip_whitespace(state);
+    parser_skip_whitespace(state);
 
-    if (!accept(state, (char []) { 'v' }, 1, NULL)) {
+    if (!parser_accept(state, (char []) { 'v' }, 1, NULL)) {
         return 0;
     }
 
-    if (accept(state, (char []) { 'n' }, 1, NULL)) {
+    if (parser_accept(state, (char []) { 'n' }, 1, NULL)) {
         return wavefront_parse_vertex_normal(state, out_obj);
     }
 
-    if (accept(state, (char []) { 't' }, 1, NULL)) {
+    if (parser_accept(state, (char []) { 't' }, 1, NULL)) {
         return wavefront_parse_vertex_texture(state, out_obj);
     }
 
@@ -322,11 +277,11 @@ static i32 wavefront_parse_vertex_pos(struct parser_state *state,
 {
     vector3 pos = { 0 };
 
-    skip_whitespace(state);
+    parser_skip_whitespace(state);
 
-    if (wavefront_parse_value(state, &pos.x)
-            && wavefront_parse_value(state, &pos.y)
-            && wavefront_parse_value(state, &pos.z)) {
+    if (parser_parse_value_float(state, &pos.x)
+            && parser_parse_value_float(state, &pos.y)
+            && parser_parse_value_float(state, &pos.z)) {
 
         array_ensure_capacity(make_system_allocator(),
                 (void **) &out_obj->v_array, 1);
@@ -346,11 +301,11 @@ static i32 wavefront_parse_vertex_normal(struct parser_state *state,
 {
     vector3 normal = { 0 };
 
-    skip_whitespace(state);
+    parser_skip_whitespace(state);
 
-    if (wavefront_parse_value(state, &normal.x)
-            && wavefront_parse_value(state, &normal.y)
-            && wavefront_parse_value(state, &normal.z)) {
+    if (parser_parse_value_float(state, &normal.x)
+            && parser_parse_value_float(state, &normal.y)
+            && parser_parse_value_float(state, &normal.z)) {
 
         array_ensure_capacity(make_system_allocator(),
                 (void **) &out_obj->vn_array, 1);
@@ -370,10 +325,10 @@ static i32 wavefront_parse_vertex_texture(struct parser_state *state,
 {
     vector3 uv = { 0 };
 
-    skip_whitespace(state);
+    parser_skip_whitespace(state);
 
-    if (wavefront_parse_value(state, &uv.x)
-            && wavefront_parse_value(state, &uv.y)) {
+    if (parser_parse_value_float(state, &uv.x)
+            && parser_parse_value_float(state, &uv.y)) {
 
         array_ensure_capacity(make_system_allocator(),
                 (void **) &out_obj->vt_array, 1);
@@ -393,7 +348,7 @@ static i32 wavefront_parse_face(struct parser_state *state,
     struct wavefront_obj_face face = { 0 };
     i32 face_data[3][3] = { 0 };
 
-    if (!accept(state, (char []) { 'f' }, 1, NULL)) {
+    if (!parser_accept(state, (char []) { 'f' }, 1, NULL)) {
         return 0;
     }
 
@@ -421,270 +376,28 @@ static i32 wavefront_parse_face(struct parser_state *state,
 static i32 wavefront_parse_face_point(struct parser_state *state,
         i32 read_idx[3])
 {
-    skip_whitespace(state);
+    parser_skip_whitespace(state);
 
     read_idx[0] = 0;
     read_idx[1] = 0;
     read_idx[2] = 0;
 
-    if (!wavefront_parse_value_uint(state, &read_idx[0])) {
+    if (!parser_parse_value_int(state, &read_idx[0])) {
         return 0;
     }
 
-    if (!accept(state, (char []) { '/' }, 1, NULL)) {
+    if (!parser_accept(state, (char []) { '/' }, 1, NULL)) {
         return 1;
     }
 
-    if (!accept(state, (char []) { '/' }, 1, NULL)) {
-        wavefront_parse_value_uint(state, &read_idx[1]);
-        if (accept(state, (char []) { '/' }, 1, NULL)) {
-            return wavefront_parse_value_uint(state, &read_idx[2]);
+    if (!parser_accept(state, (char []) { '/' }, 1, NULL)) {
+        parser_parse_value_int(state, &read_idx[1]);
+        if (parser_accept(state, (char []) { '/' }, 1, NULL)) {
+            return parser_parse_value_int(state, &read_idx[2]);
         } else {
             return 1;
         }
     }
 
-    return wavefront_parse_value_int(state, &read_idx[2]);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-static i32 wavefront_parse_value(struct parser_state *state, f32 *out_value)
-{
-    i32 parsed_value = 0;
-    f32 int_part = 0.f;
-    f32 frac_part = 0.f;
-    f32 sign = 1.f;
-    size_t frac_part_start = 0;
-    size_t frac_part_length = 0;
-
-    skip_whitespace(state);
-
-    if (accept(state, (char[]) { '-' }, 1, NULL)) {
-        sign = -1.f;
-    }
-
-    if (!wavefront_parse_value_uint(state, &parsed_value)) {
-        return 0;
-    }
-    int_part = parsed_value;
-
-    if (accept(state, (char[]) { '.' }, 1, NULL)) {
-        frac_part_start = state->buffer_idx;
-        wavefront_parse_value_uint(state, &parsed_value);
-        frac_part_length = state->buffer_idx - frac_part_start;
-        frac_part = (f32) parsed_value;
-    }
-
-    for (size_t i = 0 ; i < frac_part_length ; i++) {
-        frac_part /= 10.f;
-    }
-
-    *out_value = sign * (int_part + frac_part);
-
-    return 1;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-static i32 wavefront_parse_value_int(struct parser_state *state, i32 *out_value)
-{
-    i32 value = 0;
-    i32 sign = 1;
-    i32 valid = 0;
-    char read_c = '+';
-
-    skip_whitespace(state);
-
-    if (lookup(state, (char[]) { '+', '-' }, 2, &read_c)) {
-        if (read_c == '-') sign = -1;
-        parser_state_advance(state);
-    }
-
-    valid = wavefront_parse_value_uint(state, &value);
-    if (valid) {
-        *out_value = sign * value;
-    }
-
-    return valid;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-static i32 wavefront_parse_value_uint(struct parser_state *state,
-        i32 *out_value)
-{
-    i32 value = 0;
-    i32 valid = 0;
-    char read_c = '\0';
-
-    if (!expect(state, (char[])
-            { '0','1','2','3','4','5','6','7','8','9', }, 10, &read_c)) {
-        return 0;
-    }
-
-    do {
-        valid = 1;
-        value *= 10;
-        value += read_c - '0';
-    } while (accept(state, (char[])
-            { '0','1','2','3','4','5','6','7','8','9', }, 10, &read_c));
-
-    if (valid) {
-        *out_value = value;
-    }
-
-    return valid;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-static i32 wavefront_parse_end_of_obj(struct parser_state *state,
-        struct wavefront_obj *out_obj)
-{
-    (void) out_obj;
-
-    return ((state->buffer_idx+1) >= array_length(state->buffer_array));
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-/**
- * @brief Parser utility to read a character among a list of possibilities.
- * If a match is found, 1 is returned and the character is read. Otherwise,
- * nothing happens and the function returns 0.
- *
- * @param[inout] state Current parser state.
- * @param[in] alternatives List of characters (there must be at least nb
- * characters in the list).
- * @param[in] nb Number of characters.
- * @param[out] c_out Optional pointer willed with the read character.
- * @return i32
- */
-static i32 accept(struct parser_state *state, char *alternatives, size_t nb,
-        char *c_out)
-{
-    if (lookup(state, alternatives, nb, c_out)) {
-        parser_state_advance(state);
-        return 1;
-    }
-
-    return 0;
-}
-
-/**
- * @brief Parser utility to read a character among a list of possibilities.
- * If a match is found, 1 is returned and the character is read. Otherwise,
- * an error is porduced.
- *
- * @param[inout] state Current parser state.
- * @param[in] alternatives List of characters (there must be at least nb
- * characters in the list).
- * @param[in] nb Number of characters.
- * @param[out] c_out Optional pointer willed with the read character.
- * @return i32
- */
-static i32 expect(struct parser_state *state, char *alternatives, size_t nb,
-        char *c_out)
-{
-    if (accept(state, alternatives, nb, c_out)) {
-        return 1;
-    }
-
-    fprintf(stderr, "at line %d:%d ; ", state->line+1, state->column+1);
-
-    fprintf(stderr, "expected ");
-    if (nb == 0) {
-        fprintf(stderr, "end of stream");
-    } else {
-        fprintf(stderr, "one of : ");
-        for (size_t i = 0 ; i < nb ; i++) {
-            fprintf(stderr, "%c ", alternatives[i]);
-        }
-    }
-
-    fprintf(stderr, "\nbut found : ");
-    if (state->buffer_idx >= array_length(state->buffer_array)) {
-        fprintf(stderr, "end of stream.\n");
-    } else {
-        fprintf(stderr, "%c\n", state->buffer_array[state->buffer_idx]);
-    }
-
-    return 0;
-}
-
-/**
- * @brief Parser utility to read a character among a list of possibilities.
- * If a match is found, 1 is returned, and nothing else happens. Otherwise,
- * the function returns 0.
- *
- * @param[inout] state Current parser state.
- * @param[in] alternatives List of characters (there must be at least nb
- * characters in the list).
- * @param[in] nb Number of characters.
- * @param[out] c_out Optional pointer willed with the read character.
- * @return i32
- */
-static i32 lookup(struct parser_state *state, char *alternatives, size_t nb,
-        char *c_out)
-{
-    i32 found = 0;
-    size_t alt_idx = 0;
-
-    if (state->buffer_idx >= array_length(state->buffer_array)) {
-        return 0;
-    }
-
-    while (!found && (alt_idx < nb)) {
-        found = state->buffer_array[state->buffer_idx] == alternatives[alt_idx];
-        alt_idx += 1;
-    }
-
-    if (c_out) {
-        *c_out = state->buffer_array[state->buffer_idx];
-    }
-
-    return found;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-/**
- * @brief Advances the parser state one character.
- *
- * @param[inout] state
- */
-static void parser_state_advance(struct parser_state *state)
-{
-    if (state->buffer_idx >= array_length(state->buffer_array)) {
-        return;
-    }
-
-    if (state->buffer_array[state->buffer_idx] == '\n') {
-        state->column = 0;
-        state->line  += 1;
-    } else {
-        state->column += 1;
-    }
-
-    state->buffer_idx += 1;
-}
-
-/**
- * @brief Advances the parser state until a character other than a whitespace
- * (space or tab) is found.
- *
- * @param[inout] state
- */
-static void skip_whitespace(struct parser_state *state)
-{
-    while (accept(state, (char[]) { ' ', '\t' }, 2, NULL));
+    return parser_parse_value_int(state, &read_idx[2]);
 }
