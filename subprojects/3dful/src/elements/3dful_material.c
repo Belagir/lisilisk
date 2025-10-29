@@ -479,7 +479,7 @@ void material_bind_uniform_blocks(struct material *material,
     glUniformBlockBinding(shader->program, block_name, SHADER_UBO_MATERIAL);
 
     glBindBuffer(GL_UNIFORM_BUFFER, material->gpu_side.ubo);
-    glBindBufferBase(GL_UNIFORM_BUFFER, block_name, material->gpu_side.ubo);
+    glBindBufferBase(GL_UNIFORM_BUFFER, SHADER_UBO_MATERIAL, material->gpu_side.ubo);
 
     glUseProgram(0);
 }

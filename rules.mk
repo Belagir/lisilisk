@@ -13,9 +13,9 @@ SRC := $(notdir $(shell find $(SRC_DIR) -name *.c))
 ## list of all duplicate c files to enforce uniqueness of filenames
 DUPL_SRC := $(strip $(shell echo $(SRC) | tr ' ' '\n' | sort | uniq -d))
 ## list of all target object files with their path
-OBJ := $(addprefix $(OBJ_DIR)/, $(patsubst %.c, %.o, $(SRC)))
+OBJ = $(addprefix $(OBJ_DIR)/, $(patsubst %.c, %.o, $(SRC)))
 ##
-LIB_OBJ := $(filter-out $(OBJ_DIR)/main.o, $(OBJ)) $(addsuffix /$(OBJ_DIR)/*.o, $(SUBPROJECTS))
+LIB_OBJ = $(filter-out $(OBJ_DIR)/main.o, $(OBJ)) $(addsuffix /$(OBJ_DIR)/*.o, $(SUBPROJECTS))
 
 ## where to find c files : all unique directories in SRC_DIR which contain a c
 ## file
@@ -23,9 +23,9 @@ vpath %.c $(sort $(dir $(shell find $(SRC_DIR) -name *.c)))
 
 ifdef RES_DIR
 ## list of all resources files without their directory
-RES := $(notdir $(shell find $(RES_DIR)/ -type f))
+RES = $(notdir $(shell find $(RES_DIR)/ -type f))
 ## list of all target binaries resource files to include in the binary
-RES_BIN := $(addprefix $(OBJ_DIR)/, $(addsuffix .resbin, $(RES)))
+RES_BIN = $(addprefix $(OBJ_DIR)/, $(addsuffix .resbin, $(RES)))
 
 ## where to find resource files
 vpath % $(sort $(dir $(shell find $(RES_DIR)/ -type f)))

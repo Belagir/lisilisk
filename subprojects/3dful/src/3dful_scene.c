@@ -375,7 +375,7 @@ static void scene_lights_bind_uniform_blocks(struct scene *scene,
 
     glBindBuffer(GL_UNIFORM_BUFFER,
             scene->light_sources.point_lights.buffer_name);
-    glBindBufferBase(GL_UNIFORM_BUFFER, block_name,
+    glBindBufferBase(GL_UNIFORM_BUFFER, SHADER_UBO_LIGHT_POINT,
             scene->light_sources.point_lights.buffer_name);
 
     block_name = glGetUniformBlockIndex(shader->program,
@@ -385,7 +385,7 @@ static void scene_lights_bind_uniform_blocks(struct scene *scene,
 
     glBindBuffer(GL_UNIFORM_BUFFER,
             scene->light_sources.direc_lights.buffer_name);
-    glBindBufferBase(GL_UNIFORM_BUFFER, block_name,
+    glBindBufferBase(GL_UNIFORM_BUFFER, SHADER_UBO_LIGHT_DIREC,
             scene->light_sources.direc_lights.buffer_name);
 
     glUseProgram(0);
