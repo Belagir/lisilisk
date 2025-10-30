@@ -38,6 +38,12 @@ static i32 wavefront_parse_face(struct parser_state *state,
 static i32 wavefront_parse_face_point(struct parser_state *state,
         i32 read_idx[3]);
 
+
+// -----------------------------------------------------------------------------
+
+static void geometry_add_face_from_parsed(i32 face_data[3][3],
+        struct wavefront_obj *out_obj);
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -345,8 +351,8 @@ static i32 wavefront_parse_vertex_texture(struct parser_state *state,
 static i32 wavefront_parse_face(struct parser_state *state,
         struct wavefront_obj *out_obj)
 {
-    struct wavefront_obj_face face = { 0 };
     i32 face_data[3][3] = { 0 };
+    i32 additional_face[3] =  { 0 };
 
     if (!parser_accept(state, (char []) { 'f' }, 1, NULL)) {
         return 0;
@@ -358,15 +364,17 @@ static i32 wavefront_parse_face(struct parser_state *state,
         return 0;
     }
 
-    for (size_t i = 0 ; i < 3 ; i++) {
-        face.v_idx[i] = face_data[i][0] - 1;
-        if (face_data[i][1] > 0) face.vt_idx[i] = face_data[i][1] - 1;
-        if (face_data[i][2] > 0) face.vn_idx[i] = face_data[i][2] - 1;
+    geometry_add_face_from_parsed(face_data, out_obj);
+
+    while (!parser_parse_end_line(state)) {
+        wavefront_parse_face_point(state, additional_face);
+
+        bytewise_copy(face_data[1], face_data[2], sizeof(*face_data));
+        bytewise_copy(face_data[2], additional_face, sizeof(*face_data));
+
+        geometry_add_face_from_parsed(face_data, out_obj);
     }
 
-    array_ensure_capacity(make_system_allocator(),
-            (void **) &out_obj->f_array, 1);
-    array_push(out_obj->f_array, &face);
     return 1;
 }
 
@@ -400,4 +408,24 @@ static i32 wavefront_parse_face_point(struct parser_state *state,
     }
 
     return parser_parse_value_int(state, &read_idx[2]);
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+static void geometry_add_face_from_parsed(i32 face_data[3][3],
+        struct wavefront_obj *out_obj)
+{
+    struct wavefront_obj_face face = { 0 };
+
+    for (size_t i = 0 ; i < 3 ; i++) {
+        face.v_idx[i] = face_data[i][0] - 1; // vertex index
+        if (face_data[i][1] > 0) face.vt_idx[i] = face_data[i][1] - 1; // texture uv index
+        if (face_data[i][2] > 0) face.vn_idx[i] = face_data[i][2] - 1; // normal vector index
+    }
+
+    array_ensure_capacity(make_system_allocator(),
+            (void **) &out_obj->f_array, 1);
+    array_push(out_obj->f_array, &face);
 }
