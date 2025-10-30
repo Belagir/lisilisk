@@ -39,6 +39,11 @@ struct wavefront_obj {
     /** Faces. */
     ARRAY(struct wavefront_obj_face) f_array;
 
+    /** */
+    ARRAY(char) mtllib;
+    /** */
+    ARRAY(char) usemtl;
+
     /** True if the model should be rendered smooth. */
     bool smooth;
 };
@@ -57,6 +62,6 @@ void wavefront_obj_parse(struct wavefront_obj *obj,
 void wavefront_obj_to(const struct wavefront_obj *obj,
         struct geometry *geometry);
 // Writes data parsed to a stream, in a form compatible with the .obj format.
-void wavefront_obj_dump(struct wavefront_obj *obj, FILE *file);
+void wavefront_obj_dump(const struct wavefront_obj *obj, FILE *file);
 
 #endif

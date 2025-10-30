@@ -66,6 +66,9 @@ void geometry_push_face(struct geometry *geometry, u32 *out_idx);
 void geometry_face_indices(struct geometry *geometry, size_t idx,
         u32 indices[3u]);
 
+void geometry_set_material_names(struct geometry *geometry,
+        ARRAY(const char) library, ARRAY(const char) material_name);
+
 void geometry_load(struct geometry *geometry);
 void geometry_unload(struct geometry *geometry);
 

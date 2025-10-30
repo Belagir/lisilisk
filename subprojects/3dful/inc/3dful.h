@@ -178,6 +178,9 @@ struct geometry {
     ARRAY(struct vertex) vertices;
     ARRAY(struct face) faces;
 
+    ARRAY(const char) material_library;
+    ARRAY(const char) material_name;
+
     struct {
         // TODO: update data behind this vbo when the vertices_array changes (?)
         GLuint vbo;

@@ -23,6 +23,10 @@ static i32 wavefront_parse_comment(struct parser_state *state,
         struct wavefront_obj *out_obj);
 static i32 wavefront_parse_obj_name(struct parser_state *state,
         struct wavefront_obj *out_obj);
+static i32 wavefront_parse_mtl_library(struct parser_state *state,
+        struct wavefront_obj *out_obj);
+static i32 wavefront_parse_mtl_use(struct parser_state *state,
+        struct wavefront_obj *out_obj);
 static i32 wavefront_parse_obj_smoothing(struct parser_state *state,
         struct wavefront_obj *out_obj);
 static i32 wavefront_parse_vertex(struct parser_state *state,
@@ -64,6 +68,12 @@ void wavefront_obj_create(struct wavefront_obj *obj)
                     sizeof(*obj->vt_array), 32),
             .f_array  = array_create(make_system_allocator(),
                     sizeof(*obj->f_array), 32),
+
+            .mtllib = array_create(make_system_allocator(),
+                    sizeof(*obj->mtllib), 32),
+            .usemtl = array_create(make_system_allocator(),
+                    sizeof(*obj->usemtl), 32),
+
             .smooth = false,
     };
 }
@@ -79,6 +89,9 @@ void wavefront_obj_delete(struct wavefront_obj *obj)
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->vn_array);
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->vt_array);
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->f_array);
+
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->mtllib);
+    array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->usemtl);
 
     *obj = (struct wavefront_obj) { 0 };
 }
@@ -98,6 +111,8 @@ void wavefront_obj_parse(struct wavefront_obj *obj, const byte *buffer)
     array_clear(obj->v_array);
     array_clear(obj->vn_array);
     array_clear(obj->vt_array);
+    array_clear(obj->mtllib);
+    array_clear(obj->usemtl);
     obj->smooth = 0;
 
     struct parser_state state = { .buffer_array = buffer, 0 };
@@ -110,6 +125,10 @@ void wavefront_obj_parse(struct wavefront_obj *obj, const byte *buffer)
         } else if (wavefront_parse_comment(&state, obj)) {
             // NOP
         } else if (wavefront_parse_obj_name(&state, obj)) {
+            // NOP
+        } else if (wavefront_parse_mtl_library(&state, obj)) {
+            // NOP
+        } else if (wavefront_parse_mtl_use(&state, obj)) {
             // NOP
         } else if (wavefront_parse_obj_smoothing(&state, obj)) {
             // NOP
@@ -159,6 +178,7 @@ void wavefront_obj_to(const struct wavefront_obj *obj,
         geometry_face_indices(geometry, idx_face, face_generated_indices);
     }
 
+    geometry_set_material_names(geometry, obj->mtllib, obj->usemtl);
     geometry_set_smoothing(geometry, obj->smooth);
 }
 
@@ -168,8 +188,12 @@ void wavefront_obj_to(const struct wavefront_obj *obj,
  * @param[in] obj Parser object.
  * @param[in] file Target stream.
  */
-void wavefront_obj_dump(struct wavefront_obj *obj, FILE *file)
+void wavefront_obj_dump(const struct wavefront_obj *obj, FILE *file)
 {
+    if (obj->mtllib && array_length(obj->mtllib)) {
+        fprintf(file, "mtllib %s\n", obj->mtllib);
+    }
+
     for (size_t i = 0 ; i < array_length(obj->v_array) ; i++) {
         fprintf(file, "v %.6f %.6f %.6f\n", obj->v_array[i].x,
                 obj->v_array[i].y, obj->v_array[i].z);
@@ -185,6 +209,9 @@ void wavefront_obj_dump(struct wavefront_obj *obj, FILE *file)
 
     fprintf(file, "s %c\n", obj->smooth? '1' : '0');
 
+    if (obj->usemtl && array_length(obj->usemtl)) {
+        fprintf(file, "usemtl %s\n", obj->usemtl);
+    }
     for (size_t i = 0 ; i < array_length(obj->f_array) ; i++) {
         fprintf(file, "f %d//%d %d//%d %d//%d\n",
                 obj->f_array[i].v_idx[0]+1, obj->f_array[i].vn_idx[0]+1,
@@ -210,6 +237,7 @@ static i32 wavefront_parse_comment(struct parser_state *state,
     while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
         parser_state_advance(state);
     }
+
     return 1;
 }
 
@@ -226,6 +254,66 @@ static i32 wavefront_parse_obj_name(struct parser_state *state,
     while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
         parser_state_advance(state);
     }
+    return 1;
+}
+
+
+static i32 wavefront_parse_mtl_library(struct parser_state *state,
+        struct wavefront_obj *out_obj)
+{
+    parser_skip_whitespace(state);
+
+    // detect 'mtllib'
+    if (!parser_accept(state, (char []) { 'm' }, 1, NULL)) {
+        return 0;
+    }
+
+    parser_expect(state, (char []) { 't' }, 1, NULL);
+    parser_expect(state, (char []) { 'l' }, 1, NULL);
+    parser_expect(state, (char []) { 'l' }, 1, NULL);
+    parser_expect(state, (char []) { 'i' }, 1, NULL);
+    parser_expect(state, (char []) { 'b' }, 1, NULL);
+
+    parser_skip_whitespace(state);
+
+    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
+        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY) &out_obj->mtllib, 1);
+        array_push(out_obj->mtllib, state->buffer_array + state->buffer_idx);
+        parser_state_advance(state);
+    }
+    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY) &out_obj->mtllib, 1);
+    array_push(out_obj->mtllib, &(char) { '\0' });
+
+    return 1;
+}
+
+
+static i32 wavefront_parse_mtl_use(struct parser_state *state,
+        struct wavefront_obj *out_obj)
+{
+    parser_skip_whitespace(state);
+
+    // detect 'usemtl'
+    if (!parser_accept(state, (char []) { 'u' }, 1, NULL)) {
+        return 0;
+    }
+
+    parser_expect(state, (char []) { 's' }, 1, NULL);
+    parser_expect(state, (char []) { 'e' }, 1, NULL);
+    parser_expect(state, (char []) { 'm' }, 1, NULL);
+    parser_expect(state, (char []) { 't' }, 1, NULL);
+    parser_expect(state, (char []) { 'l' }, 1, NULL);
+
+    parser_skip_whitespace(state);
+
+
+    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
+        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY) &out_obj->usemtl, 1);
+        array_push(out_obj->usemtl, state->buffer_array + state->buffer_idx);
+        parser_state_advance(state);
+    }
+    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY) &out_obj->usemtl, 1);
+    array_push(out_obj->usemtl, &(char) { '\0' });
     return 1;
 }
 
