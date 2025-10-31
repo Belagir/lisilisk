@@ -87,6 +87,7 @@ lisk_res_t lisk_shader(
 
 // Creates a material.
 lisk_res_t lisk_material(
+        const char *library,
         const char *name);
 
 // Loads a 3D mesh from a .obj file.

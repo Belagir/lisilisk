@@ -84,6 +84,7 @@ void lisilisk_store_material_delete(
  */
 bool lisilisk_store_material_register(
         struct lisilisk_store_material *store,
+        const char *library,
         const char *name,
         u32 *out_hash)
 {
@@ -95,7 +96,11 @@ bool lisilisk_store_material_register(
         return false;
     }
 
-    hash = hashmap_hash_of(name, 0);
+    if (library) {
+        hash = hashmap_hash_of(library, 0);
+    }
+    hash = hashmap_hash_of(name, hash);
+
     if (out_hash) {
         *out_hash = hash;
     }

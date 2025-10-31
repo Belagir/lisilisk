@@ -287,13 +287,14 @@ lisk_res_t lisk_shader(
  * @return lisk_res_t
  */
 lisk_res_t lisk_material(
+        const char *library,
         const char *name)
 {
     union lisk_res_layout handle = { .full = LISK_RES_NONE };
     u32 hash = 0;
 
     if (!lisilisk_store_material_register(&static_data.stores.materials,
-            name, &hash)) {
+            library, name, &hash)) {
         logger_log(static_data.log, LOGGER_SEVERITY_WARN,
                 "Could not create or retreive material named %s.\n", name);
         return  LISK_RES_NONE;

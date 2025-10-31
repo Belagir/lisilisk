@@ -218,6 +218,7 @@ void lisilisk_store_material_delete(
 
 bool lisilisk_store_material_register(
         struct lisilisk_store_material *store,
+        const char *library,
         const char *name,
         u32 *out_hash);
 struct material *lisilisk_store_material_retrieve(
