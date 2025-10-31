@@ -33,3 +33,4 @@ Refactor ideas
 - [ ] BIG THINK NEEDED Abstract the stores to one simple module
 
 - [ ] Explain in the file headers the principles of design behind the data structures/interfaces
+- [ ] Remove all static array pointers in the argument of functions, just have the array exploded in as many individual parameters.

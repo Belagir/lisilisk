@@ -1,7 +1,13 @@
 /**
  * @file lisilisk.h
  * @author Gabriel Bédat
- * @brief
+ * @brief Lisilisk is a graphics programing library that takes care of loading
+ * and packaging resources (images, shaders...) for you.
+ *
+ * The library uses a geometry + material + shader concept to define models
+ * that can then be instanced multiple times. Every object managed by the engine
+ * is represented by a scalar handle.
+ *
  * @version 0.1
  * @date 2025-07-29
  *
@@ -65,32 +71,32 @@ void lisk_resize(
 void lisk_rename(
         const char *window_name);
 
-// Requests y=the size of the window.
+// Requests the size of the window.
 void lisk_get_size(
         int32_t *width,
         int32_t *height);
 
 // -----------------------------------------------------------------------------
 
-//
+// References a dynamically loaded model.
 lisk_res_t lisk_model(
         const char *name);
 
-// Loads a texture from a file in the resources directory.
+// References a dynamically loaded texture from a file in the resources directory.
 lisk_res_t lisk_texture(
         const char *file);
 
-// Loads a material shader from the resources directory.
+// References a dynamically loaded material shader from the resources directory.
 lisk_res_t lisk_shader(
         const char *frag_shader,
         const char *vert_shader);
 
-// Creates a material.
+// References a dynamically created material.
 lisk_res_t lisk_material(
         const char *library,
         const char *name);
 
-// Loads a 3D mesh from a .obj file.
+// References a dynamically loaded 3D mesh from a .obj file in the resources directory.
 lisk_res_t lisk_geometry(
         const char *obj_file);
 
@@ -102,7 +108,7 @@ void lisk_material_set_uniform_float(
         const char *uniform_name,
         float value);
 
-//
+// Changes the binding of a texture to an uniform in a material.
 void lisk_material_set_uniform_texture(
         lisk_res_t material,
         const char *uniform_name,
@@ -127,6 +133,7 @@ void lisk_model_shader(
 
 // -----------------------------------------------------------------------------
 
+// Changes how a geometry is rendered.
 void lisk_geometry_configure(
         lisk_res_t geometry,
         enum lisk_geometry_conf conf);

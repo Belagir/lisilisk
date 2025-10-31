@@ -1,0 +1,54 @@
+= Composing a scene with Lisilisk
+Gabriel Bédat
+v1.0
+:source-highlighter: highlightjs
+:toc:
+
+*Lisilisk* tries to, by design, be dynamic when it comes to rendered objects : any change to the scene or one of its models is immediately transcribed to the render. To achieve this, *Lisilisk* will remove from you the possibility (and obligation) to manually load and unload resources, and instead will only let you interact with them through *handles*. When an handle is first created for some resource you request, the engine will manage all the boilerplate to present you with a usable geometry, shader, or material.
+
+[sidebar]
+In fact, every time you will reference something by some name, if you already did so previously, the same handle will be returned : the library will have chached the object for you. You may store handles yourself, but they may become invalid if whatever they reference is removed at some point.
+
+To begin with, *Lisilisk* manages a _scene_. This scene has some global environment visuals, a camera, light emitters, and models to render some world to the user.
+
+== Managing models
+
+Models are the most important components of your scene. Let's look at some model instanciation :
+
+[, c]
+----
+lisk_model_instanciate(lisk_model("mushroom"), &(float[3]) { 0, 0, 0 }, .2); // <1>
+lisk_model_geometry(lisk_model("mushroom"), lisk_geometry("assets/mushroom.obj")); // <2>
+----
+
+<1> We place an instance of the model _"mushroom"_ at the origin, scaled down. This is the first time this model is referenced : the engine allocates memory for it, and assigns a default shader, a default material, and an empty geometry.
+<2> We give the model a geometry from our `assets/` folder. Again, this is the first time the geometry is referenced, so the _.obj_ file is parsed and the geometry cached. However, the model is pulled from the cache created previously.
+
+NOTE: That the order of calls does not matter. We can assign geometry, shading and materials to a model, and instantiate it in any order and repetition.
+
+What's important is that models are purely _internal_ objects that you can then _instantiate_ : each instance has its own transform in the scene that you can interact with with its handle. Changing the model properties will impact all of its instances.
+
+=== What make models
+
+A model is made of three components :
+
+1. Some _geometry_, to form a 3D shape.
+2. Some _material shader_, to render the shape.
+3. Some _material_, to specify how the shape reflects light.
+
+NOTE: Geometries, shaders and materials can be shared among models. Remember that when setting uniforms and rendering modes.
+
+== Changing the environment
+
+You can configure some properties of the scene that do not depend on any object. You can set the global illumination, the skybox and the background color.
+
+[, c]
+----
+void lisk_ambient_light_set(1, .8, .8, 1); // <1>
+void lisk_bg_color_set(&(float[3]) { 1, 0, 0 }); // <2>
+
+// the skybox hides the backround color :
+lisk_skybox_set(&(const char *[6]) {
+        "assets/left.png", "assets/right.png", "assets/top.png",
+        "assets/bottom.png", "assets/front.png", "assets/back.png" });  // <3>
+----
