@@ -4,9 +4,6 @@ LIBRARY_ARCHIVE = $(EXC_DIR)/lib$(PROJECT_NAME).a
 
 ## path to executable name
 TARGET = $(EXC_DIR)/$(PROJECT_NAME)
-##
-TARGET_DEP_LOC = $(addprefix -L, $(addsuffix /bin, $(SUBPROJECTS)))
-TARGET_DEP_LIB = $(addprefix -l, $(notdir $(SUBPROJECTS)))
 
 ## list of all c files without their path
 SRC := $(notdir $(shell find $(SRC_DIR) -name *.c))
@@ -14,8 +11,6 @@ SRC := $(notdir $(shell find $(SRC_DIR) -name *.c))
 DUPL_SRC := $(strip $(shell echo $(SRC) | tr ' ' '\n' | sort | uniq -d))
 ## list of all target object files with their path
 OBJ = $(addprefix $(OBJ_DIR)/, $(patsubst %.c, %.o, $(SRC)))
-##
-LIB_OBJ = $(filter-out $(OBJ_DIR)/main.o, $(OBJ)) $(addsuffix /$(OBJ_DIR)/*.o, $(SUBPROJECTS))
 
 ## where to find c files : all unique directories in SRC_DIR which contain a c
 ## file
@@ -39,19 +34,23 @@ ARGS_INCL = $(addprefix -I, $(INC_DIR))
 
 # --------------- Rules --------------------------------------------------------
 
-.PHONY: all check clean count_lines
+.PHONY: all lib check clean count_lines
 
-# -------- compilation -----------------
+# -------- compilation : executable ----
 
-all: check $(SUBPROJECTS) $(BUILD_DIRS) $(TARGET) | count_lines
-
-lib: check $(SUBPROJECTS) $(BUILD_DIRS) $(LIBRARY_ARCHIVE)
-
-$(LIBRARY_ARCHIVE): $(LIB_OBJ) $(RES_BIN)
-	$(AR) $(ARFLAGS) $@ $^
+all: check $(BUILD_DIRS) $(TARGET) | count_lines
 
 $(TARGET): $(OBJ) $(RES_BIN)
-	$(CC) $^ -o $@  $(TARGET_DEP_LOC) $(TARGET_DEP_LIB) $(LFLAGS)
+	$(CC) $^ -o $@  $(LFLAGS)
+
+# -------- compilation : library -------
+
+lib: check $(BUILD_DIRS) $(LIBRARY_ARCHIVE)
+
+$(LIBRARY_ARCHIVE): $(filter-out $(OBJ_DIR)/main.o, $(OBJ)) $(RES_BIN)
+	$(AR) $(ARFLAGS) $@ $^
+
+# -------- compilation : general -------
 
 $(OBJ_DIR)/%.o: %.c
 	$(CC) -c $? -o $@ $(ARGS_INCL) $(CFLAGS) $(DFLAGS)
@@ -66,13 +65,6 @@ $(BUILD_DIRS):
 
 clean:
 	rm -Rf $(BUILD_DIRS)
-
-# -------- internal dependencies -------
-
-$(SUBPROJECTS): FORCE
-	make -C $@ lib
-
-FORCE:
 
 # -------- sanity -----------------------
 

@@ -8,11 +8,9 @@
 PROJECT_NAME = lisilisk
 ## Root source directory. Contains the c implementation files.
 SRC_DIR = src
-## Project dependencies. Expected to have a makefile producing a library named from the folder name.
-SUBPROJECTS = subprojects/3dful subprojects/resourceful
 ## Root include directory. Contains the c header files. Passed with -I to
 ## the compiler.
-INC_DIR = inc unstandard/inc subprojects/resourceful/inc subprojects/3dful/inc
+INC_DIR = inc unstandard/inc
 ## Build diectory. Will contain object and binary files linked in the final
 ## executable
 OBJ_DIR = build
