@@ -15,8 +15,8 @@
 #include <lisilisk.h>
 #include <ustd/hashmap.h>
 
-#include <3dful.h>
-#include <resourceful.h>
+#include "../3dful/3dful.h"
+#include "../resourceful/resourceful.h"
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

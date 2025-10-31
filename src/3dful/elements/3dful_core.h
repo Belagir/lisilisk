@@ -21,7 +21,7 @@
 #include <ustd/math2d.h>
 #include <ustd/math3d.h>
 
-#include <3dful.h>
+#include "../3dful.h"
 #include "../dynamic_data/3dful_dynamic_data.h"
 
 // -----------------------------------------------------------------------------

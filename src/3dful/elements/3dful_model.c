@@ -11,8 +11,6 @@
 
 #include <ustd/array.h>
 
-#include <3dful.h>
-
 #include "3dful_core.h"
 
 

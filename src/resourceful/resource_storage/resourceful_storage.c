@@ -18,7 +18,7 @@
 #include <ustd/array.h>
 #include <ustd/hashmap.h>
 
-#include <resourceful.h>
+#include "../resourceful.h"
 
 #include "resourceful_storage.h"
 
