@@ -601,7 +601,7 @@ void lisk_material_base_texture(
  */
 void lisk_material_ambient(
         lisk_res_t res_material,
-        float (*ambient)[4],
+        float r, float g, float b, float strength,
         lisk_res_t res_texture_mask)
 {
     union lisk_res_layout handle_material = { .full = res_material };
@@ -621,9 +621,7 @@ void lisk_material_ambient(
             &static_data.stores.textures, handle_mask.hash);
 
     if (material) {
-        if (ambient) {
-            material_ambient(material, *ambient, (*ambient)[3]);
-        }
+        material_ambient(material, (f32[3]) { r, g, b }, strength);
         if (mask) {
             material_ambient_mask(material, mask);
         }
@@ -639,7 +637,7 @@ void lisk_material_ambient(
  */
 void lisk_material_diffuse(
         lisk_res_t res_material,
-        float (*diffuse)[4],
+        float r, float g, float b, float strength,
         lisk_res_t res_texture_mask)
 {
     union lisk_res_layout handle_material = { .full = res_material };
@@ -659,9 +657,7 @@ void lisk_material_diffuse(
             &static_data.stores.textures, handle_mask.hash);
 
     if (material) {
-        if (diffuse) {
-            material_diffuse(material, *diffuse, (*diffuse)[3]);
-        }
+        material_diffuse(material, (f32[3]) { r, g, b }, strength);
         if (mask) {
             material_diffuse_mask(material, mask);
         }
@@ -671,7 +667,7 @@ void lisk_material_diffuse(
 // Sets how a model reflects the light sources.
 void lisk_material_specular(
         lisk_res_t res_material,
-        float (*specular)[4],
+        float r, float g, float b, float strength,
         float shininess,
         lisk_res_t res_texture_mask)
 {
@@ -694,9 +690,7 @@ void lisk_material_specular(
     if (material) {
         material_shininess(material, shininess);
 
-        if (specular) {
-            material_specular(material, *specular, (*specular)[3]);
-        }
+        material_specular(material, (f32[3]) { r, g, b }, strength);
         if (mask) {
             material_specular_mask(material, mask);
         }
@@ -712,7 +706,7 @@ void lisk_material_specular(
  */
 void lisk_material_emission(
         lisk_res_t res_material,
-        float (*emission)[4],
+        float r, float g, float b, float strength,
         lisk_res_t res_texture_mask)
 {
     union lisk_res_layout handle_material = { .full = res_material };
@@ -732,9 +726,7 @@ void lisk_material_emission(
             &static_data.stores.textures, handle_mask.hash);
 
     if (material) {
-        if (emission) {
-            material_emissive(material, *emission, (*emission)[3]);
-        }
+        material_emissive(material, (f32[3]) { r, g, b }, strength);
         if (mask) {
             material_emissive_mask(material, mask);
         }
@@ -752,7 +744,7 @@ void lisk_material_emission(
  */
 lisk_handle_t lisk_model_instanciate(
         lisk_res_t res_model,
-        float (*pos)[3],
+        float x, float y, float z,
         float scale)
 {
     struct model *model = nullptr;
@@ -767,7 +759,7 @@ lisk_handle_t lisk_model_instanciate(
 
     model_instantiate(model, &in_handle);
     model_instance_position(model, in_handle,
-            (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
+            (struct vector3) { x, y, z });
     model_instance_scale(model, in_handle,
             (f32[3]) { scale, scale, scale });
     model_instance_rotation(model, in_handle,
@@ -792,8 +784,8 @@ lisk_handle_t lisk_model_instanciate(
  * @return lisk_handle_t
  */
 lisk_handle_t lisk_directional_light_add(
-        float (*direction)[3],
-        float (*color)[4])
+        float direc_x, float direc_y, float direc_z,
+        float r, float g, float b, float strength)
 {
     union lisk_handle_layout handle = { .full = 0 };
     handle_t in_handle = 0;
@@ -803,12 +795,9 @@ lisk_handle_t lisk_directional_light_add(
     }
 
     scene_light_direc(&static_data.world.scene, &in_handle);
-    scene_light_direc_color(&static_data.world.scene, in_handle, *color);
+    scene_light_direc_color(&static_data.world.scene, in_handle, (f32[4]) { r, g, b, strength });
     scene_light_direc_orientation(&static_data.world.scene, in_handle,
-            (struct vector3) {
-                (*direction)[0],
-                (*direction)[1],
-                (*direction)[2] });
+            (struct vector3) { direc_x, direc_y, direc_z });
 
     handle = (union lisk_handle_layout) {
             .hash = 0,
@@ -832,8 +821,8 @@ lisk_handle_t lisk_directional_light_add(
  * @return lisk_handle_t
  */
 lisk_handle_t lisk_point_light_add(
-        float (*position)[3],
-        float (*color)[4],
+        float x, float y, float z,
+        float r, float g, float b, float strength,
         float constant,
         float linear,
         float quadratic)
@@ -846,12 +835,9 @@ lisk_handle_t lisk_point_light_add(
     }
 
     scene_light_point(&static_data.world.scene, &in_handle);
-    scene_light_point_color(&static_data.world.scene, in_handle, *color);
+    scene_light_point_color(&static_data.world.scene, in_handle,  (f32[4]) { r, g, b, strength });
     scene_light_point_position(&static_data.world.scene, in_handle,
-            (struct vector3) {
-                (*position)[0],
-                (*position)[1],
-                (*position)[2] });
+            (struct vector3) { x, y, z });
     scene_light_point_attenuation(&static_data.world.scene, in_handle,
             constant, linear ,quadratic);
 
@@ -923,7 +909,7 @@ void lisk_instance_remove(
 
 void lisk_instance_set_scale(
         lisk_handle_t instance,
-        float (*scale)[3])
+        float x, float y, float z)
 {
     union lisk_handle_layout handle = { .full = instance };
 
@@ -933,7 +919,7 @@ void lisk_instance_set_scale(
         case HANDLE_REPRESENTS_INSTANCE:
             model_instance_scale(
                     static_data_model_of_instance(handle),
-                    handle.internal, *scale);
+                    handle.internal, (f32[3]) { x, y, z });
             return;
         case HANDLE_REPRESENTS_LIGHT_DIREC:
             return;
@@ -952,7 +938,7 @@ void lisk_instance_set_scale(
  */
 void lisk_instance_set_position(
         lisk_handle_t instance,
-        float (*pos)[3])
+        float x, float y, float z)
 {
     union lisk_handle_layout handle = { .full = instance };
 
@@ -962,18 +948,18 @@ void lisk_instance_set_position(
         case HANDLE_REPRESENTS_INSTANCE:
             model_instance_position(static_data_model_of_instance(handle),
                     handle.internal,
-                    (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
+                    (struct vector3) { x, y, z });
             return;
         case HANDLE_REPRESENTS_LIGHT_DIREC:
             return;
         case HANDLE_REPRESENTS_LIGHT_POINT:
             scene_light_point_position(&static_data.world.scene,
                     handle.internal,
-                    (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
+                    (struct vector3) { x, y, z });
             return;
         case HANDLE_REPRESENTS_CAMERA:
             camera_position(&static_data.world.camera,
-                    (struct vector3) { (*pos)[0], (*pos)[1], (*pos)[2] });
+                    (struct vector3) { x, y, z });
             return;
     }
 }
@@ -988,14 +974,14 @@ void lisk_instance_set_position(
  */
 void lisk_instance_set_rotation(
         lisk_handle_t instance,
-        float (*axis)[3],
+        float axis_x, float axis_y, float axis_z,
         float angle_rad)
 {
     struct quaternion q = quaternion_from_axis_and_angle(
-            (struct vector3) { (*axis)[0], (*axis)[1], (*axis)[2] },
+            (struct vector3) { axis_x, axis_y, axis_z },
             angle_rad);
 
-    lisk_instance_set_rotation_quaternion(instance, (float (*)[4]) &q);
+    lisk_instance_set_rotation_quaternion(instance, q.i, q.j, q.k, q.w);
 }
 
 /**
@@ -1007,7 +993,7 @@ void lisk_instance_set_rotation(
  */
 void lisk_instance_set_rotation_quaternion(
         lisk_handle_t instance,
-        float (*q)[4])
+        float i, float j, float k, float w)
 {
     union lisk_handle_layout handle = { .full = instance };
 
@@ -1016,13 +1002,13 @@ void lisk_instance_set_rotation_quaternion(
             return;
         case HANDLE_REPRESENTS_INSTANCE:
             model_instance_rotation(static_data_model_of_instance(handle),
-                    handle.internal, *(struct quaternion *) q);
+                    handle.internal, (struct quaternion) { i, j, k, w });
             return;
         case HANDLE_REPRESENTS_LIGHT_DIREC:
             scene_light_direc_orientation(&static_data.world.scene,
                     handle.internal,
                     vector3_rotate_by_quaternion(VECTOR3_Y_POSITIVE,
-                            *(struct quaternion *) q));
+                            (struct quaternion) { i, j, k, w }));
             return;
         case HANDLE_REPRESENTS_LIGHT_POINT:
             return;
@@ -1030,10 +1016,10 @@ void lisk_instance_set_rotation_quaternion(
             camera_target(&static_data.world.camera,
                     vector3_add(static_data.world.camera.pos,
                     vector3_rotate_by_quaternion(VECTOR3_Z_NEGATIVE,
-                            *(struct quaternion *) q)));
+                            (struct quaternion) { i, j, k, w })));
             camera_up(&static_data.world.camera,
                     vector3_rotate_by_quaternion(VECTOR3_Y_POSITIVE,
-                            *(struct quaternion *) q));
+                            (struct quaternion) { i, j, k, w }));
             return;
     }
 }
@@ -1133,7 +1119,7 @@ void lisk_instance_camera_set_limits(
  */
 void lisk_instance_camera_set_target(
         lisk_handle_t instance,
-        float (*point)[3])
+        float x, float y, float z)
 {
     union lisk_handle_layout handle = { .full = instance };
 
@@ -1148,7 +1134,7 @@ void lisk_instance_camera_set_target(
             return;
         case HANDLE_REPRESENTS_CAMERA:
             camera_target(&static_data.world.camera,
-                    (struct vector3) { (*point)[0], (*point)[1], (*point)[2] });
+                    (struct vector3) { x, y, z });
             return;
     }
 }
@@ -1182,7 +1168,12 @@ void lisk_ambient_light_set(
  * @param[in] cubemap Set of six paths to iamges.
  */
 void lisk_skybox_set(
-        const char *(*cubemap)[6])
+        const char *left,
+        const char *right,
+        const char *top,
+        const char *bottom,
+        const char *front,
+        const char *back)
 {
     struct texture *texture = nullptr;
 
@@ -1192,7 +1183,8 @@ void lisk_skybox_set(
 
     texture = lisilisk_store_texture_cubemap_cache(
             &static_data.stores.textures,
-            static_data.context.res_manager, cubemap);
+            static_data.context.res_manager,
+            &(const char *[6]) { left, right, top, bottom, front, back });
     environment_skybox(&static_data.world.environment, texture);
 }
 
@@ -1202,13 +1194,13 @@ void lisk_skybox_set(
  * @param[in] color New color.
  */
 void lisk_bg_color_set(
-        float (*color)[3])
+        float r, float g, float b)
 {
     if (!static_data.active) {
         return;
     }
 
-    environment_bg(&static_data.world.environment, *color);
+    environment_bg(&static_data.world.environment, (f32[3]) { r, g, b });
 }
 
 /**

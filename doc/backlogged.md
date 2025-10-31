@@ -24,13 +24,13 @@ Refactor ideas
 - [x] Add more coherence for when we pass pointers vs. when we pass values
 - [x] Add null-detection when the state of the data passed is acceptable (e.g. a scene without environment)
 - [x] Change skybox shape from cube to ~~icosphere~~ UV sphere
-- [ ] Add null-checks at the lowest levels of the functions
+- [ ] Add null-checks at the lowest levels of the functions ?
 - [ ] Separate light procedures in material fragment shader to clean up the clutter
 - [ ] The shader_material_*() interface is as coupled to the material struct as the model struct. Find a way to express it
 - [ ] Resourceful module should use the same IO functions as the rest of the codebase
 - [ ] Resourceful top level struct has no need to be opaque
+- [x] Remove all static array pointers in the argument of functions, just have the array exploded in as many individual parameters.
 
 - [ ] BIG THINK NEEDED Abstract the stores to one simple module
 
 - [ ] Explain in the file headers the principles of design behind the data structures/interfaces
-- [ ] Remove all static array pointers in the argument of functions, just have the array exploded in as many individual parameters.

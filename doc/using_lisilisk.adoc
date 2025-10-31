@@ -17,7 +17,7 @@ Models are the most important components of your scene. Let's look at some model
 
 [, c]
 ----
-lisk_model_instanciate(lisk_model("mushroom"), &(float[3]) { 0, 0, 0 }, .2); // <1>
+lisk_model_instanciate(lisk_model("mushroom"), 0, 0, 0, .2); // <1>
 lisk_model_geometry(lisk_model("mushroom"), lisk_geometry("assets/mushroom.obj")); // <2>
 ----
 
@@ -45,7 +45,7 @@ You can configure some properties of the scene that do not depend on any object.
 [, c]
 ----
 void lisk_ambient_light_set(1, .8, .8, 1); // <1>
-void lisk_bg_color_set(&(float[3]) { 1, 0, 0 }); // <2>
+void lisk_bg_color_set(1, 0, 0); // <2>
 
 // the skybox hides the backround color :
 lisk_skybox_set(&(const char *[6]) {

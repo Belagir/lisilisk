@@ -148,26 +148,26 @@ void lisk_material_base_texture(
 // Sets how a model is visible in the ambient light.
 void lisk_material_ambient(
         lisk_res_t material,
-        float (*ambient)[4],
+        float r, float g, float b, float strength,
         lisk_res_t texture_mask);
 
 // Sets how a model diffuses the light sources.
 void lisk_material_diffuse(
         lisk_res_t material,
-        float (*diffuse)[4],
+        float r, float g, float b, float strength,
         lisk_res_t texture_mask);
 
 // Sets how a model reflects the light sources.
 void lisk_material_specular(
         lisk_res_t material,
-        float (*specular)[4],
+        float r, float g, float b, float strength,
         float shininess,
         lisk_res_t texture_mask);
 
 // Sets how a model emits color highlights.
 void lisk_material_emission(
         lisk_res_t material,
-        float (*emission)[4],
+        float r, float g, float b, float strength,
         lisk_res_t texture_mask);
 
 // -----------------------------------------------------------------------------
@@ -175,18 +175,18 @@ void lisk_material_emission(
 // Instanciate a model at some point in the world.
 lisk_handle_t lisk_model_instanciate(
         lisk_res_t model,
-        float (*pos)[3],
+        float x, float y, float z,
         float scale);
 
 // Creates a directional light to illuminate the scene.
 lisk_handle_t lisk_directional_light_add(
-        float (*direction)[3],
-        float (*color)[4]);
+        float direc_x, float direc_y, float direc_z,
+        float r, float g, float b, float strength);
 
 // Creates a point light to illuminate part of the scene.
 lisk_handle_t lisk_point_light_add(
-        float (*position)[3],
-        float (*color)[4],
+        float x, float y, float z,
+        float r, float g, float b, float strength,
         float constant,
         float linear,
         float quadratic);
@@ -205,26 +205,26 @@ void lisk_instance_remove(
 // Changes the scale of an instance.
 void lisk_instance_set_scale(
         lisk_handle_t instance,
-        float (*scale)[3]);
+        float x, float y, float z);
 
 // TODO: change nomenclature
 // Changes the position of an instance or a point light.
 void lisk_instance_set_position(
         lisk_handle_t instance,
-        float (*pos)[3]);
+        float x, float y, float z);
 
 // TODO: change nomenclature
 // Changes the orientation of an instance or a directional light.
 void lisk_instance_set_rotation(
         lisk_handle_t instance,
-        float (*axis)[3],
+        float axis_x, float axis_y, float axis_z,
         float angle_rad);
 
 // TODO: change nomenclature
 // Changes the orientation of an instance or a directional light.
 void lisk_instance_set_rotation_quaternion(
         lisk_handle_t instance,
-        float (*q)[4]);
+        float i, float j, float k, float w);
 
 // TODO: change nomenclature
 // Changes the attenuation properties of a light point.
@@ -248,24 +248,27 @@ void lisk_instance_camera_set_limits(
 // Sets target point of the camera.
 void lisk_instance_camera_set_target(
         lisk_handle_t instance,
-        float (*point)[3]);
+        float x, float y, float z);
 
 // -----------------------------------------------------------------------------
 
 // Changes the ambient ight setting of the environment.
 void lisk_ambient_light_set(
-        float r,
-        float g,
-        float b,
+        float r, float g, float b,
         float strength);
 
 // Changes the skybox to a set of textures.
 void lisk_skybox_set(
-        const char *(*cubemap)[6]);
+        const char *left,
+        const char *right,
+        const char *top,
+        const char *bottom,
+        const char *front,
+        const char *back);
 
 // Changes the background color, when there is no skybox.
 void lisk_bg_color_set(
-        float (*color)[3]);
+        float r, float g, float b);
 
 // -----------------------------------------------------------------------------
 
