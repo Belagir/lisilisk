@@ -81,7 +81,7 @@ enum material_base_sampler {
     MATERIAL_BASE_SAMPLER_SPECULAR_MASK,
     MATERIAL_BASE_SAMPLER_DIFFUSE_MASK,
     MATERIAL_BASE_SAMPLER_EMISSIVE_MASK,
-    MATERIAL_BASE_SAMPLER_TEXTURE,
+    MATERIAL_BASE_SAMPLER_TEXTURE, // TODO: remove base texture (redundant with masks)
 
     MATERIAL_BASE_SAMPLERS_NUMBER,
 };
@@ -465,15 +465,31 @@ void shader_delete(struct shader *shader);
 void geometry_create(struct geometry *geometry);
 void geometry_delete(struct geometry *geometry);
 
+#if 0
 void geometry_wavobj(struct geometry *geometry, const char *path);
 void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer,
         size_t length);
+#endif
 
 void geometry_set_smoothing(struct geometry *geometry, bool smooth);
 void geometry_set_culling(struct geometry *geometry,
         enum geometry_culling cull);
 void geometry_set_layering(struct geometry *geometry,
         enum geometry_layering layering);
+
+void geometry_push_vertex(struct geometry *geometry, u32 *out_idx);
+void geometry_vertex_pos(struct geometry *geometry, size_t idx, vector3 pos);
+void geometry_vertex_normal(struct geometry *geometry, size_t idx,
+        vector3 normal);
+void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv);
+
+void geometry_push_face(struct geometry *geometry, u32 *out_idx);
+void geometry_face_indices(struct geometry *geometry, size_t idx,
+        u32 indices[3u]);
+
+void geometry_set_material_names(struct geometry *geometry,
+        ARRAY(const char) library, ARRAY(const char) material_name);
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // TEXTURE ---------------------------------------------------------------------

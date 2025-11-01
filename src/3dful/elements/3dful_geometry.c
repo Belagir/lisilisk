@@ -13,8 +13,6 @@
 
 #include <ustd/array.h>
 
-#include "geometry_parsing/3ful_geometry_parsing.h"
-
 /**
  * @brief Allocates memory for a geometry object so it can store vertices and
  * faces.
@@ -37,6 +35,7 @@ void geometry_create(struct geometry *geometry)
     };
 }
 
+#if 0
 /**
  * @brief Loads geometry from a wavefront .obj file.
  * This operation will append the data from the file in the geometry object.
@@ -80,6 +79,7 @@ void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer,
     array_destroy(alloc, (ARRAY_ANY *) &buffer);
     wavefront_obj_delete(&obj);
 }
+#endif
 
 /**
  * @brief Releases all memory taken by some geometry, invalidating it.

@@ -287,7 +287,7 @@ void material_set_uniform(struct material *material, const char *name,
         void *data)
 {
     size_t pos = hashmap_index_of(material->added_uniforms, name);
-    struct material_user_uniform *uniform = { };
+    struct material_user_uniform *uniform = nullptr;
 
     if (pos >= array_length(material->added_uniforms)) {
         return;

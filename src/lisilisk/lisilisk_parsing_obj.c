@@ -1,14 +1,6 @@
-/**
- * @file 3dful_obj_parsing.c
- * @author Gabriel Bédat
- * @brief Implementation of the Wavefront OBJ parser.
- * @version 0.1
- * @date 2025-07-25
- *
- * @copyright Copyright (c) 2025
- *
- */
-#include "3ful_geometry_parsing.h"
+
+#include "lisilisk_internals.h"
+
 
 #include <stdio.h>
 
@@ -19,34 +11,34 @@
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static i32 wavefront_parse_comment(struct parser_state *state,
-        struct wavefront_obj *out_obj);
-static i32 wavefront_parse_obj_name(struct parser_state *state,
-        struct wavefront_obj *out_obj);
-static i32 wavefront_parse_mtl_library(struct parser_state *state,
-        struct wavefront_obj *out_obj);
-static i32 wavefront_parse_mtl_use(struct parser_state *state,
-        struct wavefront_obj *out_obj);
-static i32 wavefront_parse_obj_smoothing(struct parser_state *state,
-        struct wavefront_obj *out_obj);
-static i32 wavefront_parse_vertex(struct parser_state *state,
-        struct wavefront_obj *out_obj);
-static i32 wavefront_parse_vertex_pos(struct parser_state *state,
-        struct wavefront_obj *out_obj);
-static i32 wavefront_parse_vertex_normal(struct parser_state *state,
-        struct wavefront_obj *out_obj);
-static i32 wavefront_parse_vertex_texture(struct parser_state *state,
-        struct wavefront_obj *out_obj);
-static i32 wavefront_parse_face(struct parser_state *state,
-        struct wavefront_obj *out_obj);
-static i32 wavefront_parse_face_point(struct parser_state *state,
+static i32 parse_comment(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj);
+static i32 parse_obj_name(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj);
+static i32 parse_mtl_library(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj);
+static i32 parse_mtl_use(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj);
+static i32 parse_obj_smoothing(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj);
+static i32 parse_vertex(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj);
+static i32 parse_vertex_pos(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj);
+static i32 parse_vertex_normal(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj);
+static i32 parse_vertex_texture(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj);
+static i32 parse_face(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj);
+static i32 parse_face_point(struct parser_state *state,
         i32 read_idx[3]);
 
 
 // -----------------------------------------------------------------------------
 
 static void geometry_add_face_from_parsed(i32 face_data[3][3],
-        struct wavefront_obj *out_obj);
+        struct lisilisk_parse_obj *out_obj);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -57,9 +49,9 @@ static void geometry_add_face_from_parsed(i32 face_data[3][3],
  *
  * @param[out] obj Initialized parser object.
  */
-void wavefront_obj_create(struct wavefront_obj *obj)
+void lisilisk_parse_obj_create(struct lisilisk_parse_obj *obj)
 {
-    *obj = (struct wavefront_obj) {
+    *obj = (struct lisilisk_parse_obj) {
             .v_array  = array_create(make_system_allocator(),
                     sizeof(*obj->v_array), 32),
             .vn_array = array_create(make_system_allocator(),
@@ -83,7 +75,7 @@ void wavefront_obj_create(struct wavefront_obj *obj)
  *
  * @param[inout] obj Destroyed object.
  */
-void wavefront_obj_delete(struct wavefront_obj *obj)
+void lisilisk_parse_obj_delete(struct lisilisk_parse_obj *obj)
 {
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->v_array);
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->vn_array);
@@ -93,7 +85,7 @@ void wavefront_obj_delete(struct wavefront_obj *obj)
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->mtllib);
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &obj->usemtl);
 
-    *obj = (struct wavefront_obj) { 0 };
+    *obj = (struct lisilisk_parse_obj) { 0 };
 }
 
 /**
@@ -105,7 +97,7 @@ void wavefront_obj_delete(struct wavefront_obj *obj)
  * @param[inout] obj Parser object.
  * @param[in] buffer Parsed buffer.
  */
-void wavefront_obj_parse(struct wavefront_obj *obj, const byte *buffer)
+void lisilisk_parse_obj_parse(struct lisilisk_parse_obj *obj, const byte *buffer)
 {
     array_clear(obj->f_array);
     array_clear(obj->v_array);
@@ -122,19 +114,19 @@ void wavefront_obj_parse(struct wavefront_obj *obj, const byte *buffer)
 
         if (parser_parse_end_line(&state)) {
             // NOP
-        } else if (wavefront_parse_comment(&state, obj)) {
+        } else if (parse_comment(&state, obj)) {
             // NOP
-        } else if (wavefront_parse_obj_name(&state, obj)) {
+        } else if (parse_obj_name(&state, obj)) {
             // NOP
-        } else if (wavefront_parse_mtl_library(&state, obj)) {
+        } else if (parse_mtl_library(&state, obj)) {
             // NOP
-        } else if (wavefront_parse_mtl_use(&state, obj)) {
+        } else if (parse_mtl_use(&state, obj)) {
             // NOP
-        } else if (wavefront_parse_obj_smoothing(&state, obj)) {
+        } else if (parse_obj_smoothing(&state, obj)) {
             // NOP
-        } else if (wavefront_parse_vertex(&state, obj)) {
+        } else if (parse_vertex(&state, obj)) {
             // NOP
-        } else if (wavefront_parse_face(&state, obj)) {
+        } else if (parse_face(&state, obj)) {
             // NOP
         } else {
             fprintf(stderr, "at line %d:%d ; parsing error. The resulting "
@@ -153,11 +145,11 @@ void wavefront_obj_parse(struct wavefront_obj *obj, const byte *buffer)
  * @param[in] obj Parser object.
  * @param[inout] geometry Target geometry object.
  */
-void wavefront_obj_to(const struct wavefront_obj *obj,
+void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
         struct geometry *geometry)
 {
     u32 idx_face = 0;
-    struct wavefront_obj_face face = { };
+    struct lisilisk_parse_obj_face face = { };
     u32 face_generated_indices[3] = { 0 };
 
     for (size_t i = 0 ; i < array_length(obj->f_array) ; i++) {
@@ -188,7 +180,7 @@ void wavefront_obj_to(const struct wavefront_obj *obj,
  * @param[in] obj Parser object.
  * @param[in] file Target stream.
  */
-void wavefront_obj_dump(const struct wavefront_obj *obj, FILE *file)
+void lisilisk_parse_obj_dump(const struct lisilisk_parse_obj *obj, FILE *file)
 {
     if (obj->mtllib && array_length(obj->mtllib)) {
         fprintf(file, "mtllib %s\n", obj->mtllib);
@@ -224,8 +216,8 @@ void wavefront_obj_dump(const struct wavefront_obj *obj, FILE *file)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static i32 wavefront_parse_comment(struct parser_state *state,
-        struct wavefront_obj *out_obj)
+static i32 parse_comment(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj)
 {
     (void) out_obj;
 
@@ -241,8 +233,8 @@ static i32 wavefront_parse_comment(struct parser_state *state,
     return 1;
 }
 
-static i32 wavefront_parse_obj_name(struct parser_state *state,
-        struct wavefront_obj *out_obj)
+static i32 parse_obj_name(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj)
 {
     (void) out_obj;
 
@@ -258,8 +250,8 @@ static i32 wavefront_parse_obj_name(struct parser_state *state,
 }
 
 
-static i32 wavefront_parse_mtl_library(struct parser_state *state,
-        struct wavefront_obj *out_obj)
+static i32 parse_mtl_library(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj)
 {
     parser_skip_whitespace(state);
 
@@ -288,8 +280,8 @@ static i32 wavefront_parse_mtl_library(struct parser_state *state,
 }
 
 
-static i32 wavefront_parse_mtl_use(struct parser_state *state,
-        struct wavefront_obj *out_obj)
+static i32 parse_mtl_use(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj)
 {
     parser_skip_whitespace(state);
 
@@ -320,8 +312,8 @@ static i32 wavefront_parse_mtl_use(struct parser_state *state,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static i32 wavefront_parse_obj_smoothing(struct parser_state *state,
-        struct wavefront_obj *out_obj)
+static i32 parse_obj_smoothing(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj)
 {
     (void) out_obj;
     char is_smooth = '0';
@@ -343,8 +335,8 @@ static i32 wavefront_parse_obj_smoothing(struct parser_state *state,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static i32 wavefront_parse_vertex(struct parser_state *state,
-        struct wavefront_obj *out_obj)
+static i32 parse_vertex(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj)
 {
     parser_skip_whitespace(state);
 
@@ -353,21 +345,21 @@ static i32 wavefront_parse_vertex(struct parser_state *state,
     }
 
     if (parser_accept(state, (char []) { 'n' }, 1, NULL)) {
-        return wavefront_parse_vertex_normal(state, out_obj);
+        return parse_vertex_normal(state, out_obj);
     }
 
     if (parser_accept(state, (char []) { 't' }, 1, NULL)) {
-        return wavefront_parse_vertex_texture(state, out_obj);
+        return parse_vertex_texture(state, out_obj);
     }
 
-    return wavefront_parse_vertex_pos(state, out_obj);
+    return parse_vertex_pos(state, out_obj);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static i32 wavefront_parse_vertex_pos(struct parser_state *state,
-        struct wavefront_obj *out_obj)
+static i32 parse_vertex_pos(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj)
 {
     vector3 pos = { 0 };
 
@@ -390,8 +382,8 @@ static i32 wavefront_parse_vertex_pos(struct parser_state *state,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static i32 wavefront_parse_vertex_normal(struct parser_state *state,
-        struct wavefront_obj *out_obj)
+static i32 parse_vertex_normal(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj)
 {
     vector3 normal = { 0 };
 
@@ -414,8 +406,8 @@ static i32 wavefront_parse_vertex_normal(struct parser_state *state,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static i32 wavefront_parse_vertex_texture(struct parser_state *state,
-        struct wavefront_obj *out_obj)
+static i32 parse_vertex_texture(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj)
 {
     vector3 uv = { 0 };
 
@@ -436,8 +428,8 @@ static i32 wavefront_parse_vertex_texture(struct parser_state *state,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static i32 wavefront_parse_face(struct parser_state *state,
-        struct wavefront_obj *out_obj)
+static i32 parse_face(struct parser_state *state,
+        struct lisilisk_parse_obj *out_obj)
 {
     i32 face_data[3][3] = { 0 };
     i32 additional_face[3] =  { 0 };
@@ -446,16 +438,16 @@ static i32 wavefront_parse_face(struct parser_state *state,
         return 0;
     }
 
-    if (!(wavefront_parse_face_point(state, face_data[0])
-            && wavefront_parse_face_point(state, face_data[1])
-            && wavefront_parse_face_point(state, face_data[2]))) {
+    if (!(parse_face_point(state, face_data[0])
+            && parse_face_point(state, face_data[1])
+            && parse_face_point(state, face_data[2]))) {
         return 0;
     }
 
     geometry_add_face_from_parsed(face_data, out_obj);
 
     while (!parser_parse_end_line(state)) {
-        wavefront_parse_face_point(state, additional_face);
+        parse_face_point(state, additional_face);
 
         bytewise_copy(face_data[1], face_data[2], sizeof(*face_data));
         bytewise_copy(face_data[2], additional_face, sizeof(*face_data));
@@ -469,7 +461,7 @@ static i32 wavefront_parse_face(struct parser_state *state,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static i32 wavefront_parse_face_point(struct parser_state *state,
+static i32 parse_face_point(struct parser_state *state,
         i32 read_idx[3])
 {
     parser_skip_whitespace(state);
@@ -503,9 +495,9 @@ static i32 wavefront_parse_face_point(struct parser_state *state,
 // -----------------------------------------------------------------------------
 
 static void geometry_add_face_from_parsed(i32 face_data[3][3],
-        struct wavefront_obj *out_obj)
+        struct lisilisk_parse_obj *out_obj)
 {
-    struct wavefront_obj_face face = { 0 };
+    struct lisilisk_parse_obj_face face = { 0 };
 
     for (size_t i = 0 ; i < 3 ; i++) {
         face.v_idx[i] = face_data[i][0] - 1; // vertex index

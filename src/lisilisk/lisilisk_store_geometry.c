@@ -3,8 +3,20 @@
 
 #include <ustd/res.h>
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 DECLARE_RES(sphere_object, "res_models_sphere_obj")
 DECLARE_RES(quad_object, "res_models_quad_obj")
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+static void lisilisk_store_geometry_load_mem(struct geometry *geometry,
+        const byte *obj_buffer, size_t length);
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
  * @brief
@@ -26,7 +38,7 @@ struct lisilisk_store_geometry lisilisk_store_geometry_create(void)
 
     *new_store.sphere = (struct geometry) { 0 };
     geometry_create(new_store.sphere);
-    geometry_wavobj_mem(new_store.sphere, sphere_object_start,
+    lisilisk_store_geometry_load_mem(new_store.sphere, sphere_object_start,
             (size_t) &sphere_object_size);
 
     return new_store;
@@ -106,7 +118,7 @@ bool lisilisk_store_geometry_register(
         goto cleanup;
     }
 
-    geometry_wavobj_mem(geometry, obj_contents, obj_contents_length);
+    lisilisk_store_geometry_load_mem(geometry, obj_contents, obj_contents_length);
 
     // if successful, allocate a new geometry and copy the valid geometry to it
     if (array_length(geometry->faces) == 0) {
@@ -148,4 +160,25 @@ struct geometry *lisilisk_store_geometry_retrieve(
     }
 
     return nullptr;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+static void lisilisk_store_geometry_load_mem(struct geometry *geometry,
+        const byte *obj_buffer, size_t length)
+{
+    struct allocator alloc = make_system_allocator();
+    struct lisilisk_parse_obj obj = { };
+    ARRAY(byte) buffer = nullptr;
+
+    lisilisk_parse_obj_create(&obj);
+    buffer = array_create(alloc, sizeof(*buffer), length);
+
+    array_append_mem(buffer, obj_buffer, length);
+    lisilisk_parse_obj_parse(&obj, buffer);
+    lisilisk_parse_obj_to(&obj, geometry);
+
+    array_destroy(alloc, (ARRAY_ANY *) &buffer);
+    lisilisk_parse_obj_delete(&obj);
 }

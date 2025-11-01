@@ -15,6 +15,10 @@
 #include <lisilisk.h>
 #include <ustd/hashmap.h>
 
+#include <ustd/math2d.h>
+#include <ustd/math3d.h>
+#include <ustd/filereading.h>
+
 #include "../3dful/3dful.h"
 #include "../resourceful/resourceful.h"
 
@@ -138,6 +142,37 @@ struct lisilisk_context {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+
+/** Face definition. Holds indices for vertices, normals and texture UVs. */
+struct lisilisk_parse_obj_face { u32 v_idx[3], vn_idx[3], vt_idx[3]; };
+
+/**
+ * @brief Mirrors the content of a .obj file. This is a parser object that
+ * serves as an intermediate between a bufferized file and an usable geometry.
+ */
+struct lisilisk_parse_obj {
+    /** Vertices. */
+    ARRAY(struct vector3) v_array;
+    /** Normals. */
+    ARRAY(struct vector3) vn_array;
+    /** Texture UVs. */
+    ARRAY(struct vector2) vt_array;
+    /** Faces. */
+    ARRAY(struct lisilisk_parse_obj_face) f_array;
+
+    /** */
+    ARRAY(char) mtllib;
+    /** */
+    ARRAY(char) usemtl;
+
+    /** True if the model should be rendered smooth. */
+    bool smooth;
+};
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 void lisilisk_setup_environment(
         struct environment *env,
         struct geometry *sky_shape,
@@ -256,5 +291,20 @@ bool lisilisk_store_shader_register(
 struct shader *lisilisk_store_shader_retrieve(
         struct lisilisk_store_shader *store,
         u32 hash);
+
+// -----------------------------------------------------------------------------
+
+// Allocates memory for a parsing object.
+void lisilisk_parse_obj_create(struct lisilisk_parse_obj *obj);
+// Releases memory from a parsing object.
+void lisilisk_parse_obj_delete(struct lisilisk_parse_obj *obj);
+// Loads an obj file (already in a buffer) to a parsing object.
+void lisilisk_parse_obj_parse(struct lisilisk_parse_obj *obj,
+        const ARRAY(byte) buffer_array);
+// Builds a geometry from parsed data.
+void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
+        struct geometry *geometry);
+// Writes data parsed to a stream, in a form compatible with the .obj format.
+void lisilisk_parse_obj_dump(const struct lisilisk_parse_obj *obj, FILE *file);
 
 #endif
