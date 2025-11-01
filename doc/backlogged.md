@@ -4,10 +4,19 @@ Important stuff
 - [x] MEMORY LEAKS !!!!
 - [x] documentation of the 3dful module
 - [ ] more documentation ! for the lisilisk interface & internals !
+    - [ ] Explain in the file headers the principles of design behind the data structures/interfaces
 - [x] Detect channels (rgb / rgba) set in surfaces to set the correct value when we load the texture on GPU
 - [x] Include the engine-specific resources within the executable
 - [ ] The engine should have some error procedure that fires when the user provides incorrect arguments
 - [ ] Add the possibility to pass arbitrary uniforms through materials.
+
+Future features
+
+- [ ] Timers & tweeners
+- [ ] Transform hierachy
+- [ ] Shadows
+- [ ] Transparency through dithering
+- [ ] Load animations
 
 Half implemented
 
@@ -30,7 +39,5 @@ Refactor ideas
 - [ ] Resourceful module should use the same IO functions as the rest of the codebase
 - [ ] Resourceful top level struct has no need to be opaque
 - [x] Remove all static array pointers in the argument of functions, just have the array exploded in as many individual parameters.
-
 - [ ] BIG THINK NEEDED Abstract the stores to one simple module
 
-- [ ] Explain in the file headers the principles of design behind the data structures/interfaces

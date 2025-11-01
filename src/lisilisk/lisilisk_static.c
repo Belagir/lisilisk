@@ -740,9 +740,9 @@ void lisk_material_emission(
  * @param[in] name String containing the name of a previously registered model.
  * @param[in] pos 3D position of the new instance.
  * @param[in] scale scale of the model.
- * @return lisk_handle_t
+ * @return lisk_entity_t
  */
-lisk_handle_t lisk_model_instanciate(
+lisk_entity_t lisk_model_instanciate_entity(
         lisk_res_t res_model,
         float x, float y, float z,
         float scale)
@@ -754,7 +754,7 @@ lisk_handle_t lisk_model_instanciate(
 
     model = static_data_model_of(res_model);
     if (!model) {
-        return LISK_HANDLE_NONE;
+        return LISK_ENTITY_NONE;
     }
 
     model_instantiate(model, &in_handle);
@@ -781,9 +781,9 @@ lisk_handle_t lisk_model_instanciate(
  *
  * @param[in] direction Light rays direction.
  * @param[in] color Light color.
- * @return lisk_handle_t
+ * @return lisk_entity_t
  */
-lisk_handle_t lisk_directional_light_add(
+lisk_entity_t lisk_directional_light_add_entity(
         float direc_x, float direc_y, float direc_z,
         float r, float g, float b, float strength)
 {
@@ -791,7 +791,7 @@ lisk_handle_t lisk_directional_light_add(
     handle_t in_handle = 0;
 
     if (!static_data.active) {
-        return LISK_HANDLE_NONE;
+        return LISK_ENTITY_NONE;
     }
 
     scene_light_direc(&static_data.world.scene, &in_handle);
@@ -818,9 +818,9 @@ lisk_handle_t lisk_directional_light_add(
  * @param[in] constant Constant attenuation (doesn't vary with distance).
  * @param[in] linear Linear attenuation (gets stronger with distance).
  * @param[in] quadratic Quadratic attenuation (gets very strong with distance).
- * @return lisk_handle_t
+ * @return lisk_entity_t
  */
-lisk_handle_t lisk_point_light_add(
+lisk_entity_t lisk_point_light_add_entity(
         float x, float y, float z,
         float r, float g, float b, float strength,
         float constant,
@@ -831,7 +831,7 @@ lisk_handle_t lisk_point_light_add(
     handle_t in_handle = 0;
 
     if (!static_data.active) {
-        return LISK_HANDLE_NONE;
+        return LISK_ENTITY_NONE;
     }
 
     scene_light_point(&static_data.world.scene, &in_handle);
@@ -853,14 +853,14 @@ lisk_handle_t lisk_point_light_add(
 /**
  * @brief Returns a handle to the scene camera.
  *
- * @return lisk_handle_t
+ * @return lisk_entity_t
  */
-lisk_handle_t lisk_camera(void)
+lisk_entity_t lisk_camera_entity(void)
 {
     union lisk_handle_layout handle = { .full = 0 };
 
     if (!static_data.active) {
-        return LISK_HANDLE_NONE;
+        return LISK_ENTITY_NONE;
     }
 
     handle = (union lisk_handle_layout) {
@@ -875,12 +875,12 @@ lisk_handle_t lisk_camera(void)
 /**
  * @brief Deletes an instance of a model or a light from the engine.
  *
- * @param[in] instance Handle to the deleted object.
+ * @param[in] entity Handle to the deleted object.
  */
-void lisk_instance_remove(
-        lisk_handle_t instance)
+void lisk_entity_remove(
+        lisk_entity_t entity)
 {
-    union lisk_handle_layout handle = { .full = instance };
+    union lisk_handle_layout handle = { .full = entity };
 
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
@@ -903,15 +903,15 @@ void lisk_instance_remove(
 /**
  * @brief Changes the scale of a model's instance.
  *
- * @param[in] instance Handle to an instance.
+ * @param[in] entity Handle to an instance.
  * @param[in] scale New scale.
  */
 
-void lisk_instance_set_scale(
-        lisk_handle_t instance,
+void lisk_entity_set_scale(
+        lisk_entity_t entity,
         float x, float y, float z)
 {
-    union lisk_handle_layout handle = { .full = instance };
+    union lisk_handle_layout handle = { .full = entity };
 
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
@@ -933,14 +933,14 @@ void lisk_instance_set_scale(
 /**
  * @brief Changes the position of an intance, a point light, or the camera.
  *
- * @param[in] instance Handle to the repositioned object.
+ * @param[in] entity Handle to the repositioned object.
  * @param[in] pos New position.
  */
-void lisk_instance_set_position(
-        lisk_handle_t instance,
+void lisk_entity_set_position(
+        lisk_entity_t entity,
         float x, float y, float z)
 {
-    union lisk_handle_layout handle = { .full = instance };
+    union lisk_handle_layout handle = { .full = entity };
 
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
@@ -972,8 +972,8 @@ void lisk_instance_set_position(
  * @param[in] axis Axis of rotation.
  * @param[in] angle_rad Angle, in radians, of the object around the axis.
  */
-void lisk_instance_set_rotation(
-        lisk_handle_t instance,
+void lisk_entity_set_rotation(
+        lisk_entity_t instance,
         float axis_x, float axis_y, float axis_z,
         float angle_rad)
 {
@@ -981,21 +981,21 @@ void lisk_instance_set_rotation(
             (struct vector3) { axis_x, axis_y, axis_z },
             angle_rad);
 
-    lisk_instance_set_rotation_quaternion(instance, q.i, q.j, q.k, q.w);
+    lisk_entity_set_rotation_quaternion(instance, q.i, q.j, q.k, q.w);
 }
 
 /**
  * @brief Changes the rotation of an intance, a directional light, or the
  * camera, using a quaternion.
  *
- * @param[in] instance Handle to the reoriented object.
+ * @param[in] entity Handle to the reoriented object.
  * @param[in] q Quaternion encoding the rotation.
  */
-void lisk_instance_set_rotation_quaternion(
-        lisk_handle_t instance,
+void lisk_entity_set_rotation_quaternion(
+        lisk_entity_t entity,
         float i, float j, float k, float w)
 {
-    union lisk_handle_layout handle = { .full = instance };
+    union lisk_handle_layout handle = { .full = entity };
 
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
@@ -1032,8 +1032,8 @@ void lisk_instance_set_rotation_quaternion(
  * @param[in] linear Linear attenuation (gets stronger with distance).
  * @param[in] quadratic Quadratic attenuation (gets very strong with distance).
  */
-void lisk_instance_light_point_set_attenuation(
-        lisk_handle_t instance,
+void lisk_entity_light_point_set_attenuation(
+        lisk_entity_t instance,
         float constant, float linear, float quadratic)
 {
     union lisk_handle_layout handle = { .full = instance };
@@ -1058,14 +1058,14 @@ void lisk_instance_light_point_set_attenuation(
 /**
  * @brief Changes the field of view of the camera.
  *
- * @param[in] instance Handle to the camera.
+ * @param[in] entity Handle to the camera.
  * @param[in] fov New field of view angle, in degrees.
  */
-void lisk_instance_camera_set_fov(
-        lisk_handle_t instance,
+void lisk_entity_camera_set_fov(
+        lisk_entity_t entity,
         float fov)
 {
-    union lisk_handle_layout handle = { .full = instance };
+    union lisk_handle_layout handle = { .full = entity };
 
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:
@@ -1090,8 +1090,8 @@ void lisk_instance_camera_set_fov(
  * @param[in] near Distance to the near plane.
  * @param[in] far Distance to the far plane.
  */
-void lisk_instance_camera_set_limits(
-        lisk_handle_t instance,
+void lisk_entity_camera_set_limits(
+        lisk_entity_t instance,
         float near, float far)
 {
     union lisk_handle_layout handle = { .full = instance };
@@ -1114,14 +1114,14 @@ void lisk_instance_camera_set_limits(
 /**
  * @brief Changes the camera's target point.
  *
- * @param[in] instance Handle to the camera.
+ * @param[in] entity Handle to the camera.
  * @param[in] point Point the camera nows looks at.
  */
-void lisk_instance_camera_set_target(
-        lisk_handle_t instance,
+void lisk_entity_camera_set_target(
+        lisk_entity_t entity,
         float x, float y, float z)
 {
-    union lisk_handle_layout handle = { .full = instance };
+    union lisk_handle_layout handle = { .full = entity };
 
     switch ((enum handle_flavor) handle.flavor) {
         case HANDLE_IS_INVALID:

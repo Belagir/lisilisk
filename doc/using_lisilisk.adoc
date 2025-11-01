@@ -17,7 +17,7 @@ Models are the most important components of your scene. Let's look at some model
 
 [, c]
 ----
-lisk_model_instanciate(lisk_model("mushroom"), 0, 0, 0, .2); // <1>
+lisk_model_instanciate_entity(lisk_model("mushroom"), 0, 0, 0, .2); // <1>
 lisk_model_geometry(lisk_model("mushroom"), lisk_geometry("assets/mushroom.obj")); // <2>
 ----
 
@@ -28,7 +28,7 @@ NOTE: That the order of calls does not matter. We can assign geometry, shading a
 
 What's important is that models are purely _internal_ objects that you can then _instantiate_ : each instance has its own transform in the scene that you can interact with with its handle. Changing the model properties will impact all of its instances.
 
-=== What make models
+=== What makes a model
 
 A model is made of three components :
 
@@ -44,11 +44,39 @@ You can configure some properties of the scene that do not depend on any object.
 
 [, c]
 ----
-void lisk_ambient_light_set(1, .8, .8, 1); // <1>
-void lisk_bg_color_set(1, 0, 0); // <2>
+lisk_ambient_light_set(1, .8, .8, 1); // <1>
+lisk_bg_color_set(1, 0, 0); // <2>
 
 // the skybox hides the backround color :
-lisk_skybox_set(&(const char *[6]) {
-        "assets/left.png", "assets/right.png", "assets/top.png",
-        "assets/bottom.png", "assets/front.png", "assets/back.png" });  // <3>
+lisk_skybox_set("assets/left.png", "assets/right.png", "assets/top.png",
+        "assets/bottom.png", "assets/front.png", "assets/back.png");  // <3>
 ----
+
+<1> Setting the ambient light of the scene is straightforward.
+<2> The background color is only shown if no skybox is defined.
+<3> Those textures will be projected onto the skybox sphere.
+
+== Light emitters
+
+*Lisilisk* supports two kinds of colored lights : _point_ lights, and _directional_ lights.
+
+[sidebar]
+*Point lights* are added at some position in the scene. A point light possess factors that govern how the light interacts at different distances : the constant factor is always applied, the linear factor is multiplied by the distance, and the quadtratic factor is multplied by the square of the distance.
+
+[sidebar]
+*Directional lights* interact with all objects in the scene. A directional light represents a strong and far away light that casts its ray all parallel to each others. The only thing we need to define such a light is its direction vector.
+
+[, c]
+----
+lisk_directional_light_add_entity(
+        1, -1, .5,
+        1, .75, .5, 1.); // <1>
+lisk_point_light_add_entity(
+        4, 0, 1,
+        0, 1, 0, 1,
+        1, .1,  0); // <2>
+----
+
+<1> This salmon pink directional light is illuminating in the direction (1, -1, 0.5).
+<2> This green point light casts a quite uniform light from (4,0,1).
+

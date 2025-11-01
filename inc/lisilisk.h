@@ -25,12 +25,12 @@
 // -----------------------------------------------------------------------------
 
 /** Invalid handle is just full of zeroes. */
-#define LISK_HANDLE_NONE ((lisk_handle_t) 0)
+#define LISK_ENTITY_NONE ((lisk_entity_t) 0)
 
 /** Handle type to a scene object to hold basic information and have it be a
     scalar. */
-enum lisk_handle : uint64_t;
-typedef enum lisk_handle lisk_handle_t;
+enum lisk_entity : uint64_t;
+typedef enum lisk_entity lisk_entity_t;
 
 /** Invalid handle is just full of zeroes. */
 #define LISK_RES_NONE ((lisk_res_t) 0)
@@ -173,18 +173,18 @@ void lisk_material_emission(
 // -----------------------------------------------------------------------------
 
 // Instanciate a model at some point in the world.
-lisk_handle_t lisk_model_instanciate(
+lisk_entity_t lisk_model_instanciate_entity(
         lisk_res_t model,
         float x, float y, float z,
         float scale);
 
 // Creates a directional light to illuminate the scene.
-lisk_handle_t lisk_directional_light_add(
+lisk_entity_t lisk_directional_light_add_entity(
         float direc_x, float direc_y, float direc_z,
         float r, float g, float b, float strength);
 
 // Creates a point light to illuminate part of the scene.
-lisk_handle_t lisk_point_light_add(
+lisk_entity_t lisk_point_light_add_entity(
         float x, float y, float z,
         float r, float g, float b, float strength,
         float constant,
@@ -192,62 +192,53 @@ lisk_handle_t lisk_point_light_add(
         float quadratic);
 
 // Fetches the camera rendering the world.
-lisk_handle_t lisk_camera(void);
+lisk_entity_t lisk_camera_entity(void);
 
 // -----------------------------------------------------------------------------
 
-// TODO: change nomenclature
-// Removes a model instance or light from the world.
-void lisk_instance_remove(
-        lisk_handle_t instance);
+// Removes a model entity or light from the world.
+void lisk_entity_remove(
+        lisk_entity_t entity);
 
-// TODO: change nomenclature
-// Changes the scale of an instance.
-void lisk_instance_set_scale(
-        lisk_handle_t instance,
+// Changes the scale of an entity.
+void lisk_entity_set_scale(
+        lisk_entity_t entity,
         float x, float y, float z);
 
-// TODO: change nomenclature
-// Changes the position of an instance or a point light.
-void lisk_instance_set_position(
-        lisk_handle_t instance,
+// Changes the position of an entity or a point light.
+void lisk_entity_set_position(
+        lisk_entity_t entity,
         float x, float y, float z);
 
-// TODO: change nomenclature
-// Changes the orientation of an instance or a directional light.
-void lisk_instance_set_rotation(
-        lisk_handle_t instance,
+// Changes the orientation of an entity or a directional light.
+void lisk_entity_set_rotation(
+        lisk_entity_t entity,
         float axis_x, float axis_y, float axis_z,
         float angle_rad);
 
-// TODO: change nomenclature
-// Changes the orientation of an instance or a directional light.
-void lisk_instance_set_rotation_quaternion(
-        lisk_handle_t instance,
+// Changes the orientation of an entity or a directional light.
+void lisk_entity_set_rotation_quaternion(
+        lisk_entity_t entity,
         float i, float j, float k, float w);
 
-// TODO: change nomenclature
 // Changes the attenuation properties of a light point.
-void lisk_instance_light_point_set_attenuation(
-        lisk_handle_t instance,
+void lisk_entity_light_point_set_attenuation(
+        lisk_entity_t entity,
         float constant, float linear, float quadratic);
 
-// TODO: change nomenclature
 // Sets the FOV of the camera.
-void lisk_instance_camera_set_fov(
-        lisk_handle_t instance,
+void lisk_entity_camera_set_fov(
+        lisk_entity_t entity,
         float fov);
 
-// TODO: change nomenclature
 // Sets the near and far planes of the camera.
-void lisk_instance_camera_set_limits(
-        lisk_handle_t instance,
+void lisk_entity_camera_set_limits(
+        lisk_entity_t entity,
         float near, float far);
 
-// TODO: change nomenclature
 // Sets target point of the camera.
-void lisk_instance_camera_set_target(
-        lisk_handle_t instance,
+void lisk_entity_camera_set_target(
+        lisk_entity_t entity,
         float x, float y, float z);
 
 // -----------------------------------------------------------------------------

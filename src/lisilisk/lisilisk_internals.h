@@ -47,7 +47,7 @@ enum res_flavor : u8 {
  *
  */
 union lisk_handle_layout {
-    lisk_handle_t full;
+    lisk_entity_t full;
     struct {
         /** Hash associated to an object stored in the engine. */
         u32 hash:32;
