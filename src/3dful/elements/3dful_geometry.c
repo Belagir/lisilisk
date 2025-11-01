@@ -35,52 +35,6 @@ void geometry_create(struct geometry *geometry)
     };
 }
 
-#if 0
-/**
- * @brief Loads geometry from a wavefront .obj file.
- * This operation will append the data from the file in the geometry object.
- *
- * @param[inout] geometry Modified geometry.
- * @param[in] path Path to some .obj file.
- */
-void geometry_wavobj(struct geometry *geometry, const char *path)
-{
-    byte *buffer = array_create(make_system_allocator(), sizeof(*buffer),
-            file_length(path));
-
-    if (file_read_to_array(path, buffer) == 0) {
-        geometry_wavobj_mem(geometry, buffer, array_length(buffer));
-    }
-
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &buffer);
-}
-
-/**
- * @brief Loads geometry from a wavefront .obj file that has been loaded in
- * memory.
- *
- * @param[inout] geometry Modified geometry.
- * @param[in] obj Array of bytes. Must have been created with ustd/array.h.
- */
-void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer,
-        size_t length)
-{
-    struct allocator alloc = make_system_allocator();
-    struct wavefront_obj obj = { };
-    ARRAY(byte) buffer = nullptr;
-
-    wavefront_obj_create(&obj);
-    buffer = array_create(alloc, sizeof(*buffer), length);
-
-    array_append_mem(buffer, obj_buffer, length);
-    wavefront_obj_parse(&obj, buffer);
-    wavefront_obj_to(&obj, geometry);
-
-    array_destroy(alloc, (ARRAY_ANY *) &buffer);
-    wavefront_obj_delete(&obj);
-}
-#endif
-
 /**
  * @brief Releases all memory taken by some geometry, invalidating it.
  *

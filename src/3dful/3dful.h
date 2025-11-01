@@ -465,12 +465,6 @@ void shader_delete(struct shader *shader);
 void geometry_create(struct geometry *geometry);
 void geometry_delete(struct geometry *geometry);
 
-#if 0
-void geometry_wavobj(struct geometry *geometry, const char *path);
-void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer,
-        size_t length);
-#endif
-
 void geometry_set_smoothing(struct geometry *geometry, bool smooth);
 void geometry_set_culling(struct geometry *geometry,
         enum geometry_culling cull);
