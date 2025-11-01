@@ -178,9 +178,6 @@ struct geometry {
     ARRAY(struct vertex) vertices;
     ARRAY(struct face) faces;
 
-    ARRAY(const char) material_library;
-    ARRAY(const char) material_name;
-
     struct {
         // TODO: update data behind this vbo when the vertices_array changes (?)
         GLuint vbo;
@@ -465,12 +462,6 @@ void shader_delete(struct shader *shader);
 void geometry_create(struct geometry *geometry);
 void geometry_delete(struct geometry *geometry);
 
-#if 0
-void geometry_wavobj(struct geometry *geometry, const char *path);
-void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer,
-        size_t length);
-#endif
-
 void geometry_set_smoothing(struct geometry *geometry, bool smooth);
 void geometry_set_culling(struct geometry *geometry,
         enum geometry_culling cull);
@@ -486,9 +477,6 @@ void geometry_vertex_uv(struct geometry *geometry, size_t idx, vector2 uv);
 void geometry_push_face(struct geometry *geometry, u32 *out_idx);
 void geometry_face_indices(struct geometry *geometry, size_t idx,
         u32 indices[3u]);
-
-void geometry_set_material_names(struct geometry *geometry,
-        ARRAY(const char) library, ARRAY(const char) material_name);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

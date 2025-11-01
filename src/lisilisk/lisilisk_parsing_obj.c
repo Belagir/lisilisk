@@ -170,7 +170,6 @@ void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
         geometry_face_indices(geometry, idx_face, face_generated_indices);
     }
 
-    geometry_set_material_names(geometry, obj->mtllib, obj->usemtl);
     geometry_set_smoothing(geometry, obj->smooth);
 }
 

@@ -27,59 +27,8 @@ void geometry_create(struct geometry *geometry)
                 sizeof(*geometry->vertices), 2),
         .faces    = array_create(make_system_allocator(),
                 sizeof(*geometry->faces), 2),
-
-        .material_library = array_create(make_system_allocator(),
-                sizeof(*geometry->material_library), 32),
-        .material_name    = array_create(make_system_allocator(),
-                sizeof(*geometry->material_name), 32),
     };
 }
-
-#if 0
-/**
- * @brief Loads geometry from a wavefront .obj file.
- * This operation will append the data from the file in the geometry object.
- *
- * @param[inout] geometry Modified geometry.
- * @param[in] path Path to some .obj file.
- */
-void geometry_wavobj(struct geometry *geometry, const char *path)
-{
-    byte *buffer = array_create(make_system_allocator(), sizeof(*buffer),
-            file_length(path));
-
-    if (file_read_to_array(path, buffer) == 0) {
-        geometry_wavobj_mem(geometry, buffer, array_length(buffer));
-    }
-
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &buffer);
-}
-
-/**
- * @brief Loads geometry from a wavefront .obj file that has been loaded in
- * memory.
- *
- * @param[inout] geometry Modified geometry.
- * @param[in] obj Array of bytes. Must have been created with ustd/array.h.
- */
-void geometry_wavobj_mem(struct geometry *geometry, const byte *obj_buffer,
-        size_t length)
-{
-    struct allocator alloc = make_system_allocator();
-    struct wavefront_obj obj = { };
-    ARRAY(byte) buffer = nullptr;
-
-    wavefront_obj_create(&obj);
-    buffer = array_create(alloc, sizeof(*buffer), length);
-
-    array_append_mem(buffer, obj_buffer, length);
-    wavefront_obj_parse(&obj, buffer);
-    wavefront_obj_to(&obj, geometry);
-
-    array_destroy(alloc, (ARRAY_ANY *) &buffer);
-    wavefront_obj_delete(&obj);
-}
-#endif
 
 /**
  * @brief Releases all memory taken by some geometry, invalidating it.
@@ -90,8 +39,6 @@ void geometry_delete(struct geometry *geometry)
 {
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &geometry->vertices);
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &geometry->faces);
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &geometry->material_name);
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &geometry->material_library);
 
     *geometry = (struct geometry) { 0 };
 }
@@ -269,27 +216,4 @@ void geometry_face_indices(struct geometry *geometry, size_t idx,
     geometry->faces[idx].idx_vert[0] = indices[0];
     geometry->faces[idx].idx_vert[1] = indices[1];
     geometry->faces[idx].idx_vert[2] = indices[2];
-}
-
-/**
- * @brief
- *
- * @param geometry
- */
-void geometry_set_material_names(struct geometry *geometry,
-        ARRAY(const char) library, ARRAY(const char) material_name)
-{
-    if (library) {
-        array_clear((void *) geometry->material_library);
-        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &geometry->material_library,
-                array_length(library));
-        array_append((void *) geometry->material_library, (void *) library);
-    }
-
-    if (material_name) {
-        array_clear((void *) geometry->material_name);
-        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &geometry->material_name,
-                array_length(material_name));
-        array_append((void *) geometry->material_name, (void *) material_name);
-    }
 }
