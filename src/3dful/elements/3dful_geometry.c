@@ -28,8 +28,7 @@ void geometry_create(struct geometry *geometry)
         .faces    = array_create(make_system_allocator(),
                 sizeof(*geometry->faces), 2),
 
-        .material_library = array_create(make_system_allocator(),
-                sizeof(*geometry->material_library), 32),
+        .material_library = path_from_cstring(make_system_allocator(), "", '/', 2048),
         .material_name    = array_create(make_system_allocator(),
                 sizeof(*geometry->material_name), 32),
     };
@@ -45,7 +44,8 @@ void geometry_delete(struct geometry *geometry)
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &geometry->vertices);
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &geometry->faces);
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &geometry->material_name);
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &geometry->material_library);
+
+    path_destroy(make_system_allocator(), &geometry->material_library);
 
     *geometry = (struct geometry) { 0 };
 }
@@ -234,10 +234,10 @@ void geometry_set_material_names(struct geometry *geometry,
         ARRAY(const char) library, ARRAY(const char) material_name)
 {
     if (library) {
-        array_clear((void *) geometry->material_library);
-        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &geometry->material_library,
+        path_clear(geometry->material_library);
+        path_ensure_capacity(make_system_allocator(), &geometry->material_library,
                 array_length(library));
-        array_append((void *) geometry->material_library, (void *) library);
+        path_append(geometry->material_library, library);
     }
 
     if (material_name) {

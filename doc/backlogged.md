@@ -40,4 +40,5 @@ Refactor ideas
 - [ ] Resourceful top level struct has no need to be opaque
 - [x] Remove all static array pointers in the argument of functions, just have the array exploded in as many individual parameters.
 - [ ] BIG THINK NEEDED Abstract the stores to one simple module
+- [ ] All internal interfaces must take ARRAY(...)s for strings & collections to simplify the internal machinery and set a clear responsability (to translate memory) for the uppermost layer.
 

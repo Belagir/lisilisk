@@ -21,6 +21,7 @@
 #include <ustd/logging.h>
 #include <ustd/math2d.h>
 #include <ustd/math3d.h>
+#include <ustd/path.h>
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -178,7 +179,7 @@ struct geometry {
     ARRAY(struct vertex) vertices;
     ARRAY(struct face) faces;
 
-    ARRAY(const char) material_library;
+    PATH material_library;
     ARRAY(const char) material_name;
 
     struct {

@@ -317,20 +317,26 @@ lisk_res_t lisk_material(
 lisk_res_t lisk_geometry(
         const char *obj_file)
 {
+    PATH path_obj_file = nullptr;
     union lisk_res_layout handle = { .full = LISK_RES_NONE };
     u32 hash = 0;
 
-    if (!lisilisk_store_geometry_register(&static_data.stores.geometries,
-            static_data.context.res_manager, obj_file, &hash)) {
+    path_obj_file = path_from_cstring(make_system_allocator(), obj_file, '/', 2048);
+
+    if (lisilisk_store_geometry_register(&static_data.stores.geometries,
+            static_data.context.res_manager, path_obj_file, &hash)) {
+
+        handle = (union lisk_res_layout) {
+            .flavor = RES_REPRESENTS_GEOMETRY,
+            .hash = hash
+        };
+    } else {
+        handle.full = LISK_RES_NONE;
         logger_log(static_data.log, LOGGER_SEVERITY_WARN,
                 "Could not create or retreive geometry from file %s.\n", obj_file);
-        return  LISK_RES_NONE;
     }
 
-    handle = (union lisk_res_layout) {
-        .flavor = RES_REPRESENTS_GEOMETRY,
-        .hash = hash
-    };
+    path_destroy(make_system_allocator(), &path_obj_file);
 
     return handle.full;
 }

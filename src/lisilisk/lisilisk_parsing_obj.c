@@ -146,6 +146,7 @@ void lisilisk_parse_obj_parse(struct lisilisk_parse_obj *obj, const byte *buffer
  * @param[inout] geometry Target geometry object.
  */
 void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
+        PATH local_path,
         struct geometry *geometry)
 {
     u32 idx_face = 0;
@@ -171,6 +172,12 @@ void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
     }
 
     geometry_set_material_names(geometry, obj->mtllib, obj->usemtl);
+
+    if (local_path) {
+        path_ensure_capacity(make_system_allocator(), &geometry->material_library, path_length(local_path));
+        path_prepend(geometry->material_library, local_path);
+    }
+
     geometry_set_smoothing(geometry, obj->smooth);
 }
 

@@ -15,9 +15,10 @@
 #include <lisilisk.h>
 #include <ustd/hashmap.h>
 
+#include <ustd/filereading.h>
 #include <ustd/math2d.h>
 #include <ustd/math3d.h>
-#include <ustd/filereading.h>
+#include <ustd/path.h>
 
 #include "../3dful/3dful.h"
 #include "../resourceful/resourceful.h"
@@ -186,7 +187,7 @@ void lisilisk_setup_camera(
 void lisilisk_context_init(
         struct lisilisk_context *context,
         struct logger *log,
-        const char *name,
+        const char *name,                   // TODO : switch to ARRAY(const char)
         u32 width, u32 height);
 
 void lisilisk_context_deinit(
@@ -202,11 +203,11 @@ void lisilisk_context_window_get_size(
 
 void lisilisk_context_window_set_name(
         struct lisilisk_context *context,
-        const char *name);
+        const char *name);                  // TODO : switch to ARRAY(const char)
 
 void lisilisk_context_integrate_resources(
         struct lisilisk_context *context,
-        const char *folder);
+        const char *folder);                // TODO : switch to ARRAY(const char)
 
 // -----------------------------------------------------------------------------
 
@@ -222,7 +223,7 @@ struct texture *lisilisk_store_texture_cubemap_cache(
 bool lisilisk_store_texture_register(
         struct lisilisk_store_texture *store,
         struct resource_manager *res_manager,
-        const char *image,
+        const char *image,                  // TODO : switch to ARRAY(const char)
         u32 *out_hash);
 struct texture *lisilisk_store_texture_retrieve(
         struct lisilisk_store_texture *store,
@@ -237,7 +238,7 @@ void lisilisk_store_geometry_delete(
 bool lisilisk_store_geometry_register(
         struct lisilisk_store_geometry *store,
         struct resource_manager *res_manager,
-        const char *obj_path,
+        PATH obj_path,
         u32 *out_hash);
 
 struct geometry *lisilisk_store_geometry_retrieve(
@@ -253,8 +254,8 @@ void lisilisk_store_material_delete(
 
 bool lisilisk_store_material_register(
         struct lisilisk_store_material *store,
-        const char *library,
-        const char *name,
+        const char *library,                // TODO : switch to ARRAY(const char)
+        const char *name,                   // TODO : switch to ARRAY(const char)
         u32 *out_hash);
 struct material *lisilisk_store_material_retrieve(
         struct lisilisk_store_material *store,
@@ -270,7 +271,7 @@ void lisilisk_store_model_delete(
 
 bool lisilisk_store_model_register(
         struct lisilisk_store_model *store,
-        const char *name,
+        const char *name,               // TODO : switch to ARRAY(const char)
         u32 *out_hash);
 struct model *lisilisk_store_model_retrieve(
         struct lisilisk_store_model *store,
@@ -285,7 +286,7 @@ void lisilisk_store_shader_delete(
 bool lisilisk_store_shader_register(
         struct lisilisk_store_shader *store,
         struct resource_manager *res_manager,
-        const char *frag, const char *vert,
+        const char *frag, const char *vert,         // TODO : switch to ARRAY(const char)
         u32 *out_hash);
 
 struct shader *lisilisk_store_shader_retrieve(
@@ -303,6 +304,7 @@ void lisilisk_parse_obj_parse(struct lisilisk_parse_obj *obj,
         const ARRAY(byte) buffer_array);
 // Builds a geometry from parsed data.
 void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
+        PATH local_path,
         struct geometry *geometry);
 // Writes data parsed to a stream, in a form compatible with the .obj format.
 void lisilisk_parse_obj_dump(const struct lisilisk_parse_obj *obj, FILE *file);
