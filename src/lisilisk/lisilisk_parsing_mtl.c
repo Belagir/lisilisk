@@ -44,6 +44,17 @@ static i32 parse_illumination_mode(struct parser_state *state,
 static i32 parse_dissolve_factor(struct parser_state *state,
         struct lisilisk_parse_mtl_material *mtl);
 
+static i32 parse_texture(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+static i32 parse_texture_ambient(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+static i32 parse_texture_diffuse(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+static i32 parse_texture_specular(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+static i32 parse_texture_emissive(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -197,8 +208,8 @@ static void lisilisk_parse_mtl_material_dump(struct lisilisk_parse_mtl_material 
     if (array_length(material->map_Ks)) {
         fprintf(file, "map_Ks %s\n", material->map_Ks);
     }
-    if (array_length(material->map_Ks)) {
-        fprintf(file, "map_Ks %s\n", material->map_Ks);
+    if (array_length(material->map_Kd)) {
+        fprintf(file, "map_Kd %s\n", material->map_Kd);
     }
     if (array_length(material->map_Ke)) {
         fprintf(file, "map_Ke %s\n", material->map_Ke);
@@ -266,6 +277,8 @@ static i32 parse_material(struct parser_state *state, struct lisilisk_parse_mtl 
         } else if (parse_illumination_mode(state, new_material)) {
             // NOP
         } else if (parse_dissolve_factor(state, new_material)) {
+            // NOP
+        } else if (parse_texture(state, new_material)) {
             // NOP
         } else {
             break;
@@ -437,6 +450,102 @@ static i32 parse_dissolve_factor(struct parser_state *state,
     while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
         parser_state_advance(state);
     }
+
+    return 1;
+}
+
+static i32 parse_texture(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    char read_char = '\0';
+
+    if (!parser_accept(state, (char []) { 'm' }, 1, NULL)) {
+        return 0;
+    }
+
+    if (!(parser_expect(state, (char []) { 'a' }, 1, NULL)
+            && parser_expect(state, (char []) { 'p' }, 1, NULL)
+            && parser_expect(state, (char []) { '_' }, 1, NULL)
+            && parser_expect(state, (char []) { 'K' }, 1, NULL))) {
+        return 0;
+    }
+
+    if (!parser_expect(state, (char []) { 'a', 'd', 's', 'e' }, 4, &read_char)) {
+        return 0;
+    }
+
+    parser_skip_whitespace(state);
+
+    switch (read_char) {
+        case ('a'):
+            return parse_texture_ambient(state, mtl);
+        case ('d'):
+            return parse_texture_diffuse(state, mtl);
+        case ('s'):
+            return parse_texture_specular(state, mtl);
+        case ('e'):
+            return parse_texture_emissive(state, mtl);
+        default:
+            break;
+    }
+
+    return 1;
+}
+
+static i32 parse_texture_ambient(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
+        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Ka, 1);
+        array_push(mtl->map_Ka, state->buffer_array + state->buffer_idx);
+        parser_state_advance(state);
+    }
+    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Ka, 1);
+    array_push(mtl->map_Ka, &(char) { '\0' });
+
+    return 1;
+}
+
+static i32 parse_texture_diffuse(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
+        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Kd, 1);
+        array_push(mtl->map_Kd, state->buffer_array + state->buffer_idx);
+        parser_state_advance(state);
+    }
+    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Kd, 1);
+    array_push(mtl->map_Kd, &(char) { '\0' });
+
+    return 1;
+}
+
+static i32 parse_texture_specular(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+
+{
+    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
+        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Ks, 1);
+        array_push(mtl->map_Ks, state->buffer_array + state->buffer_idx);
+        parser_state_advance(state);
+    }
+    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Ks, 1);
+    array_push(mtl->map_Ks, &(char) { '\0' });
+
+    return 1;
+}
+
+static i32 parse_texture_emissive(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+
+{
+    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
+        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Ke, 1);
+        array_push(mtl->map_Ke, state->buffer_array + state->buffer_idx);
+        parser_state_advance(state);
+    }
+    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Ke, 1);
+    array_push(mtl->map_Ke, &(char) { '\0' });
 
     return 1;
 }
