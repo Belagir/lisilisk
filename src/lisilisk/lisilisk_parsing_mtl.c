@@ -39,6 +39,11 @@ static i32 parse_reflection_factor_specular(struct parser_state *state,
 static i32 parse_reflection_factor_emissive(struct parser_state *state,
         struct lisilisk_parse_mtl_material *mtl);
 
+static i32 parse_illumination_mode(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+static i32 parse_dissolve_factor(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -258,6 +263,10 @@ static i32 parse_material(struct parser_state *state, struct lisilisk_parse_mtl 
             // NOP
         } else if (parse_reflection_factor(state, new_material)) {
             // NOP
+        } else if (parse_illumination_mode(state, new_material)) {
+            // NOP
+        } else if (parse_dissolve_factor(state, new_material)) {
+            // NOP
         } else {
             break;
         }
@@ -283,18 +292,25 @@ static i32 parse_comment(struct parser_state *state)
 static i32 parse_optical_property(struct parser_state *state,
         struct lisilisk_parse_mtl_material *mtl)
 {
+    char read_char = '\0';
+
     if (!parser_accept(state, (char []) { 'N' }, 1, NULL)) {
         return 0;
     }
 
-    if (parser_accept(state, (char []) { 's' }, 1, NULL)) {
-        parser_skip_whitespace(state);
-        return parse_optical_property_specular_strength(state, mtl);
+    if (!parser_expect(state, (char []) { 's', 'i' }, 2, &read_char)) {
+        return 0;
     }
 
-    if (parser_accept(state, (char []) { 'i' }, 1, NULL)) {
-        parser_skip_whitespace(state);
-        return parse_optical_property_optical_density(state, mtl);
+    parser_skip_whitespace(state);
+
+    switch (read_char) {
+        case ('s'):
+            return parse_optical_property_specular_strength(state, mtl);
+        case ('i'):
+            return parse_optical_property_optical_density(state, mtl);
+        default:
+            break;
     }
 
     return 0;
@@ -323,28 +339,29 @@ static i32 parse_optical_property_optical_density(struct parser_state *state,
 static i32 parse_reflection_factor(struct parser_state *state,
         struct lisilisk_parse_mtl_material *mtl)
 {
+    char read_char = '\0';
+
     if (!parser_accept(state, (char []) { 'K' }, 1, NULL)) {
         return 0;
     }
 
-    if (parser_accept(state, (char []) { 'a' }, 1, NULL)) {
-        parser_skip_whitespace(state);
-        return parse_reflection_factor_ambient(state, mtl);
+    if (!parser_expect(state, (char []) { 'a', 'd', 's', 'e'}, 4, &read_char)) {
+        return 0;
     }
 
-    if (parser_accept(state, (char []) { 'd' }, 1, NULL)) {
-        parser_skip_whitespace(state);
-        return parse_reflection_factor_diffuse(state, mtl);
-    }
+    parser_skip_whitespace(state);
 
-    if (parser_accept(state, (char []) { 's' }, 1, NULL)) {
-        parser_skip_whitespace(state);
-        return parse_reflection_factor_specular(state, mtl);
-    }
-
-    if (parser_accept(state, (char []) { 'e' }, 1, NULL)) {
-        parser_skip_whitespace(state);
-        return parse_reflection_factor_emissive(state, mtl);
+    switch (read_char) {
+        case ('a'):
+            return parse_reflection_factor_ambient(state, mtl);
+        case ('d'):
+            return parse_reflection_factor_diffuse(state, mtl);
+        case ('s'):
+            return parse_reflection_factor_specular(state, mtl);
+        case ('e'):
+            return parse_reflection_factor_emissive(state, mtl);
+        default:
+            break;
     }
 
     return 0;
@@ -380,4 +397,46 @@ static i32 parse_reflection_factor_emissive(struct parser_state *state,
     return parser_parse_value_float(state, mtl->Ke)
             && parser_parse_value_float(state, mtl->Ke + 1)
             && parser_parse_value_float(state, mtl->Ke + 2);
+}
+
+static i32 parse_illumination_mode(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    (void) mtl;
+
+    if (!parser_accept(state, (char []) { 'i' }, 1, NULL)) {
+        return 0;
+    }
+    if (!(parser_expect(state, (char []) { 'l' }, 1, NULL)
+            && parser_expect(state, (char []) { 'l' }, 1, NULL)
+            && parser_expect(state, (char []) { 'u' }, 1, NULL)
+            && parser_expect(state, (char []) { 'm' }, 1, NULL))) {
+        return 0;
+    }
+
+    // not supported
+
+    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
+        parser_state_advance(state);
+    }
+
+    return 1;
+}
+
+static i32 parse_dissolve_factor(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    (void) mtl;
+
+    if (!parser_accept(state, (char []) { 'd' }, 1, NULL)) {
+        return 0;
+    }
+
+    // not supported
+
+    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
+        parser_state_advance(state);
+    }
+
+    return 1;
 }
