@@ -341,9 +341,9 @@ void lisilisk_parse_mtl_create(struct lisilisk_parse_mtl *mtl);
 void lisilisk_parse_mtl_destroy(struct lisilisk_parse_mtl *mtl);
 void lisilisk_parse_mtl_parse(struct lisilisk_parse_mtl *mtl,
         const ARRAY(byte) buffer_array);
-void lisilisk_parse_mtl_to(const struct lisilisk_parse_obj *obj,
+void lisilisk_parse_mtl_to(const struct lisilisk_parse_mtl *mtl,
         PATH local_path,
-        struct lisilisk_store_material *material_store);
+        HASHMAP(struct material *) *materials);
 void lisilisk_parse_mtl_dump(struct lisilisk_parse_mtl *mtl, FILE *file);
 
 // -----------------------------------------------------------------------------

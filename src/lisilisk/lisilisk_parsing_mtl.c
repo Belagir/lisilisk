@@ -12,6 +12,8 @@ static void lisilisk_parse_mtl_material_create(struct lisilisk_parse_mtl_materia
 static void lisilisk_parse_mtl_material_destroy(struct lisilisk_parse_mtl_material *mtl);
 static void lisilisk_parse_mtl_material_dump(struct lisilisk_parse_mtl_material *mtl,
         FILE *file);
+static void lisilisk_parse_mtl_material_to(struct lisilisk_parse_mtl_material *parsed_material,
+        struct material *material);
 
 // -----------------------------------------------------------------------------
 
@@ -119,7 +121,38 @@ void lisilisk_parse_mtl_parse(struct lisilisk_parse_mtl *mtl,
             break;
         }
     }
-    lisilisk_parse_mtl_dump(mtl, stdout);
+}
+
+/**
+ * @brief
+ *
+ * @param mtl
+ * @param local_path
+ * @param material_store
+ */
+void lisilisk_parse_mtl_to(const struct lisilisk_parse_mtl *mtl,
+        PATH local_path,
+        HASHMAP(struct material *) *materials)
+{
+    (void) local_path;
+
+    struct allocator alloc = make_system_allocator();
+
+    struct material *new_material = nullptr;
+
+    if (!mtl || !materials || !*materials) {
+        return;
+    }
+
+    hashmap_ensure_capacity(make_system_allocator(), (HASHMAP_ANY *) materials, array_length(mtl->materials));
+
+    for (size_t i = 0 ; i < array_length(mtl->materials) ; i++) {
+        new_material = alloc.malloc(alloc, sizeof(*new_material));
+        material_create(new_material, nullptr);
+        lisilisk_parse_mtl_material_to(mtl->materials + i, new_material);
+
+        hashmap_set(*materials, mtl->materials[i].name, &new_material);
+    }
 }
 
 /**
@@ -214,6 +247,30 @@ static void lisilisk_parse_mtl_material_dump(struct lisilisk_parse_mtl_material 
     if (array_length(material->map_Ke)) {
         fprintf(file, "map_Ke %s\n", material->map_Ke);
     }
+}
+
+/**
+ * @brief
+ *
+ * @param mtl
+ * @param material
+ */
+static void lisilisk_parse_mtl_material_to(struct lisilisk_parse_mtl_material *parsed_material,
+        struct material *material)
+{
+    material->properties = (struct material_properties) {
+            .ambient  = { parsed_material->Ka[0], parsed_material->Ka[1], parsed_material->Ka[2] },
+            .diffuse  = { parsed_material->Kd[0], parsed_material->Kd[1], parsed_material->Kd[2] },
+            .specular = { parsed_material->Ks[0], parsed_material->Ks[1], parsed_material->Ks[2] },
+            .emissive = { parsed_material->Ke[0], parsed_material->Ke[1], parsed_material->Ke[2] },
+
+            .ambient_strength = 1,
+            .diffuse_strength = 1,
+            .specular_strength = 1,
+            .emissive_strength = 0,
+
+            .shininess = parsed_material->Ns,
+    };
 }
 
 // -----------------------------------------------------------------------------

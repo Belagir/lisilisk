@@ -97,10 +97,10 @@ bool lisilisk_store_material_register(
         return false;
     }
 
+    hash = hashmap_hash_of(name, 0);
     if (library) {
-        hash = hashmap_hash_of(library, 0);
+        hash = hashmap_hash_of(library, hash);
     }
-    hash = hashmap_hash_of(name, hash);
 
     if (out_hash) {
         *out_hash = hash;
@@ -121,7 +121,7 @@ bool lisilisk_store_material_register(
         material_create(material, store->default_material);
 
         hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->materials, 1);
-        hashmap_set(store->materials, name, &material);
+        hashmap_set_hashed(store->materials, hash, &material);
     }
 
     return true;
@@ -171,6 +171,7 @@ void lisilisk_store_materials_load_from_library(
 
     const byte *mtl_contents = nullptr;
     size_t mtl_contents_length = 0;
+    HASHMAP(struct material *) parsed_materials = nullptr;
 
     if (!store || !library) {
         return;
@@ -184,12 +185,21 @@ void lisilisk_store_materials_load_from_library(
 
     mtl_buffer = array_create(alloc, sizeof(*mtl_buffer), mtl_contents_length);
     array_append_mem(mtl_buffer, mtl_contents, mtl_contents_length);
-
     lisilisk_parse_mtl_create(&mtl);
     lisilisk_parse_mtl_parse(&mtl, mtl_buffer);
+    array_destroy(alloc, (ARRAY_ANY *) &mtl_buffer);
 
-
+    parsed_materials = hashmap_create(make_system_allocator(), sizeof(*parsed_materials),
+            array_length(mtl.materials));
+    lisilisk_parse_mtl_to(&mtl, nullptr, &parsed_materials);
     lisilisk_parse_mtl_destroy(&mtl);
 
-    array_destroy(alloc, (ARRAY_ANY *) &mtl_buffer);
+    for (size_t i = 0 ; i < hashmap_length(parsed_materials) ; i++) {
+        hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->materials, 1);
+        hashmap_set_hashed(store->materials,
+                hashmap_hash_of(library, hashmap_keys(parsed_materials)[i]),
+                &(parsed_materials[i]));
+    }
+
+    hashmap_destroy(make_system_allocator(), (HASHMAP_ANY *) &parsed_materials);
 }
