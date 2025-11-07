@@ -104,8 +104,17 @@ bool lisilisk_store_material_register(
     if (out_hash) {
         *out_hash = hash;
     }
+
+    // try to get the material directly from cache...
     material = lisilisk_store_material_retrieve(store, hash);
 
+    // maybe the material is in a file library the geometry references ?
+    if (!material) {
+        lisilisk_store_materials_load_from_library(store, library);
+        material = lisilisk_store_material_retrieve(store, hash);
+    }
+
+    // still no material, create one from default material then
     if (!material) {
         material = alloc.malloc(alloc, sizeof(*material));
         material_create(material, store->default_material);
@@ -141,4 +150,21 @@ struct material *lisilisk_store_material_retrieve(
     }
 
     return nullptr;
+}
+
+/**
+ * @brief
+ *
+ * @param store
+ * @param library
+ */
+void lisilisk_store_materials_load_from_library(
+        struct lisilisk_store_material *store,
+        const char *library)
+{
+    if (!store || !library) {
+        return;
+    }
+
+
 }

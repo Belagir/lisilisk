@@ -1,10 +1,8 @@
 
 #include "lisilisk_internals.h"
 
-
 #include <stdio.h>
 
-#include <ustd/array.h>
 #include <ustd/parsing.h>
 
 // -----------------------------------------------------------------------------
@@ -276,11 +274,11 @@ static i32 parse_mtl_library(struct parser_state *state,
     parser_skip_whitespace(state);
 
     while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
-        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY) &out_obj->mtllib, 1);
+        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &out_obj->mtllib, 1);
         array_push(out_obj->mtllib, state->buffer_array + state->buffer_idx);
         parser_state_advance(state);
     }
-    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY) &out_obj->mtllib, 1);
+    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &out_obj->mtllib, 1);
     array_push(out_obj->mtllib, &(char) { '\0' });
 
     return 1;

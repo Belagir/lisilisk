@@ -170,6 +170,27 @@ struct lisilisk_parse_obj {
     bool smooth;
 };
 
+// -----------------------------------------------------------------------------
+
+struct lisilisk_parse_mtl_material {
+    ARRAY(char) name;
+
+    float Ka[3];
+    float Kd[3];
+    float Ks[3];
+    float Ke[3];
+
+    float Ns;
+
+    ARRAY(char) map_Ka;
+    ARRAY(char) map_Ks;
+    ARRAY(char) map_Kd;
+    ARRAY(char) map_Ke;
+};
+
+struct lisilisk_parse_mtl {
+    ARRAY(struct lisilisk_parse_mtl_material) materials;
+};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -260,6 +281,9 @@ bool lisilisk_store_material_register(
 struct material *lisilisk_store_material_retrieve(
         struct lisilisk_store_material *store,
         u32 hash);
+void lisilisk_store_materials_load_from_library(
+        struct lisilisk_store_material *store,
+        const char *library);
 
 // -----------------------------------------------------------------------------
 
@@ -308,5 +332,18 @@ void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
         struct geometry *geometry);
 // Writes data parsed to a stream, in a form compatible with the .obj format.
 void lisilisk_parse_obj_dump(const struct lisilisk_parse_obj *obj, FILE *file);
+
+// -----------------------------------------------------------------------------
+
+void lisilisk_parse_mtl_create(struct lisilisk_parse_mtl *mtl);
+void lisilisk_parse_mtl_destroy(struct lisilisk_parse_mtl *mtl);
+void lisilisk_parse_mtl_parse(struct lisilisk_parse_mtl *mtl,
+        const ARRAY(byte) buffer_array);
+void lisilisk_parse_mtl_to(const struct lisilisk_parse_obj *obj,
+        PATH local_path,
+        struct lisilisk_store_material *material_store);
+void lisilisk_parse_mtl_dump(struct lisilisk_parse_mtl *mtl, FILE *file);
+
+// -----------------------------------------------------------------------------
 
 #endif
