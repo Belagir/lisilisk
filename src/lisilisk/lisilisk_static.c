@@ -451,6 +451,13 @@ void lisk_model_geometry(
     }
 
     model_geometry(model, geometry);
+
+    if (array_length(geometry->material_library)
+            && array_length(geometry->material_name)) {
+        lisk_model_material(res_model,
+            lisk_material(geometry->material_library, geometry->material_name));
+    }
+
     scene_model(&static_data.world.scene, model);
 }
 

@@ -343,6 +343,7 @@ void lisilisk_parse_mtl_parse(struct lisilisk_parse_mtl *mtl,
         const ARRAY(byte) buffer_array);
 void lisilisk_parse_mtl_to(const struct lisilisk_parse_mtl *mtl,
         PATH local_path,
+        struct material *default_material,
         HASHMAP(struct material *) *materials);
 void lisilisk_parse_mtl_dump(struct lisilisk_parse_mtl *mtl, FILE *file);
 

@@ -164,13 +164,18 @@ void lisilisk_store_materials_load_from_library(
         struct resource_manager *res_manager,
         const char *library)
 {
+    // allocator shorthand
     struct allocator alloc = make_system_allocator();
 
-    struct lisilisk_parse_mtl mtl = { };
-    ARRAY(byte) mtl_buffer = { 0 };
-
+    // mtl_contents & mtl_contents_length are for the library file resource
     const byte *mtl_contents = nullptr;
     size_t mtl_contents_length = 0;
+    // will contain the raw bytes of the file in an exploitable structure
+    ARRAY(byte) mtl_buffer = { 0 };
+    // will hold the contents of the file in codebase form
+    struct lisilisk_parse_mtl mtl = { };
+
+    // will hold a set of materials to be moved to the store
     HASHMAP(struct material *) parsed_materials = nullptr;
 
     if (!store || !library) {
@@ -184,16 +189,21 @@ void lisilisk_store_materials_load_from_library(
     }
 
     mtl_buffer = array_create(alloc, sizeof(*mtl_buffer), mtl_contents_length);
-    array_append_mem(mtl_buffer, mtl_contents, mtl_contents_length);
     lisilisk_parse_mtl_create(&mtl);
-    lisilisk_parse_mtl_parse(&mtl, mtl_buffer);
-    array_destroy(alloc, (ARRAY_ANY *) &mtl_buffer);
 
-    parsed_materials = hashmap_create(make_system_allocator(), sizeof(*parsed_materials),
-            array_length(mtl.materials));
-    lisilisk_parse_mtl_to(&mtl, nullptr, &parsed_materials);
+    // translate the raw resource to an array of bytes
+    array_append_mem(mtl_buffer, mtl_contents, mtl_contents_length);
+    // parse the bytes to produce the file contents in the parser intermediate object
+    lisilisk_parse_mtl_parse(&mtl, mtl_buffer);
+
+    // translate the intermediate object content into a mapped set of allocated materials
+    parsed_materials = hashmap_create(make_system_allocator(), sizeof(*parsed_materials), array_length(mtl.materials));
+    lisilisk_parse_mtl_to(&mtl, nullptr, store->default_material, &parsed_materials);
+
+    array_destroy(alloc, (ARRAY_ANY *) &mtl_buffer);
     lisilisk_parse_mtl_destroy(&mtl);
 
+    // move the allocated materials from the hashmap to the store
     for (size_t i = 0 ; i < hashmap_length(parsed_materials) ; i++) {
         hashmap_ensure_capacity(alloc, (HASHMAP_ANY *) &store->materials, 1);
         hashmap_set_hashed(store->materials,

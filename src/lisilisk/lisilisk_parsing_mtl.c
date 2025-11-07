@@ -132,6 +132,7 @@ void lisilisk_parse_mtl_parse(struct lisilisk_parse_mtl *mtl,
  */
 void lisilisk_parse_mtl_to(const struct lisilisk_parse_mtl *mtl,
         PATH local_path,
+        struct material *default_material,
         HASHMAP(struct material *) *materials)
 {
     (void) local_path;
@@ -148,7 +149,7 @@ void lisilisk_parse_mtl_to(const struct lisilisk_parse_mtl *mtl,
 
     for (size_t i = 0 ; i < array_length(mtl->materials) ; i++) {
         new_material = alloc.malloc(alloc, sizeof(*new_material));
-        material_create(new_material, nullptr);
+        material_create(new_material, default_material);
         lisilisk_parse_mtl_material_to(mtl->materials + i, new_material);
 
         hashmap_set(*materials, mtl->materials[i].name, &new_material);
