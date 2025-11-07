@@ -275,6 +275,7 @@ void lisilisk_store_material_delete(
 
 bool lisilisk_store_material_register(
         struct lisilisk_store_material *store,
+        struct resource_manager *res_manager,
         const char *library,                // TODO : switch to ARRAY(const char)
         const char *name,                   // TODO : switch to ARRAY(const char)
         u32 *out_hash);
@@ -283,6 +284,7 @@ struct material *lisilisk_store_material_retrieve(
         u32 hash);
 void lisilisk_store_materials_load_from_library(
         struct lisilisk_store_material *store,
+        struct resource_manager *res_manager,
         const char *library);
 
 // -----------------------------------------------------------------------------

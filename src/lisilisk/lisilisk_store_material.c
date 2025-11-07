@@ -84,6 +84,7 @@ void lisilisk_store_material_delete(
  */
 bool lisilisk_store_material_register(
         struct lisilisk_store_material *store,
+        struct resource_manager *res_manager,
         const char *library,
         const char *name,
         u32 *out_hash)
@@ -110,7 +111,7 @@ bool lisilisk_store_material_register(
 
     // maybe the material is in a file library the geometry references ?
     if (!material) {
-        lisilisk_store_materials_load_from_library(store, library);
+        lisilisk_store_materials_load_from_library(store, res_manager, library);
         material = lisilisk_store_material_retrieve(store, hash);
     }
 
@@ -160,11 +161,35 @@ struct material *lisilisk_store_material_retrieve(
  */
 void lisilisk_store_materials_load_from_library(
         struct lisilisk_store_material *store,
+        struct resource_manager *res_manager,
         const char *library)
 {
+    struct allocator alloc = make_system_allocator();
+
+    struct lisilisk_parse_mtl mtl = { };
+    ARRAY(byte) mtl_buffer = { 0 };
+
+    const byte *mtl_contents = nullptr;
+    size_t mtl_contents_length = 0;
+
     if (!store || !library) {
         return;
     }
 
+    mtl_contents = resource_manager_fetch(res_manager, "lisilisk",
+            library, &mtl_contents_length);
+    if (!mtl_contents) {
+        return;
+    }
 
+    mtl_buffer = array_create(alloc, sizeof(*mtl_buffer), mtl_contents_length);
+    array_append_mem(mtl_buffer, mtl_contents, mtl_contents_length);
+
+    lisilisk_parse_mtl_create(&mtl);
+    lisilisk_parse_mtl_parse(&mtl, mtl_buffer);
+
+
+    lisilisk_parse_mtl_destroy(&mtl);
+
+    array_destroy(alloc, (ARRAY_ANY *) &mtl_buffer);
 }

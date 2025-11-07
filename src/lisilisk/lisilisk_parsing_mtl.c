@@ -18,6 +18,11 @@ static void lisilisk_parse_mtl_material_dump(struct lisilisk_parse_mtl_material 
 static i32 parse_material(struct parser_state *state, struct lisilisk_parse_mtl *mtl);
 
 // -----------------------------------------------------------------------------
+
+static i32 parse_comment(struct parser_state *state,
+        struct lisilisk_parse_mtl *mtl);
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
@@ -71,6 +76,8 @@ void lisilisk_parse_mtl_parse(struct lisilisk_parse_mtl *mtl,
         if (parser_parse_end_line(&state)) {
             // NOP
         } else if (parse_material(&state, mtl)) {
+            // NOP
+        } else if (parse_comment(&state, mtl)) {
             // NOP
         } else {
             fprintf(stderr, "at line %d:%d ; parsing error. The "
@@ -209,6 +216,7 @@ static i32 parse_material(struct parser_state *state, struct lisilisk_parse_mtl 
     array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->materials, 1);
     if (array_push(mtl->materials, &(struct lisilisk_parse_mtl_material) { 0 })) {
         new_material = mtl->materials + array_length(mtl->materials) - 1;
+        lisilisk_parse_mtl_material_create(new_material);
     } else {
         return 0;
     }
@@ -232,6 +240,23 @@ static i32 parse_material(struct parser_state *state, struct lisilisk_parse_mtl 
         } else {
             break;
         }
+    }
+
+    return 1;
+}
+
+static i32 parse_comment(struct parser_state *state,
+        struct lisilisk_parse_mtl *out_mtl)
+{
+    (void) out_mtl;
+
+    // detect comment character
+    if (!parser_accept(state, (char []) { '#' }, 1, NULL)) {
+        return 0;
+    }
+
+    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
+        parser_state_advance(state);
     }
 
     return 1;

@@ -294,7 +294,7 @@ lisk_res_t lisk_material(
     u32 hash = 0;
 
     if (!lisilisk_store_material_register(&static_data.stores.materials,
-            library, name, &hash)) {
+            static_data.context.res_manager, library, name, &hash)) {
         logger_log(static_data.log, LOGGER_SEVERITY_WARN,
                 "Could not create or retreive material named %s.\n", name);
         return  LISK_RES_NONE;
