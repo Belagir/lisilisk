@@ -224,6 +224,7 @@ void geometry_face_indices(struct geometry *geometry, size_t idx,
     geometry->faces[idx].idx_vert[1] = indices[1];
     geometry->faces[idx].idx_vert[2] = indices[2];
 }
+<<<<<<< HEAD
 
 /**
  * @brief
@@ -247,3 +248,5 @@ void geometry_set_material_names(struct geometry *geometry,
         array_append((void *) geometry->material_name, (void *) material_name);
     }
 }
+=======
+>>>>>>> 4444c5344a8f6829b0678eca71604502d157307d
