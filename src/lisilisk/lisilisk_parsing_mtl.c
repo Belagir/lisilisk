@@ -8,9 +8,9 @@
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static void lisilisk_parse_mtl_material_create(struct lisilisk_parse_mtl_material *material);
-static void lisilisk_parse_mtl_material_destroy(struct lisilisk_parse_mtl_material *material);
-static void lisilisk_parse_mtl_material_dump(struct lisilisk_parse_mtl_material *material,
+static void lisilisk_parse_mtl_material_create(struct lisilisk_parse_mtl_material *mtl);
+static void lisilisk_parse_mtl_material_destroy(struct lisilisk_parse_mtl_material *mtl);
+static void lisilisk_parse_mtl_material_dump(struct lisilisk_parse_mtl_material *mtl,
         FILE *file);
 
 // -----------------------------------------------------------------------------
@@ -19,8 +19,25 @@ static i32 parse_material(struct parser_state *state, struct lisilisk_parse_mtl 
 
 // -----------------------------------------------------------------------------
 
-static i32 parse_comment(struct parser_state *state,
-        struct lisilisk_parse_mtl *mtl);
+static i32 parse_comment(struct parser_state *state);
+
+static i32 parse_optical_property(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+static i32 parse_optical_property_specular_strength(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+static i32 parse_optical_property_optical_density(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+
+static i32 parse_reflection_factor(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+static i32 parse_reflection_factor_ambient(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+static i32 parse_reflection_factor_diffuse(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+static i32 parse_reflection_factor_specular(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
+static i32 parse_reflection_factor_emissive(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -75,9 +92,9 @@ void lisilisk_parse_mtl_parse(struct lisilisk_parse_mtl *mtl,
 
         if (parser_parse_end_line(&state)) {
             // NOP
-        } else if (parse_material(&state, mtl)) {
+        } else if (parse_comment(&state)) {
             // NOP
-        } else if (parse_comment(&state, mtl)) {
+        } else if (parse_material(&state, mtl)) {
             // NOP
         } else {
             fprintf(stderr, "at line %d:%d ; parsing error. The "
@@ -163,9 +180,9 @@ static void lisilisk_parse_mtl_material_dump(struct lisilisk_parse_mtl_material 
     }
 
     fprintf(file, "Ka %f %f %f\n", material->Ka[0], material->Ka[1], material->Ka[2]);
-    fprintf(file, "Ks %f %f %f\n", material->Ka[0], material->Ka[1], material->Ks[2]);
-    fprintf(file, "Kd %f %f %f\n", material->Ka[0], material->Ka[1], material->Kd[2]);
-    fprintf(file, "Ke %f %f %f\n", material->Ka[0], material->Ka[1], material->Ke[2]);
+    fprintf(file, "Ks %f %f %f\n", material->Ks[0], material->Ks[1], material->Ks[2]);
+    fprintf(file, "Kd %f %f %f\n", material->Kd[0], material->Kd[1], material->Kd[2]);
+    fprintf(file, "Ke %f %f %f\n", material->Ke[0], material->Ke[1], material->Ke[2]);
     fprintf(file, "Ns %f\n", material->Ns);
 
 
@@ -194,11 +211,9 @@ static void lisilisk_parse_mtl_material_dump(struct lisilisk_parse_mtl_material 
  * @param mtl
  * @return i32
  */
-static i32 parse_material(struct parser_state *state, struct lisilisk_parse_mtl *mtl)
+static i32 parse_material(struct parser_state *state, struct lisilisk_parse_mtl *lib_mtl)
 {
     struct lisilisk_parse_mtl_material *new_material = nullptr;
-
-    parser_skip_whitespace(state);
 
     if (!parser_accept(state, (char []) { 'n' }, 1, NULL)) {
         return 0;
@@ -213,9 +228,9 @@ static i32 parse_material(struct parser_state *state, struct lisilisk_parse_mtl 
     parser_skip_whitespace(state);
 
     // make some room for the material
-    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->materials, 1);
-    if (array_push(mtl->materials, &(struct lisilisk_parse_mtl_material) { 0 })) {
-        new_material = mtl->materials + array_length(mtl->materials) - 1;
+    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &lib_mtl->materials, 1);
+    if (array_push(lib_mtl->materials, &(struct lisilisk_parse_mtl_material) { 0 })) {
+        new_material = lib_mtl->materials + array_length(lib_mtl->materials) - 1;
         lisilisk_parse_mtl_material_create(new_material);
     } else {
         return 0;
@@ -235,8 +250,14 @@ static i32 parse_material(struct parser_state *state, struct lisilisk_parse_mtl 
     while (!parser_parse_end_of_file(state)) {
         parser_skip_whitespace(state);
 
-        if (0) {
-
+        if (parser_parse_end_line(state)) {
+            // NOP
+        } else if (parse_comment(state)) {
+            // NOP
+        } else if (parse_optical_property(state, new_material)) {
+            // NOP
+        } else if (parse_reflection_factor(state, new_material)) {
+            // NOP
         } else {
             break;
         }
@@ -245,11 +266,8 @@ static i32 parse_material(struct parser_state *state, struct lisilisk_parse_mtl 
     return 1;
 }
 
-static i32 parse_comment(struct parser_state *state,
-        struct lisilisk_parse_mtl *out_mtl)
+static i32 parse_comment(struct parser_state *state)
 {
-    (void) out_mtl;
-
     // detect comment character
     if (!parser_accept(state, (char []) { '#' }, 1, NULL)) {
         return 0;
@@ -260,4 +278,106 @@ static i32 parse_comment(struct parser_state *state,
     }
 
     return 1;
+}
+
+static i32 parse_optical_property(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    if (!parser_accept(state, (char []) { 'N' }, 1, NULL)) {
+        return 0;
+    }
+
+    if (parser_accept(state, (char []) { 's' }, 1, NULL)) {
+        parser_skip_whitespace(state);
+        return parse_optical_property_specular_strength(state, mtl);
+    }
+
+    if (parser_accept(state, (char []) { 'i' }, 1, NULL)) {
+        parser_skip_whitespace(state);
+        return parse_optical_property_optical_density(state, mtl);
+    }
+
+    return 0;
+}
+
+static i32 parse_optical_property_specular_strength(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    return parser_parse_value_float(state, &mtl->Ns);
+}
+
+static i32 parse_optical_property_optical_density(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    (void) mtl;
+
+    // not supported
+
+    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
+        parser_state_advance(state);
+    }
+
+    return 1;
+}
+
+static i32 parse_reflection_factor(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    if (!parser_accept(state, (char []) { 'K' }, 1, NULL)) {
+        return 0;
+    }
+
+    if (parser_accept(state, (char []) { 'a' }, 1, NULL)) {
+        parser_skip_whitespace(state);
+        return parse_reflection_factor_ambient(state, mtl);
+    }
+
+    if (parser_accept(state, (char []) { 'd' }, 1, NULL)) {
+        parser_skip_whitespace(state);
+        return parse_reflection_factor_diffuse(state, mtl);
+    }
+
+    if (parser_accept(state, (char []) { 's' }, 1, NULL)) {
+        parser_skip_whitespace(state);
+        return parse_reflection_factor_specular(state, mtl);
+    }
+
+    if (parser_accept(state, (char []) { 'e' }, 1, NULL)) {
+        parser_skip_whitespace(state);
+        return parse_reflection_factor_emissive(state, mtl);
+    }
+
+    return 0;
+}
+
+static i32 parse_reflection_factor_ambient(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    return parser_parse_value_float(state, mtl->Ka)
+            && parser_parse_value_float(state, mtl->Ka + 1)
+            && parser_parse_value_float(state, mtl->Ka + 2);
+}
+
+static i32 parse_reflection_factor_diffuse(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    return parser_parse_value_float(state, mtl->Kd)
+            && parser_parse_value_float(state, mtl->Kd + 1)
+            && parser_parse_value_float(state, mtl->Kd + 2);
+}
+
+static i32 parse_reflection_factor_specular(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    return parser_parse_value_float(state, mtl->Ks)
+            && parser_parse_value_float(state, mtl->Ks + 1)
+            && parser_parse_value_float(state, mtl->Ks + 2);
+}
+
+static i32 parse_reflection_factor_emissive(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl)
+{
+    return parser_parse_value_float(state, mtl->Ke)
+            && parser_parse_value_float(state, mtl->Ke + 1)
+            && parser_parse_value_float(state, mtl->Ke + 2);
 }
