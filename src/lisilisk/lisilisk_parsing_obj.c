@@ -144,12 +144,18 @@ void lisilisk_parse_obj_parse(struct lisilisk_parse_obj *obj, const byte *buffer
  * @param[inout] geometry Target geometry object.
  */
 void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
+        struct resource_manager *res_manager,
+        struct lisilisk_store_material *material_store,
         PATH local_path,
         struct geometry *geometry)
 {
     u32 idx_face = 0;
     struct lisilisk_parse_obj_face face = { };
     u32 face_generated_indices[3] = { 0 };
+
+    u32 material_hash = 0;
+
+    PATH mtl_library_path = nullptr;
 
     for (size_t i = 0 ; i < array_length(obj->f_array) ; i++) {
 
@@ -169,11 +175,20 @@ void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
         geometry_face_indices(geometry, idx_face, face_generated_indices);
     }
 
-    geometry_set_material_names(geometry, obj->mtllib, obj->usemtl);
+    if (array_length(obj->mtllib) && array_length(obj->usemtl) && material_store && res_manager) {
+        mtl_library_path = path_from_cstring(make_system_allocator(), obj->mtllib, '/', 2048);
 
-    if (local_path) {
-        path_ensure_capacity(make_system_allocator(), &geometry->material_library, path_length(local_path));
-        path_prepend(geometry->material_library, local_path);
+        path_ensure_capacity(make_system_allocator(), &mtl_library_path, path_length(local_path));
+        path_prepend(mtl_library_path, local_path);
+
+        if (lisilisk_store_material_register(material_store, res_manager,
+                mtl_library_path, obj->usemtl, &material_hash)) {
+            geometry_set_material(geometry, lisilisk_store_material_retrieve(material_store, material_hash));
+        }
+
+        path_destroy(make_system_allocator(), &mtl_library_path);
+    } else {
+        geometry_set_material(geometry, nullptr);
     }
 
     geometry_set_smoothing(geometry, obj->smooth);

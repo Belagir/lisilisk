@@ -13,6 +13,8 @@ DECLARE_RES(quad_object, "res_models_quad_obj")
 // -----------------------------------------------------------------------------
 
 static void lisilisk_store_geometry_load_mem(struct geometry *geometry,
+        struct resource_manager *res_manager,
+        struct lisilisk_store_material *material_store,
         const byte *obj_buffer, size_t buffer_length, PATH local_path);
 
 // -----------------------------------------------------------------------------
@@ -38,8 +40,8 @@ struct lisilisk_store_geometry lisilisk_store_geometry_create(void)
 
     *new_store.sphere = (struct geometry) { 0 };
     geometry_create(new_store.sphere);
-    lisilisk_store_geometry_load_mem(new_store.sphere, sphere_object_start,
-            (size_t) &sphere_object_size, nullptr);
+    lisilisk_store_geometry_load_mem(new_store.sphere, nullptr, nullptr,
+            sphere_object_start, (size_t) &sphere_object_size, nullptr);
 
     return new_store;
 }
@@ -82,6 +84,7 @@ void lisilisk_store_geometry_delete(
  */
 bool lisilisk_store_geometry_register(
         struct lisilisk_store_geometry *store,
+        struct lisilisk_store_material *material_store,
         struct resource_manager *res_manager,
         PATH obj_path,
         u32 *out_hash)
@@ -121,7 +124,8 @@ bool lisilisk_store_geometry_register(
 
     directory = path_from_cstring(alloc, obj_path, '/', 2048);
     path_up(directory);
-    lisilisk_store_geometry_load_mem(geometry, obj_contents, obj_contents_length, directory);
+    lisilisk_store_geometry_load_mem(geometry, res_manager, material_store,
+            obj_contents, obj_contents_length, directory);
     path_destroy(alloc, &directory);
 
     // if successful, allocate a new geometry and copy the valid geometry to it
@@ -170,6 +174,8 @@ struct geometry *lisilisk_store_geometry_retrieve(
 // -----------------------------------------------------------------------------
 
 static void lisilisk_store_geometry_load_mem(struct geometry *geometry,
+        struct resource_manager *res_manager,
+        struct lisilisk_store_material *material_store,
         const byte *obj_buffer, size_t buffer_length, PATH local_path)
 {
     struct allocator alloc = make_system_allocator();
@@ -181,7 +187,7 @@ static void lisilisk_store_geometry_load_mem(struct geometry *geometry,
 
     array_append_mem(buffer, obj_buffer, buffer_length);
     lisilisk_parse_obj_parse(&obj, buffer);
-    lisilisk_parse_obj_to(&obj, local_path, geometry);
+    lisilisk_parse_obj_to(&obj, res_manager, material_store, local_path, geometry);
 
     array_destroy(alloc, (ARRAY_ANY *) &buffer);
     lisilisk_parse_obj_delete(&obj);

@@ -105,6 +105,7 @@ void lisilisk_context_deinit(
     context->window = nullptr;
 
     IMG_Quit();
+    SDL_QuitSubSystem(SDL_INIT_EVERYTHING);
     SDL_Quit();
 }
 

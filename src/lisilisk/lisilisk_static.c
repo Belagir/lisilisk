@@ -324,6 +324,7 @@ lisk_res_t lisk_geometry(
     path_obj_file = path_from_cstring(make_system_allocator(), obj_file, '/', 2048);
 
     if (lisilisk_store_geometry_register(&static_data.stores.geometries,
+            &static_data.stores.materials,
             static_data.context.res_manager, path_obj_file, &hash)) {
 
         handle = (union lisk_res_layout) {
@@ -452,10 +453,8 @@ void lisk_model_geometry(
 
     model_geometry(model, geometry);
 
-    if (array_length(geometry->material_library)
-            && array_length(geometry->material_name)) {
-        lisk_model_material(res_model,
-            lisk_material(geometry->material_library, geometry->material_name));
+    if (geometry->material) {
+        model_material(model, geometry->material);
     }
 
     scene_model(&static_data.world.scene, model);

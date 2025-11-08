@@ -258,6 +258,7 @@ void lisilisk_store_geometry_delete(
 
 bool lisilisk_store_geometry_register(
         struct lisilisk_store_geometry *store,
+        struct lisilisk_store_material *material_store,
         struct resource_manager *res_manager,
         PATH obj_path,
         u32 *out_hash);
@@ -330,6 +331,8 @@ void lisilisk_parse_obj_parse(struct lisilisk_parse_obj *obj,
         const ARRAY(byte) buffer_array);
 // Builds a geometry from parsed data.
 void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
+        struct resource_manager *res_manager,
+        struct lisilisk_store_material *material_store,
         PATH local_path,
         struct geometry *geometry);
 // Writes data parsed to a stream, in a form compatible with the .obj format.
