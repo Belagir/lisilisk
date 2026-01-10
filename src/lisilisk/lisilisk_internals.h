@@ -23,6 +23,8 @@
 #include "../3dful/3dful.h"
 #include "../resourceful/resourceful.h"
 
+// TODO: review how the material (values & textures) is parsed from the .obj & .mtl files
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
