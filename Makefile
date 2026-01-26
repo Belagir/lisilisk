@@ -45,3 +45,9 @@ DFLAGS +=
 RESFLAGS = -r -b binary -z noexecstack
 
 include rules.mk
+
+# specific to this project : pack the libraries together for easier distribution
+lib::
+	make -C unstandard
+	mv $(LIBRARY_ARCHIVE) $(LIBRARY_ARCHIVE).standalone
+	ar cqT $(LIBRARY_ARCHIVE) $(LIBRARY_ARCHIVE).standalone unstandard/bin/libunstandard.a && echo -e 'create $(LIBRARY_ARCHIVE)\naddlib $(LIBRARY_ARCHIVE)\nsave\nend' | ar -M

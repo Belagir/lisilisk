@@ -4,16 +4,84 @@ v1.0
 :source-highlighter: highlightjs
 :toc:
 
-*Lisilisk* tries to, by design, be dynamic when it comes to rendered objects : any change to the scene or one of its models is immediately transcribed to the render. To achieve this, *Lisilisk* will remove from you the possibility (and obligation) to manually load and unload resources, and instead will only let you interact with them through *handles*. When an handle is first created for some resource you request, the engine will manage all the boilerplate to present you with a usable geometry, shader, or material.
+== What is Lisilisk ?
+
+*Lisilisk* is a graphics rendering library I made to understand how 3D is rendered to the screen and to have fun with system design.
+
+*Lisilisk* tries to be dynamic when it comes to rendered objects: any change to the scene or one of its models is immediately transcribed to the render. To achieve this, *Lisilisk* will remove from you the possibility (and obligation) to manually load and unload resources, and instead will only let you interact with them through *handles*. When an handle is first created for some resource you request, the engine will manage all the boilerplate to present you with a usable geometry, shader, or material.
 
 [sidebar]
-In fact, every time you will reference something by some name, if you already did so previously, the same handle will be returned : the library will have chached the object for you. You may store handles yourself, but they may become invalid if whatever they reference is removed at some point.
+In fact, every time you will reference something by some name, if you already did so previously, the same handle will be returned: the library will have chached the object for you. You may store handles yourself, but they may become invalid if whatever they reference is removed at some point.
 
-To begin with, *Lisilisk* manages a _scene_. This scene has some global environment visuals, a camera, light emitters, and models to render some world to the user.
+*Lisilisk* manages a _scene_. This scene has some global environment visuals, a camera, light emitters, and models to render some world to the user.
+
+== Setting up Lisilisk
+
+You will need:
+
+- make
+- git
+- a version of gcc that supports c23 features (>= 13.x)
+- SDL2 development packages (SDL2 and SDL2_image)
+
+=== 1: clone the repo
+
+In your project's folder:
+
+[bash]
+----
+$ git clone --recurse-submodules -b library https://github.com/Belagir/lisilisk.git
+----
+
+You can also add the repo as a submodule of your project. Don't forget to use `submodule update --init --recursive` !
+
+=== 2: compile to a static library
+
+Again, without changing directory:
+
+[bash]
+----
+$ make -C lisilisk lib
+----
+
+This should yield a static library `lisilisk/bin/liblisilisk.a`.
+
+=== 3: integrate the library and header files to your toolchain
+
+This step depends on what your toolchain is. You want to :
+
+1. Add the lisilisk headers found in:
+    - `lisilisk/inc`
+2. Link against:
+    - `lisilisk/bin/liblisilisk.a`
+    - OpenGL
+    - SDL2 & SDL2_image
+    - The LibC math libraries
+
+In a simple toolchain (like make), this is done by passing flags to the compiler, and they would look like this.
+
+- compilation flags :
+    - `-Ilisilisk/inc`
+- linker flags :
+    - `+-Llisilisk/bin -llisilisk+`
+    - `+-lGL+`
+    - `+`sdl2-config --libs` -lSDL2_image+`
+    - `+-lm+`
+
+=== 4: example boilerplate
+
+As an example, here is the minimum to make sure the library is functional. Put this in a  `main.c` :
+
+[, c]
+----
+include::snippets/main_boilerplate.c[]
+----
+
+And compile with `+gcc main.c -Ilisilisk/inc -Llisilisk/bin -llisilisk -lGL `sdl2-config --libs` -lSDL2_image -lm+` ; you should now have a `a.out` executable that spawns an empty window.
 
 == Managing models
 
-Models are the most important components of your scene. Let's look at some model instanciation :
+Models are the most important components of your scene. Let's look at some model instanciation:
 
 [, c]
 ----
@@ -21,16 +89,16 @@ lisk_model_instanciate_entity(lisk_model("mushroom"), 0, 0, 0, .2); // <1>
 lisk_model_geometry(lisk_model("mushroom"), lisk_geometry("assets/mushroom.obj")); // <2>
 ----
 
-<1> We place an instance of the model _"mushroom"_ at the origin, scaled down. This is the first time this model is referenced : the engine allocates memory for it, and assigns a default shader, a default material, and an empty geometry.
+<1> We place an instance of the model _"mushroom"_ at the origin, scaled down. This is the first time this model is referenced: the engine allocates memory for it, and assigns a default shader, a default material, and an empty geometry.
 <2> We give the model a geometry from our `assets/` folder. Again, this is the first time the geometry is referenced, so the _.obj_ file is parsed and the geometry cached. However, the model is pulled from the cache created previously.
 
 NOTE: That the order of calls does not matter. We can assign geometry, shading and materials to a model, and instantiate it in any order and repetition.
 
-What's important is that models are purely _internal_ objects that you can then _instantiate_ : each instance has its own transform in the scene that you can interact with with its handle. Changing the model properties will impact all of its instances.
+What's important is that models are purely _internal_ objects that you can then _instantiate_: each instance has its own transform in the scene that you can interact with with its handle. Changing the model properties will impact all of its instances.
 
 === What makes a model
 
-A model is made of three components :
+A model is made of three components:
 
 1. Some _geometry_, to form a 3D shape.
 2. Some _material shader_, to render the shape.
@@ -47,7 +115,7 @@ You can configure some properties of the scene that do not depend on any object.
 lisk_ambient_light_set(1, .8, .8, 1); // <1>
 lisk_bg_color_set(1, 0, 0); // <2>
 
-// the skybox hides the backround color :
+// the skybox hides the backround color:
 lisk_skybox_set("assets/left.png", "assets/right.png", "assets/top.png",
         "assets/bottom.png", "assets/front.png", "assets/back.png");  // <3>
 ----
@@ -58,10 +126,10 @@ lisk_skybox_set("assets/left.png", "assets/right.png", "assets/top.png",
 
 == Light emitters
 
-*Lisilisk* supports two kinds of colored lights : _point_ lights, and _directional_ lights.
+*Lisilisk* supports two kinds of colored lights: _point_ lights, and _directional_ lights.
 
 [sidebar]
-*Point lights* are added at some position in the scene. A point light possess factors that govern how the light interacts at different distances : the constant factor is always applied, the linear factor is multiplied by the distance, and the quadtratic factor is multplied by the square of the distance.
+*Point lights* are added at some position in the scene. A point light possess factors that govern how the light interacts at different distances: the constant factor is always applied, the linear factor is multiplied by the distance, and the quadtratic factor is multplied by the square of the distance.
 
 [sidebar]
 *Directional lights* interact with all objects in the scene. A directional light represents a strong and far away light that casts its ray all parallel to each others. The only thing we need to define such a light is its direction vector.

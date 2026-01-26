@@ -38,14 +38,14 @@ ARGS_INCL = $(addprefix -I, $(INC_DIR))
 
 # -------- compilation : executable ----
 
-all: check $(BUILD_DIRS) $(TARGET) | count_lines
+all:: check $(BUILD_DIRS) $(TARGET) | count_lines
 
 $(TARGET): $(OBJ) $(RES_BIN)
 	$(CC) $^ -o $@  $(LFLAGS)
 
 # -------- compilation : library -------
 
-lib: check $(BUILD_DIRS) $(LIBRARY_ARCHIVE)
+lib:: check $(BUILD_DIRS) $(LIBRARY_ARCHIVE)
 
 $(LIBRARY_ARCHIVE): $(filter-out $(OBJ_DIR)/main.o, $(OBJ)) $(RES_BIN)
 	$(AR) $(ARFLAGS) $@ $^
@@ -63,7 +63,7 @@ $(OBJ_DIR)/%.resbin: %
 $(BUILD_DIRS):
 	mkdir -p $@
 
-clean:
+clean::
 	rm -Rf $(BUILD_DIRS)
 
 # -------- sanity -----------------------
