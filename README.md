@@ -2,12 +2,17 @@
 
 Lisilisk is a work in progress. It is a collection of functions that streamline some OpenGL actions.
 
-There is supposed to be four layers to the project :
+There is supposed to be four layers to the project:
 
 1. *OpenGL* + *SDL2* as the basic target-specific layer ;
 2. My own "unstandard" library, a separate project that provides utilities ;
 3. The "3dful" layer, that implements unit operations for the engine ;
 4. The Lisilisk implementation (doesn't exist yet) that imposes its paradigm to the user in exchange for a simpler interface.
+
+## Usage
+
+**The library is still in development.**
+See ["Using Lisilisk"](doc/using_lisilisk.adoc).
 
 ## TODO list
 
@@ -55,7 +60,7 @@ There should be a new data object to deal with textures. Those textures should b
 
 ### ~~World object~~
 
-There should be a world data object that is responsible for : the ambient light, fog (?), the skybox (?).
+There should be a world data object that is responsible for: the ambient light, fog (?), the skybox (?).
 
 > No need for a new abstraction layer on top of the scene. Complicates everything. The scenes receives an environment that describes all of those.
 
@@ -91,7 +96,7 @@ The backend should take shader fragments rather than whole shaders. Those fragme
 
 ### Spaghetti interface
 
-There should be an interface to the backend that handles all the boring parts. For instance, the user could just :
+There should be an interface to the backend that handles all the boring parts. For instance, the user could just:
 
 ```c
 struct model_handle m = lisk_model("some_mesh.obj");
@@ -106,7 +111,7 @@ lisk_load("some_scene_identifier");
 
 3. Then, the engine checks for the existence of the scene (creating it if not found) and adds the object + instance in the scene.
 
-4. Finally, the scene is loaded : the object is loaded, the geometry is loaded, the material is loaded, and the scene is added to the redendered scenes in the main loop.
+4. Finally, the scene is loaded: the object is loaded, the geometry is loaded, the material is loaded, and the scene is added to the redendered scenes in the main loop.
 
 Basically, the interface should initialize a static global instance of the backend, and register data objects to string names when the user needs to. Those objects are created when the user needs them and load dynamically depending on what is needed.
 
