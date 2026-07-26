@@ -295,9 +295,12 @@ static void lisilisk_parse_mtl_textures_to(struct lisilisk_parse_mtl_material *p
 
     work_path = path_from_cstring(alloc, local_path, '/', 2048);
 
-    if (array_length(parsed_material->map_Kd)) {
-        path_ensure_capacity(alloc, &work_path, array_length(parsed_material->map_Kd));
-        path_append(work_path, parsed_material->map_Kd);
+    for (ARRAY(char) *ptr = &parsed_material->map_Kd ; ptr <= &parsed_material->map_Ke ; ptr++) {
+        if (array_length(*ptr) == 0) {
+            continue;
+        }
+        path_ensure_capacity(alloc, &work_path, array_length(*ptr));
+        path_append(work_path, *ptr);
 
         lisilisk_store_texture_register(texture_store, res_manager,
                 work_path, &texture_hash);
