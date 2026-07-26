@@ -83,6 +83,7 @@ enum material_base_sampler {
     MATERIAL_BASE_SAMPLER_DIFFUSE_MASK,
     MATERIAL_BASE_SAMPLER_EMISSIVE_MASK,
     MATERIAL_BASE_SAMPLER_TEXTURE, // TODO: remove base texture (redundant with masks)
+    MATERIAL_BASE_SAMPLER_SHININESS_MASK,
 
     MATERIAL_BASE_SAMPLERS_NUMBER,
 };
@@ -520,6 +521,7 @@ void material_emissive_mask(struct material *material, struct texture *mask);
 
 void material_add_uniform_float(struct material *material, const char *name,
         size_t nb);
+void material_shininess_mask(struct material *material, struct texture *mask);
 #ifdef TODO_MORE_UNIFORMS_IMPLEMENTATION
 void material_add_uniform_int(struct material *material, const char *name,
         size_t nb);

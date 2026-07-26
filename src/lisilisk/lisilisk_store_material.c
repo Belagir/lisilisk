@@ -39,10 +39,13 @@ struct lisilisk_store_material lisilisk_store_material_create(
     material_specular(new_store.default_material, (f32[3]) { 1, 1, 1 }, .6 );
     material_specular_mask(new_store.default_material,
             new_store.texture_store->default_texture);
-    material_shininess(new_store.default_material, 128);
 
     material_emissive(new_store.default_material, (f32[3]) { 1, 1, 1 }, 0 );
     material_emissive_mask(new_store.default_material,
+            new_store.texture_store->default_texture);
+
+    material_shininess(new_store.default_material, 64.);
+    material_shininess_mask(new_store.default_material,
             new_store.texture_store->default_texture);
 
     return new_store;

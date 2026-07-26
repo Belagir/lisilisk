@@ -22,6 +22,7 @@ static const char * material_sampler_uniforms[MATERIAL_BASE_SAMPLERS_NUMBER] = {
         [MATERIAL_BASE_SAMPLER_DIFFUSE_MASK]  = "diffuse_mask",
         [MATERIAL_BASE_SAMPLER_EMISSIVE_MASK] = "emissive_mask",
         [MATERIAL_BASE_SAMPLER_TEXTURE]       = "base_texture",
+        [MATERIAL_BASE_SAMPLER_SHININESS_MASK]     = "shininess_mask",
 };
 
 // -----------------------------------------------------------------------------
@@ -169,21 +170,6 @@ void material_specular_mask(struct material *material, struct texture *mask)
 }
 
 /**
- * @brief Sets how strongly a material reflects specular lights.
- *
- * @param[inout] material Modified material.
- * @param[in] shininess Shininess value.
- */
-void material_shininess(struct material *material, float shininess)
-{
-    material->properties.shininess = shininess;
-
-    material_update_ubo(material,
-            OFFSET_OF(struct material_properties, shininess),
-            sizeof(material->properties.shininess));
-}
-
-/**
  * @brief Sets how a material emits light.
  *
  * @param[inout] material Modified material.
@@ -214,6 +200,32 @@ void material_emissive(struct material *material, f32 emission[3], f32 strength)
 void material_emissive_mask(struct material *material, struct texture *mask)
 {
     material_set_sampler(material, MATERIAL_BASE_SAMPLER_EMISSIVE_MASK, mask);
+}
+
+/**
+ * @brief Sets how strongly a material reflects specular lights.
+ *
+ * @param[inout] material Modified material.
+ * @param[in] shininess Shininess value.
+ */
+void material_shininess(struct material *material, float shininess)
+{
+    material->properties.shininess = shininess;
+
+    material_update_ubo(material,
+            OFFSET_OF(struct material_properties, shininess),
+            sizeof(material->properties.shininess));
+}
+
+/**
+ * @brief Sets the shininess 2D texture.
+ *
+ * @param[inout] material Modified material.
+ * @param[in] texture 2D lightmap.
+ */
+void material_shininess_mask(struct material *material, struct texture *mask)
+{
+    material_set_sampler(material, MATERIAL_BASE_SAMPLER_SHININESS_MASK, mask);
 }
 
 /**

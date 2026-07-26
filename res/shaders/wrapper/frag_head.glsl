@@ -32,6 +32,7 @@ layout (location = 1) uniform sampler2D specular_mask;
 layout (location = 2) uniform sampler2D diffuse_mask;
 layout (location = 3) uniform sampler2D emissive_mask;
 layout (location = 4) uniform sampler2D base_texture;
+layout (location = 5) uniform sampler2D shininess_mask;
 
 // ---------------------------------------------------------
 // ---------------------------------------------------------
@@ -122,7 +123,8 @@ vec4 light_specular(vec3 light_dir, vec4 light_color)
 {
     vec3 view_dir = normalize(CAMERA_POS - FragPos);
     vec3 reflect_dir = reflect(-light_dir, Normal);
-    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), MATERIAL.shininess);
+    float shine = MATERIAL.shininess * texture(shininess_mask, FragUV).r;
+    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), shine);
 
     return light_color
             * vec4(spec * MATERIAL.specular, 1.)

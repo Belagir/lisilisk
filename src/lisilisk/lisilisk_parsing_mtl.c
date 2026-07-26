@@ -49,16 +49,33 @@ static i32 parse_illumination_mode(struct parser_state *state,
 static i32 parse_dissolve_factor(struct parser_state *state,
         struct lisilisk_parse_mtl_material *mtl);
 
+
 static i32 parse_texture(struct parser_state *state,
         struct lisilisk_parse_mtl_material *mtl);
-static i32 parse_texture_ambient(struct parser_state *state,
-        struct lisilisk_parse_mtl_material *mtl);
-static i32 parse_texture_diffuse(struct parser_state *state,
-        struct lisilisk_parse_mtl_material *mtl);
-static i32 parse_texture_specular(struct parser_state *state,
-        struct lisilisk_parse_mtl_material *mtl);
-static i32 parse_texture_emissive(struct parser_state *state,
-        struct lisilisk_parse_mtl_material *mtl);
+static i32 parse_texture_to_sampler(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl, enum material_base_sampler sampler);
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+static const char *MATERIAL_BASE_SAMPLERS_NAMES[MATERIAL_BASE_SAMPLERS_NUMBER] = {
+        [MATERIAL_BASE_SAMPLER_AMBIENT_MASK]   = "map_Ka",
+        [MATERIAL_BASE_SAMPLER_SPECULAR_MASK]  = "map_Ks",
+        [MATERIAL_BASE_SAMPLER_DIFFUSE_MASK]   = "map_Kd",
+        [MATERIAL_BASE_SAMPLER_EMISSIVE_MASK]  = "map_Ke",
+        [MATERIAL_BASE_SAMPLER_TEXTURE]        = "# custom_texture",
+        [MATERIAL_BASE_SAMPLER_SHININESS_MASK] = "map_Ns",
+};
+
+static void(*MATERIAL_SETTERS[MATERIAL_BASE_SAMPLERS_NUMBER])(struct material *, struct texture *) = {
+        [MATERIAL_BASE_SAMPLER_AMBIENT_MASK]   = &material_ambient_mask,
+        [MATERIAL_BASE_SAMPLER_SPECULAR_MASK]  = &material_diffuse_mask,
+        [MATERIAL_BASE_SAMPLER_DIFFUSE_MASK]   = &material_specular_mask,
+        [MATERIAL_BASE_SAMPLER_EMISSIVE_MASK]  = &material_emissive_mask,
+        [MATERIAL_BASE_SAMPLER_TEXTURE]        = nullptr,
+        [MATERIAL_BASE_SAMPLER_SHININESS_MASK] = &material_shininess_mask,
+};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -156,7 +173,6 @@ void lisilisk_parse_mtl_to(const struct lisilisk_parse_mtl *mtl,
         lisilisk_parse_mtl_material_to(mtl->materials + i, new_material);
         lisilisk_parse_mtl_textures_to(mtl->materials + i, new_material, local_path,
                 texture_store, res_manager);
-
         hashmap_set(*materials, mtl->materials[i].name, &new_material);
     }
 }
@@ -198,12 +214,10 @@ static void lisilisk_parse_mtl_material_create(struct lisilisk_parse_mtl_materia
             .Ke = { 0 },
 
             .Ns = 0.,
-
-            .map_Ka = array_create(make_system_allocator(), sizeof(*material->map_Ka), 32),
-            .map_Ks = array_create(make_system_allocator(), sizeof(*material->map_Ks), 32),
-            .map_Kd = array_create(make_system_allocator(), sizeof(*material->map_Kd), 32),
-            .map_Ke = array_create(make_system_allocator(), sizeof(*material->map_Ke), 32),
     };
+    for (size_t i = 0 ; i < MATERIAL_BASE_SAMPLERS_NUMBER ; i++) {
+        material->maps[i] = array_create(make_system_allocator(), sizeof(*material->maps[i]), 32);
+    }
 }
 
 /**
@@ -213,11 +227,10 @@ static void lisilisk_parse_mtl_material_create(struct lisilisk_parse_mtl_materia
  */
 static void lisilisk_parse_mtl_material_destroy(struct lisilisk_parse_mtl_material *material)
 {
+    for (size_t i = 0 ; i < MATERIAL_BASE_SAMPLERS_NUMBER ; i++) {
+        array_destroy(make_system_allocator(), (ARRAY_ANY *) material->maps + i);
+    }
     array_destroy(make_system_allocator(), (ARRAY_ANY *) &material->name);
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &material->map_Ka);
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &material->map_Ks);
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &material->map_Kd);
-    array_destroy(make_system_allocator(), (ARRAY_ANY *) &material->map_Ke);
 
     *material = (struct lisilisk_parse_mtl_material) { 0 };
 }
@@ -240,18 +253,10 @@ static void lisilisk_parse_mtl_material_dump(struct lisilisk_parse_mtl_material 
     fprintf(file, "Ke %f %f %f\n", material->Ke[0], material->Ke[1], material->Ke[2]);
     fprintf(file, "Ns %f\n", material->Ns);
 
-
-    if (array_length(material->map_Ka)) {
-        fprintf(file, "map_Ka %s\n", material->map_Ka);
-    }
-    if (array_length(material->map_Ks)) {
-        fprintf(file, "map_Ks %s\n", material->map_Ks);
-    }
-    if (array_length(material->map_Kd)) {
-        fprintf(file, "map_Kd %s\n", material->map_Kd);
-    }
-    if (array_length(material->map_Ke)) {
-        fprintf(file, "map_Ke %s\n", material->map_Ke);
+    for (size_t i = 0 ; i < MATERIAL_BASE_SAMPLERS_NUMBER ; i++) {
+        if (array_length(material->maps[i])) {
+            fprintf(file, "%s %s\n", MATERIAL_BASE_SAMPLERS_NAMES[i], material->maps[i]);
+        }
     }
 }
 
@@ -295,19 +300,19 @@ static void lisilisk_parse_mtl_textures_to(struct lisilisk_parse_mtl_material *p
 
     work_path = path_from_cstring(alloc, local_path, '/', 2048);
 
-    for (ARRAY(char) *ptr = &parsed_material->map_Kd ; ptr <= &parsed_material->map_Ke ; ptr++) {
-        if (array_length(*ptr) == 0) {
+    for (size_t i = 0 ; i < MATERIAL_BASE_SAMPLERS_NUMBER ; i++) {
+        if (!MATERIAL_SETTERS[i] || array_length(parsed_material->maps[i]) == 0) {
             continue;
         }
-        path_ensure_capacity(alloc, &work_path, array_length(*ptr));
-        path_append(work_path, *ptr);
+
+        path_ensure_capacity(alloc, &work_path, array_length(parsed_material->maps[i]));
+        path_append(work_path, parsed_material->maps[i]);
 
         lisilisk_store_texture_register(texture_store, res_manager,
                 work_path, &texture_hash);
-        material_diffuse_mask(material, lisilisk_store_texture_retrieve(texture_store, texture_hash));
-        material_texture(material, lisilisk_store_texture_retrieve(texture_store, texture_hash));
-
+        MATERIAL_SETTERS[i](material, lisilisk_store_texture_retrieve(texture_store, texture_hash));
         path_up(work_path);
+
     }
 
     path_destroy(alloc, &work_path);
@@ -575,13 +580,13 @@ static i32 parse_texture(struct parser_state *state,
 
     switch (read_char) {
         case ('a'):
-            return parse_texture_ambient(state, mtl);
+            return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_AMBIENT_MASK);
         case ('d'):
-            return parse_texture_diffuse(state, mtl);
+            return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_DIFFUSE_MASK);
         case ('s'):
-            return parse_texture_specular(state, mtl);
+            return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_SPECULAR_MASK);
         case ('e'):
-            return parse_texture_emissive(state, mtl);
+            return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_EMISSIVE_MASK);
         default:
             break;
     }
@@ -589,60 +594,18 @@ static i32 parse_texture(struct parser_state *state,
     return 1;
 }
 
-static i32 parse_texture_ambient(struct parser_state *state,
-        struct lisilisk_parse_mtl_material *mtl)
+static i32 parse_texture_to_sampler(struct parser_state *state,
+        struct lisilisk_parse_mtl_material *mtl, enum material_base_sampler sampler)
 {
     while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
-        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Ka, 1);
-        array_push(mtl->map_Ka, state->buffer_array + state->buffer_idx);
+        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->maps[sampler], 1);
+        array_push(mtl->maps[sampler], state->buffer_array + state->buffer_idx);
         parser_state_advance(state);
     }
-    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Ka, 1);
-    array_push(mtl->map_Ka, &(char) { '\0' });
+
+    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->maps[sampler], 1);
+    array_push(mtl->maps[sampler], &(char) { '\0' });
 
     return 1;
-}
 
-static i32 parse_texture_diffuse(struct parser_state *state,
-        struct lisilisk_parse_mtl_material *mtl)
-{
-    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
-        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Kd, 1);
-        array_push(mtl->map_Kd, state->buffer_array + state->buffer_idx);
-        parser_state_advance(state);
-    }
-    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Kd, 1);
-    array_push(mtl->map_Kd, &(char) { '\0' });
-
-    return 1;
-}
-
-static i32 parse_texture_specular(struct parser_state *state,
-        struct lisilisk_parse_mtl_material *mtl)
-
-{
-    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
-        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Ks, 1);
-        array_push(mtl->map_Ks, state->buffer_array + state->buffer_idx);
-        parser_state_advance(state);
-    }
-    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Ks, 1);
-    array_push(mtl->map_Ks, &(char) { '\0' });
-
-    return 1;
-}
-
-static i32 parse_texture_emissive(struct parser_state *state,
-        struct lisilisk_parse_mtl_material *mtl)
-
-{
-    while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
-        array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Ke, 1);
-        array_push(mtl->map_Ke, state->buffer_array + state->buffer_idx);
-        parser_state_advance(state);
-    }
-    array_ensure_capacity(make_system_allocator(), (ARRAY_ANY *) &mtl->map_Ke, 1);
-    array_push(mtl->map_Ke, &(char) { '\0' });
-
-    return 1;
 }

@@ -184,10 +184,12 @@ struct lisilisk_parse_mtl_material {
 
     float Ns;
 
-    ARRAY(char) map_Ka;
-    ARRAY(char) map_Ks;
-    ARRAY(char) map_Kd;
-    ARRAY(char) map_Ke;
+    ARRAY(char) maps[MATERIAL_BASE_SAMPLERS_NUMBER];
+    // ARRAY(char) map_Ka;
+    // ARRAY(char) map_Ks;
+    // ARRAY(char) map_Kd;
+    // ARRAY(char) map_Ke;
+    // ARRAY(char) map_Ns;
 };
 
 struct lisilisk_parse_mtl {
