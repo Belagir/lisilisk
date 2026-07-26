@@ -145,6 +145,10 @@ bool lisilisk_store_texture_register(
     *texture = (struct texture) { 0 };
 
     image_buffer = resource_manager_fetch(res_manager, "lisilisk", image, &size_image);
+    if (!image_buffer) {
+        goto cleanup;
+    }
+
     texture_2D_file_mem(texture, image_buffer, size_image);
 
     if (!texture->specific.image_for_2D) {

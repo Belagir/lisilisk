@@ -84,6 +84,7 @@ void lisilisk_store_material_delete(
  */
 bool lisilisk_store_material_register(
         struct lisilisk_store_material *store,
+        struct lisilisk_store_texture *store_textures,
         struct resource_manager *res_manager,
         const char *library,
         const char *name,
@@ -111,7 +112,7 @@ bool lisilisk_store_material_register(
 
     // maybe the material is in a file library the geometry references ?
     if (!material) {
-        lisilisk_store_materials_load_from_library(store, res_manager, library);
+        lisilisk_store_materials_load_from_library(store, store_textures, res_manager, library);
         material = lisilisk_store_material_retrieve(store, hash);
     }
 
@@ -161,6 +162,7 @@ struct material *lisilisk_store_material_retrieve(
  */
 void lisilisk_store_materials_load_from_library(
         struct lisilisk_store_material *store,
+        struct lisilisk_store_texture *store_textures,
         struct resource_manager *res_manager,
         const char *library)
 {
@@ -174,6 +176,7 @@ void lisilisk_store_materials_load_from_library(
     ARRAY(byte) mtl_buffer = { 0 };
     // will hold the contents of the file in codebase form
     struct lisilisk_parse_mtl mtl = { };
+    PATH relative_path = nullptr;
 
     // will hold a set of materials to be moved to the store
     HASHMAP(struct material *) parsed_materials = nullptr;
@@ -196,10 +199,15 @@ void lisilisk_store_materials_load_from_library(
     // parse the bytes to produce the file contents in the parser intermediate object
     lisilisk_parse_mtl_parse(&mtl, mtl_buffer);
 
+    // construct a relative path from the .mtl file to find textures
+    relative_path = path_from_cstring(alloc, library, '/', 2048);
+    path_up(relative_path);
+
     // translate the intermediate object content into a mapped set of allocated materials
     parsed_materials = hashmap_create(make_system_allocator(), sizeof(*parsed_materials), array_length(mtl.materials));
-    lisilisk_parse_mtl_to(&mtl, nullptr, store->default_material, &parsed_materials);
+    lisilisk_parse_mtl_to(&mtl, relative_path, store->default_material, &parsed_materials, store_textures, res_manager);
 
+    path_destroy(alloc, &relative_path);
     array_destroy(alloc, (ARRAY_ANY *) &mtl_buffer);
     lisilisk_parse_mtl_destroy(&mtl);
 

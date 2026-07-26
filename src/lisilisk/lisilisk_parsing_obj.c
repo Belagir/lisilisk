@@ -146,6 +146,7 @@ void lisilisk_parse_obj_parse(struct lisilisk_parse_obj *obj, const byte *buffer
 void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
         struct resource_manager *res_manager,
         struct lisilisk_store_material *material_store,
+        struct lisilisk_store_texture *texture_store,
         PATH local_path,
         struct geometry *geometry)
 {
@@ -181,7 +182,7 @@ void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
         path_ensure_capacity(make_system_allocator(), &mtl_library_path, path_length(local_path));
         path_prepend(mtl_library_path, local_path);
 
-        if (lisilisk_store_material_register(material_store, res_manager,
+        if (lisilisk_store_material_register(material_store, texture_store, res_manager,
                 mtl_library_path, obj->usemtl, &material_hash)) {
             geometry_set_material(geometry, lisilisk_store_material_retrieve(material_store, material_hash));
         }

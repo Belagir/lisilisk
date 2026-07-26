@@ -14,6 +14,9 @@ static void lisilisk_parse_mtl_material_dump(struct lisilisk_parse_mtl_material 
         FILE *file);
 static void lisilisk_parse_mtl_material_to(struct lisilisk_parse_mtl_material *parsed_material,
         struct material *material);
+static void lisilisk_parse_mtl_textures_to(struct lisilisk_parse_mtl_material *parsed_material,
+        struct material *material, PATH local_path,
+        struct lisilisk_store_texture *texture_store, struct resource_manager *res_manager);
 
 // -----------------------------------------------------------------------------
 
@@ -133,10 +136,10 @@ void lisilisk_parse_mtl_parse(struct lisilisk_parse_mtl *mtl,
 void lisilisk_parse_mtl_to(const struct lisilisk_parse_mtl *mtl,
         PATH local_path,
         struct material *default_material,
-        HASHMAP(struct material *) *materials)
+        HASHMAP(struct material *) *materials,
+        struct lisilisk_store_texture *texture_store,
+        struct resource_manager *res_manager)
 {
-    (void) local_path;
-
     struct allocator alloc = make_system_allocator();
 
     struct material *new_material = nullptr;
@@ -151,6 +154,8 @@ void lisilisk_parse_mtl_to(const struct lisilisk_parse_mtl *mtl,
         new_material = alloc.malloc(alloc, sizeof(*new_material));
         material_create(new_material, default_material);
         lisilisk_parse_mtl_material_to(mtl->materials + i, new_material);
+        lisilisk_parse_mtl_textures_to(mtl->materials + i, new_material, local_path,
+                texture_store, res_manager);
 
         hashmap_set(*materials, mtl->materials[i].name, &new_material);
     }
@@ -272,6 +277,37 @@ static void lisilisk_parse_mtl_material_to(struct lisilisk_parse_mtl_material *p
 
             .shininess = parsed_material->Ns,
     };
+}
+
+/** */
+static void lisilisk_parse_mtl_textures_to(struct lisilisk_parse_mtl_material *parsed_material,
+        struct material *material, PATH local_path,
+        struct lisilisk_store_texture *texture_store, struct resource_manager *res_manager)
+{
+    struct allocator alloc = make_system_allocator();
+
+    u32 texture_hash = 0;
+    PATH work_path = nullptr;
+
+    if (!parsed_material || ! material || !texture_store || !res_manager || !local_path) {
+        return;
+    }
+
+    work_path = path_from_cstring(alloc, local_path, '/', 2048);
+
+    if (array_length(parsed_material->map_Kd)) {
+        path_ensure_capacity(alloc, &work_path, array_length(parsed_material->map_Kd));
+        path_append(work_path, parsed_material->map_Kd);
+
+        lisilisk_store_texture_register(texture_store, res_manager,
+                work_path, &texture_hash);
+        material_diffuse_mask(material, lisilisk_store_texture_retrieve(texture_store, texture_hash));
+        material_texture(material, lisilisk_store_texture_retrieve(texture_store, texture_hash));
+
+        path_up(work_path);
+    }
+
+    path_destroy(alloc, &work_path);
 }
 
 // -----------------------------------------------------------------------------

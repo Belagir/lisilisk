@@ -294,6 +294,7 @@ lisk_res_t lisk_material(
     u32 hash = 0;
 
     if (!lisilisk_store_material_register(&static_data.stores.materials,
+            &static_data.stores.textures,
             static_data.context.res_manager, library, name, &hash)) {
         logger_log(static_data.log, LOGGER_SEVERITY_WARN,
                 "Could not create or retreive material named %s.\n", name);
@@ -324,7 +325,7 @@ lisk_res_t lisk_geometry(
     path_obj_file = path_from_cstring(make_system_allocator(), obj_file, '/', 2048);
 
     if (lisilisk_store_geometry_register(&static_data.stores.geometries,
-            &static_data.stores.materials,
+            &static_data.stores.materials, &static_data.stores.textures,
             static_data.context.res_manager, path_obj_file, &hash)) {
 
         handle = (union lisk_res_layout) {

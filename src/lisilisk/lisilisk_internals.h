@@ -261,6 +261,7 @@ void lisilisk_store_geometry_delete(
 bool lisilisk_store_geometry_register(
         struct lisilisk_store_geometry *store,
         struct lisilisk_store_material *material_store,
+        struct lisilisk_store_texture *texture_store,
         struct resource_manager *res_manager,
         PATH obj_path,
         u32 *out_hash);
@@ -278,6 +279,7 @@ void lisilisk_store_material_delete(
 
 bool lisilisk_store_material_register(
         struct lisilisk_store_material *store,
+        struct lisilisk_store_texture *store_textures,
         struct resource_manager *res_manager,
         const char *library,                // TODO : switch to ARRAY(const char)
         const char *name,                   // TODO : switch to ARRAY(const char)
@@ -287,6 +289,7 @@ struct material *lisilisk_store_material_retrieve(
         u32 hash);
 void lisilisk_store_materials_load_from_library(
         struct lisilisk_store_material *store,
+        struct lisilisk_store_texture *store_textures,
         struct resource_manager *res_manager,
         const char *library);
 
@@ -335,6 +338,7 @@ void lisilisk_parse_obj_parse(struct lisilisk_parse_obj *obj,
 void lisilisk_parse_obj_to(const struct lisilisk_parse_obj *obj,
         struct resource_manager *res_manager,
         struct lisilisk_store_material *material_store,
+        struct lisilisk_store_texture *texture_store,
         PATH local_path,
         struct geometry *geometry);
 // Writes data parsed to a stream, in a form compatible with the .obj format.
@@ -349,7 +353,9 @@ void lisilisk_parse_mtl_parse(struct lisilisk_parse_mtl *mtl,
 void lisilisk_parse_mtl_to(const struct lisilisk_parse_mtl *mtl,
         PATH local_path,
         struct material *default_material,
-        HASHMAP(struct material *) *materials);
+        HASHMAP(struct material *) *materials,
+        struct lisilisk_store_texture *texture_store,
+        struct resource_manager *res_manager);
 void lisilisk_parse_mtl_dump(struct lisilisk_parse_mtl *mtl, FILE *file);
 
 // -----------------------------------------------------------------------------
