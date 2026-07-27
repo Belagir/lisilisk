@@ -70,8 +70,8 @@ static const char *MATERIAL_BASE_SAMPLERS_NAMES[MATERIAL_BASE_SAMPLERS_NUMBER] =
 
 static void(*MATERIAL_SETTERS[MATERIAL_BASE_SAMPLERS_NUMBER])(struct material *, struct texture *) = {
         [MATERIAL_BASE_SAMPLER_AMBIENT_MASK]   = &material_ambient_mask,
-        [MATERIAL_BASE_SAMPLER_SPECULAR_MASK]  = &material_diffuse_mask,
-        [MATERIAL_BASE_SAMPLER_DIFFUSE_MASK]   = &material_specular_mask,
+        [MATERIAL_BASE_SAMPLER_SPECULAR_MASK]  = &material_specular_mask,
+        [MATERIAL_BASE_SAMPLER_DIFFUSE_MASK]   = &material_diffuse_mask,
         [MATERIAL_BASE_SAMPLER_EMISSIVE_MASK]  = &material_emissive_mask,
         [MATERIAL_BASE_SAMPLER_TEXTURE]        = nullptr,
         [MATERIAL_BASE_SAMPLER_SHININESS_MASK] = &material_shininess_mask,
@@ -213,7 +213,7 @@ static void lisilisk_parse_mtl_material_create(struct lisilisk_parse_mtl_materia
             .Kd = { 0 },
             .Ke = { 0 },
 
-            .Ns = 0.,
+            .Ns = 1.,
     };
     for (size_t i = 0 ; i < MATERIAL_BASE_SAMPLERS_NUMBER ; i++) {
         material->maps[i] = array_create(make_system_allocator(), sizeof(*material->maps[i]), 32);
@@ -278,7 +278,7 @@ static void lisilisk_parse_mtl_material_to(struct lisilisk_parse_mtl_material *p
             .ambient_strength = 1,
             .diffuse_strength = 1,
             .specular_strength = 1,
-            .emissive_strength = 0,
+            .emissive_strength = 1,
 
             .shininess = parsed_material->Ns,
     };
@@ -294,14 +294,14 @@ static void lisilisk_parse_mtl_textures_to(struct lisilisk_parse_mtl_material *p
     u32 texture_hash = 0;
     PATH work_path = nullptr;
 
-    if (!parsed_material || ! material || !texture_store || !res_manager || !local_path) {
+    if (!parsed_material || !material || !texture_store || !res_manager || !local_path) {
         return;
     }
 
     work_path = path_from_cstring(alloc, local_path, '/', 2048);
 
     for (size_t i = 0 ; i < MATERIAL_BASE_SAMPLERS_NUMBER ; i++) {
-        if (!MATERIAL_SETTERS[i] || array_length(parsed_material->maps[i]) == 0) {
+        if (!MATERIAL_SETTERS[i] || (array_length(parsed_material->maps[i]) == 0)) {
             continue;
         }
 
@@ -311,11 +311,23 @@ static void lisilisk_parse_mtl_textures_to(struct lisilisk_parse_mtl_material *p
         lisilisk_store_texture_register(texture_store, res_manager,
                 work_path, &texture_hash);
         MATERIAL_SETTERS[i](material, lisilisk_store_texture_retrieve(texture_store, texture_hash));
-        path_up(work_path);
 
+        path_up(work_path);
     }
 
     path_destroy(alloc, &work_path);
+
+    struct texture *fallback = material->samplers[MATERIAL_BASE_SAMPLER_DIFFUSE_MASK];
+    if (fallback == texture_store->default_texture) {
+        return;
+    }
+
+    if (material->samplers[MATERIAL_BASE_SAMPLER_AMBIENT_MASK] == texture_store->default_texture) {
+        MATERIAL_SETTERS[MATERIAL_BASE_SAMPLER_AMBIENT_MASK](material, fallback);
+    }
+    if (material->samplers[MATERIAL_BASE_SAMPLER_SPECULAR_MASK] == texture_store->default_texture) {
+        MATERIAL_SETTERS[MATERIAL_BASE_SAMPLER_SPECULAR_MASK](material, fallback);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -567,28 +579,51 @@ static i32 parse_texture(struct parser_state *state,
 
     if (!(parser_expect(state, (char []) { 'a' }, 1, NULL)
             && parser_expect(state, (char []) { 'p' }, 1, NULL)
-            && parser_expect(state, (char []) { '_' }, 1, NULL)
-            && parser_expect(state, (char []) { 'K' }, 1, NULL))) {
+            && parser_expect(state, (char []) { '_' }, 1, NULL))) {
         return 0;
     }
 
-    if (!parser_expect(state, (char []) { 'a', 'd', 's', 'e' }, 4, &read_char)) {
-        return 0;
-    }
+    if (parser_accept(state, (char []) { 'K' }, 1, NULL)) {
+        if (!parser_expect(state, (char []) { 'a', 'd', 's', 'e' }, 4, &read_char)) {
+            return 0;
+        }
+        parser_skip_whitespace(state);
 
-    parser_skip_whitespace(state);
+        switch (read_char) {
+            case ('a'):
+                bytewise_copy(&mtl->Ka, &(float[3]) { 1, 1, 1 }, sizeof(mtl->Ka));
+                return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_AMBIENT_MASK);
+            case ('d'):
+                bytewise_copy(&mtl->Kd, &(float[3]) { 1, 1, 1 }, sizeof(mtl->Kd));
+                return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_DIFFUSE_MASK);
+            case ('s'):
+                bytewise_copy(&mtl->Ks, &(float[3]) { 1, 1, 1 }, sizeof(mtl->Ks));
+                return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_SPECULAR_MASK);
+            case ('e'):
+                bytewise_copy(&mtl->Ke, &(float[3]) { 1, 1, 1 }, sizeof(mtl->Ke));
+                return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_EMISSIVE_MASK);
+            default:
+                return 0;
+        }
+    } else if (parser_accept(state, (char []) { 'N' }, 1, NULL)) {
+        if (!parser_expect(state, (char []) { 's' }, 4, &read_char)) {
+            return 0;
+        }
+        parser_skip_whitespace(state);
 
-    switch (read_char) {
-        case ('a'):
-            return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_AMBIENT_MASK);
-        case ('d'):
-            return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_DIFFUSE_MASK);
-        case ('s'):
-            return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_SPECULAR_MASK);
-        case ('e'):
-            return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_EMISSIVE_MASK);
-        default:
-            break;
+        mtl->Ns = 1.0;
+        return parse_texture_to_sampler(state, mtl, MATERIAL_BASE_SAMPLER_SHININESS_MASK);
+
+    } else if (parser_expect(state, (char []) { 'r' }, 1, NULL)
+            && parser_expect(state, (char []) { 'e' }, 1, NULL)
+            && parser_expect(state, (char []) { 'f' }, 1, NULL)
+            && parser_expect(state, (char []) { 'l' }, 1, NULL)
+    ){
+        parser_skip_whitespace(state);
+        while (!parser_lookup(state, (char []) { '\n' }, 1, NULL)) {
+            parser_state_advance(state);
+        }
+        return 1;
     }
 
     return 1;

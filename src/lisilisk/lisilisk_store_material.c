@@ -44,7 +44,7 @@ struct lisilisk_store_material lisilisk_store_material_create(
     material_emissive_mask(new_store.default_material,
             new_store.texture_store->default_texture);
 
-    material_shininess(new_store.default_material, 64.);
+    material_shininess(new_store.default_material, 1.);
     material_shininess_mask(new_store.default_material,
             new_store.texture_store->default_texture);
 
