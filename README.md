@@ -7,7 +7,7 @@ There is supposed to be four layers to the project:
 1. *OpenGL* + *SDL2* as the basic target-specific layer ;
 2. My own "unstandard" library, a separate project that provides utilities ;
 3. The "3dful" layer, that implements unit operations for the engine ;
-4. The Lisilisk implementation (doesn't exist yet) that imposes its paradigm to the user in exchange for a simpler interface.
+4. The Lisilisk implementation (doesn't exist fully yet) that imposes its paradigm to the user in exchange for a simpler interface.
 
 ## Usage
 

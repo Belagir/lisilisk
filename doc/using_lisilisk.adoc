@@ -11,7 +11,7 @@ v1.0
 *Lisilisk* tries to be dynamic when it comes to rendered objects: any change to the scene or one of its models is immediately transcribed to the render. To achieve this, *Lisilisk* will remove from you the possibility (and obligation) to manually load and unload resources, and instead will only let you interact with them through *handles*. When an handle is first created for some resource you request, the engine will manage all the boilerplate to present you with a usable geometry, shader, or material.
 
 [sidebar]
-In fact, every time you will reference something by some name, if you already did so previously, the same handle will be returned: the library will have chached the object for you. You may store handles yourself, but they may become invalid if whatever they reference is removed at some point.
+In fact, every time you will reference something by some name, if you already did so previously, the same handle will be returned: the library will have cached the object for you. You may store handles yourself, but they may become invalid if whatever they reference is removed at some point.
 
 *Lisilisk* manages a _scene_. This scene has some global environment visuals, a camera, light emitters, and models to render some world to the user.
 
@@ -54,6 +54,7 @@ This step depends on what your toolchain is. You want to :
     - `lisilisk/inc`
 2. Link against:
     - `lisilisk/bin/liblisilisk.a`
+    - `lisilisk/unstandard/bin/libunstandard.a`
     - OpenGL
     - SDL2 & SDL2_image
     - The LibC math libraries
@@ -64,6 +65,7 @@ In a simple toolchain (like make), this is done by passing flags to the compiler
     - `-Ilisilisk/inc`
 - linker flags :
     - `+-Llisilisk/bin -llisilisk+`
+    - `+-Llisilisk/unstandard/bin -lunstandard+`
     - `+-lGL+`
     - `+`sdl2-config --libs` -lSDL2_image+`
     - `+-lm+`
